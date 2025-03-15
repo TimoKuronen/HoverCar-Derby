@@ -20,10 +20,16 @@ public class HoverCarControl : MonoBehaviour
     private float currentTurn;
     private Rigidbody rig;
 
+    private float originalAccelerationValue;
+    private float originalMaxSpeed;
+
     void Start()
     {
         rig = GetComponent<Rigidbody>();
         layerMask = 1 << LayerMask.NameToLayer("Terrain");
+
+        originalAccelerationValue = forwardAcceleration;
+        originalMaxSpeed = maxSpeed;
     }
 
     void Update()
@@ -64,6 +70,21 @@ public class HoverCarControl : MonoBehaviour
             }
         }
     }
+
+    public void ToggleNitroBoost(bool value, float nitroMultiplierValue, float maxSpeedMultiplier)
+    {
+        if (value)
+        {
+            forwardAcceleration *= nitroMultiplierValue;
+            maxSpeed *= maxSpeedMultiplier;
+        }
+        else
+        {
+            forwardAcceleration = originalAccelerationValue;
+            maxSpeed = originalMaxSpeed;
+        }
+    }
+
 
     private void ApplyMovement()
     {

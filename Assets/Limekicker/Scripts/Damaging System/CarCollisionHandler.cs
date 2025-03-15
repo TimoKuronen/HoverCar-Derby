@@ -15,7 +15,7 @@ public class CarCollisionHandler : MonoBehaviour
     private void OnCollisionEnter(Collision collision)
     {
         float impactForce = collision.relativeVelocity.magnitude;
-        Debug.Log(impactForce);
+        //Debug.Log(impactForce);
 
         if (impactForce < 5)
         {

@@ -1,10 +1,8 @@
 using System;
-
 using UnityEngine;
 
 public class CarPartCondition : MonoBehaviour
 {
-
     [SerializeField] private PartStages[] carPartStates;
 
     private CarPart carPart;
@@ -47,6 +45,9 @@ public class CarPartCondition : MonoBehaviour
         currentConditionIndex = newIndex;
         for (int i = 0; i < carPartStates.Length; i++)
         {
+            if (carPartStates[i].stateObject == null)
+                return;
+
             if (i == currentConditionIndex)
             {
                 carPartStates[i].stateObject.Toggle(true);

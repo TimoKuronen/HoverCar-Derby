@@ -9,6 +9,10 @@ public abstract class CarPart : MonoBehaviour
     protected virtual void Start()
     {
         CurrentHealth = maxHealth;
+
+        CurrentHealth = UnityEngine.Random.Range(30, maxHealth);
+
+        OnCarPartHealthUpdated?.Invoke(CurrentHealth);
     }
 
     public virtual void TakeDamage(float damage)
@@ -17,15 +21,18 @@ public abstract class CarPart : MonoBehaviour
         if (CurrentHealth <= 0)
         {
             CurrentHealth = 0;
-            OnDestroyed();           
+            OnDestroyed();
         }
 
         OnCarPartHealthUpdated?.Invoke(CurrentHealth);
     }
 
-    public virtual void RepairPart(float repairAmount)
+    public virtual void RepairPart(float newHealthAmount)
     {
-        CurrentHealth += repairAmount;
+        Debug.Log("repairing from " + CurrentHealth + " to " + newHealthAmount);
+        CurrentHealth = newHealthAmount;
+
+        OnCarPartHealthUpdated?.Invoke(CurrentHealth);
     }
 
     protected virtual void OnDestroyed()

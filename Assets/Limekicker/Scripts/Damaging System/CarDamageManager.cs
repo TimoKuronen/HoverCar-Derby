@@ -17,6 +17,18 @@ public class CarDamageManager : MonoBehaviour
         CarParts[CarPartType.RearBumper] = GetComponentInChildren<RearBumper>();
     }
 
+    private void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.Alpha1)) 
+        {
+           
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            Repair(30);
+        }
+    }
+
     public void ApplyDamageToPart(CarPartType partType, float damage)
     {
         OnCarDamaged?.Invoke();
@@ -29,38 +41,79 @@ public class CarDamageManager : MonoBehaviour
 
     public void Repair(float amount)
     {
+        float[] currentPartHealth = new float[CarParts.Count];
+        int index = 0;
+        foreach (var item in CarParts)
+        {
+            currentPartHealth[index] = item.Value.CurrentHealth;
+            index++;
+        }
 
+        float[] repairValues = DistributeValueWithClamp(currentPartHealth, amount, 100);
+        index = 0;
+
+        foreach (var item in CarParts)
+        {
+            item.Value.RepairPart(repairValues[index]);
+            index++;
+        }
     }
 
-    private float[] DistributeValue(float[] array, float additionValue)
+    private float[] DistributeValueWithClamp(float[] array, float additionValue, float maxLimit = 100f)
     {
         if (array == null || array.Length == 0)
             throw new System.ArgumentException("Array cannot be null or empty");
 
-        float minValue = Mathf.Min(array);
-        float maxValue = Mathf.Max(array);
+        float[] result = (float[])array.Clone();
+        float remainingAddition = additionValue;
 
-        // Prevent division by zero if all elements are the same
-        if (minValue == maxValue)
-            return array.Select(val => val + (additionValue / array.Length)).ToArray();
-
-        float totalWeight = 0;
-        float[] weights = new float[array.Length];
-
-        // Calculate weights inversely proportional to magnitude
-        for (int i = 0; i < array.Length; i++)
+        while (remainingAddition > 0)
         {
-            weights[i] = maxValue - array[i]; // Lower values get higher weight
-            totalWeight += weights[i];
-        }
+            // Find min & max for weighting
+            float minValue = result.Where(val => val < maxLimit).DefaultIfEmpty(maxLimit).Min();
+            float maxValue = result.Where(val => val < maxLimit).DefaultIfEmpty(maxLimit).Max();
 
-        float[] result = new float[array.Length];
+            // If all values are already at maxLimit, break
+            if (minValue >= maxLimit)
+                break;
 
-        // Distribute additionValue based on weights
-        for (int i = 0; i < array.Length; i++)
-        {
-            float distributedValue = (weights[i] / totalWeight) * additionValue;
-            result[i] = array[i] + distributedValue;
+            // Calculate weights inversely
+            float totalWeight = 0;
+            float[] weights = new float[result.Length];
+
+            for (int i = 0; i < result.Length; i++)
+            {
+                if (result[i] < maxLimit) // Only consider values below max
+                {
+                    weights[i] = maxValue - result[i]; // Lower values get higher weight
+                    totalWeight += weights[i];
+                }
+            }
+
+            if (totalWeight == 0)
+                break;
+
+            // Distribute the addition
+            float remainingBeforeLoop = remainingAddition;
+            for (int i = 0; i < result.Length; i++)
+            {
+                if (result[i] < maxLimit)
+                {
+                    float distributedValue = (weights[i] / totalWeight) * remainingAddition;
+                    result[i] += distributedValue;
+
+                    // Clamp to maxLimit
+                    if (result[i] > maxLimit)
+                    {
+                        remainingAddition -= (result[i] - maxLimit); // Reduce remainingAddition
+                        result[i] = maxLimit; // Cap at maxLimit
+                    }
+                }
+            }
+
+            // If no value changed, stop (prevents infinite loops)
+            if (Mathf.Approximately(remainingBeforeLoop, remainingAddition))
+                break;
         }
 
         return result;
