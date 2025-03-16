@@ -4,28 +4,46 @@ using UnityEngine;
 
 public class CameraFollow : MonoBehaviour
 {
-    [SerializeField] private Vector3 offset;
-    [SerializeField] private Vector3 rotation;
-    [SerializeField] private float smoothSpeed = 0.125f;
-    [SerializeField] private float rotationSpeed = 0.25f;
+    public Transform target; // The car
+    public float distance = 15f; // Distance from the car
+    public float height = 5f; // Height above the car
+    public float rotationSpeed = 3f; // How fast camera rotates towards car’s forward direction
+    public float lookAheadMultiplier = 2f; // How far ahead the camera looks based on velocity
+    public float minTiltAngle = 30f; // Angle when stationary
+    public float maxTiltAngle = 10f; // Angle when at max speed
+    public float maxSpeedForTilt = 50f; // Speed at which we reach max tilt
 
-    private Transform target;
+    private Vector3 velocity = Vector3.zero;
 
-    private void Start()
+    void LateUpdate()
     {
-        target = GameObject.FindGameObjectWithTag("Player").transform;
-    }
-    private void FixedUpdate()
-    {
-        if (target == null)
+        if (!target) return;
+
+        // Get car velocity
+        Rigidbody rb = target.GetComponent<Rigidbody>();
+        float speed = rb.velocity.magnitude;
+
+        // Define camera target position (behind & above the car)
+        Vector3 targetPosition = target.position - target.forward * distance + Vector3.up * height;
+
+        // Apply look-ahead effect if moving fast
+        if (speed > 2f)
         {
-            return;
+            targetPosition += target.forward * (speed * lookAheadMultiplier * 0.1f);
         }
 
-        Vector3 desiredPosition = target.position + offset;
-        Vector3 smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed);
+        // Smoothly move the camera to the target position
+        transform.position = Vector3.SmoothDamp(transform.position, targetPosition, ref velocity, 0.1f);
 
-        transform.eulerAngles = rotation;
-        transform.position = smoothedPosition;
+        // Calculate dynamic tilt angle based on speed
+        float speedFactor = Mathf.Clamp01(speed / maxSpeedForTilt);
+        float currentTiltAngle = Mathf.Lerp(minTiltAngle, maxTiltAngle, speedFactor);
+
+        // Create rotation that looks at the car but adjusts tilt
+        Quaternion targetRotation = Quaternion.LookRotation(target.position - transform.position);
+        Quaternion tiltRotation = Quaternion.Euler(currentTiltAngle, targetRotation.eulerAngles.y, 0);
+
+        // Smoothly rotate the camera towards this new rotation
+        transform.rotation = Quaternion.Slerp(transform.rotation, tiltRotation, rotationSpeed * Time.deltaTime);
     }
 }

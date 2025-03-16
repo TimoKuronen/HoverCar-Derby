@@ -1,0 +1,79 @@
+using UnityEngine;
+
+public class HoverCarMover : MonoBehaviour
+{
+    [SerializeField] private float inputDeadZone = 0.1f;
+    [SerializeField] private float forwardAcceleration;
+    [SerializeField] private float backwardAcceleration;
+    [SerializeField] private float turnStrength = 10f;
+    [SerializeField] private float maxSpeed;
+    [SerializeField] private float maxAngularVelocity = 60f;
+
+    private float currentThrust = 0.0f;
+    private float currentTurn;
+    private float originalAccelerationValue;
+    private float originalMaxSpeed;
+    private Rigidbody rig;
+
+    void Start()
+    {
+        rig = GetComponent<Rigidbody>();
+
+        originalAccelerationValue = forwardAcceleration;
+        originalMaxSpeed = maxSpeed;
+    }
+
+    void Update()
+    {
+        GetInput();
+    }
+
+    private void FixedUpdate()
+    {
+        rig.maxAngularVelocity = maxAngularVelocity;
+
+        ApplyMovement();
+    }
+
+    private void GetInput()
+    {
+        float moveInput = Input.GetAxis("Vertical");
+        float turnInput = Input.GetAxis("Horizontal");
+
+        currentThrust = Mathf.Abs(moveInput) > inputDeadZone ? moveInput * (moveInput > 0 ? forwardAcceleration : backwardAcceleration) : 0f;
+        currentTurn = Mathf.Abs(turnInput) > inputDeadZone ? turnInput * turnStrength : 0f;
+    }
+
+
+    public void ToggleNitroBoost(bool value, float nitroMultiplierValue, float maxSpeedMultiplier)
+    {
+        if (value)
+        {
+            forwardAcceleration *= nitroMultiplierValue;
+            maxSpeed *= maxSpeedMultiplier;
+        }
+        else
+        {
+            forwardAcceleration = originalAccelerationValue;
+            maxSpeed = originalMaxSpeed;
+        }
+    }
+
+    private void ApplyMovement()
+    {
+        if (currentThrust != 0)
+        {
+            rig.AddForce(transform.forward * currentThrust, ForceMode.Acceleration);
+        }
+
+        if (currentTurn != 0)
+        {
+            rig.AddTorque(Vector3.up * currentTurn, ForceMode.Acceleration);
+        }
+
+        if (rig.velocity.magnitude > maxSpeed)
+        {
+            rig.velocity = rig.velocity.normalized * maxSpeed;
+        }
+    }
+}

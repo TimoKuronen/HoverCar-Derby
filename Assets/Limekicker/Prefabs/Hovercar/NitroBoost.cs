@@ -1,12 +1,8 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class NitroBoost : MonoBehaviour
 {
     [SerializeField] private float maxNitroAmount;
-    [SerializeField] private float currentNitroAmount;
     [SerializeField] private float nitroBurnRate;
     [SerializeField] private float minimumNitroRequiredToBurn;
     [SerializeField] private float regenerationRate;
@@ -15,27 +11,16 @@ public class NitroBoost : MonoBehaviour
     [SerializeField] private float accelerationMultiplierValue;
     [SerializeField] private float maxSpeedMultiplier;
 
-    private HoverCarControl hoverCarControl;
+    private HoverCarMover hoverCarControl;
     private bool nitroBoostActivated;
     private float cooldownTimer;
+    private float currentNitroAmount;
 
     private void Start()
     {
-        hoverCarControl = GetComponent<HoverCarControl>();
+        hoverCarControl = GetComponent<HoverCarMover>();
         cooldownTimer = cooldownDuration;
-    }
-
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.LeftShift))
-        {
-            if (currentNitroAmount > minimumNitroRequiredToBurn && cooldownTimer > cooldownDuration)
-                ToggleNitro();
-        }
-        if (Input.GetKeyUp(KeyCode.LeftShift))
-        {
-            ToggleNitro();
-        }
+        currentNitroAmount = maxNitroAmount;
     }
 
     private void FixedUpdate()
@@ -58,10 +43,15 @@ public class NitroBoost : MonoBehaviour
         }
     }
 
-    private void ToggleNitro()
+    public void ToggleNitro()
     {
         nitroBoostActivated = !nitroBoostActivated;
 
         hoverCarControl.ToggleNitroBoost(nitroBoostActivated, accelerationMultiplierValue, maxSpeedMultiplier);
+    }
+
+    public bool CanUse()
+    {
+        return currentNitroAmount > minimumNitroRequiredToBurn && cooldownTimer > cooldownDuration;
     }
 }

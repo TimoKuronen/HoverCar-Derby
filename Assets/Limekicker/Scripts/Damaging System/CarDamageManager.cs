@@ -19,10 +19,14 @@ public class CarDamageManager : MonoBehaviour
 
     private void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Alpha1)) 
+        if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-           
+            CarPartType[] parts = (CarPartType[])Enum.GetValues(typeof(CarPartType));
+            int index = UnityEngine.Random.Range(0, parts.Length);
+
+            ApplyDamageToPart(parts[index], 33);
         }
+
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
             Repair(30);

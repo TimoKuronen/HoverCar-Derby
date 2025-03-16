@@ -76,9 +76,12 @@ GameObject:
   - component: {fileID: 6500000}
   - component: {fileID: 2021766897032597652}
   - component: {fileID: 6513018189437385495}
+  - component: {fileID: -1746887455403732527}
+  - component: {fileID: 1773029068123434261}
+  - component: {fileID: -8266341070008308358}
   m_Layer: 0
   m_Name: Hover Car
-  m_TagString: Player
+  m_TagString: Vehicle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -147,15 +150,8 @@ MonoBehaviour:
   - {fileID: 100030}
   - {fileID: 100014}
   - {fileID: 100012}
-  inputDeadZone: 0.1
   hoverForce: 1000
   hoverHeight: 1.5
-  forwardAcceleration: 60
-  backwardAcceleration: 25
-  currentThrust: 0
-  turnStrength: 25
-  maxSpeed: 14
-  maxAngularVelocity: 4
 --- !u!65 &6500000
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -199,6 +195,49 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e27e51b1258570a4f86fc32e7e7afb20, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &-1746887455403732527
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100026}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04fb63a47988ec746af1c938bf02de42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxNitroAmount: 100
+  nitroBurnRate: 20
+  minimumNitroRequiredToBurn: 20
+  regenerationRate: 5
+  cooldownDuration: 3
+  accelerationMultiplierValue: 2
+  maxSpeedMultiplier: 1.5
+--- !u!114 &1773029068123434261
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100026}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5aaaff62b5323674c862ba426a7cd102, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &-8266341070008308358
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100026}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a579cce39eed17408603eace1e8cebd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &100030
