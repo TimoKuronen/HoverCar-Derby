@@ -13,7 +13,11 @@ public class HoverCarMover : MonoBehaviour
     private float currentTurn;
     private float originalAccelerationValue;
     private float originalMaxSpeed;
+    private float horizontalInput;
+    private float verticalInput;
+
     private Rigidbody rig;
+    private IInputManager inputManager;
 
     void Start()
     {
@@ -21,6 +25,7 @@ public class HoverCarMover : MonoBehaviour
 
         originalAccelerationValue = forwardAcceleration;
         originalMaxSpeed = maxSpeed;
+        inputManager = Services.Get<IInputManager>();
     }
 
     void Update()
@@ -37,13 +42,14 @@ public class HoverCarMover : MonoBehaviour
 
     private void GetInput()
     {
-        float moveInput = Input.GetAxis("Vertical");
-        float turnInput = Input.GetAxis("Horizontal");
+        Vector2 delta = inputManager.CurrentTouchPosition - inputManager.StartingTouchPosition;
 
-        currentThrust = Mathf.Abs(moveInput) > inputDeadZone ? moveInput * (moveInput > 0 ? forwardAcceleration : backwardAcceleration) : 0f;
-        currentTurn = Mathf.Abs(turnInput) > inputDeadZone ? turnInput * turnStrength : 0f;
+        horizontalInput = Mathf.Clamp(delta.x / Screen.width, -1f, 1f);
+        verticalInput = Mathf.Clamp(delta.y / Screen.height, -1f, 1f);
+
+        currentThrust = Mathf.Abs(verticalInput) > inputDeadZone ? verticalInput * (verticalInput > 0 ? forwardAcceleration : backwardAcceleration) : 0f;
+        currentTurn = Mathf.Abs(horizontalInput) > inputDeadZone ? horizontalInput * turnStrength : 0f;
     }
-
 
     public void ToggleNitroBoost(bool value, float nitroMultiplierValue, float maxSpeedMultiplier)
     {

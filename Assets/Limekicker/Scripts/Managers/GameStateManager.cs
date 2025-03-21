@@ -10,7 +10,6 @@ public class GameStateHandler : IGameStateHandler
     public void Initialize()
     {
         SetGameState(GameState.Normal);
-        Services.Get<IInputManager>().OnCancel += TogglePause;
     }
 
     private void TogglePause()

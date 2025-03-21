@@ -2,9 +2,6 @@ public class GameServices : Services
 {
     protected override void Initialize()
     {
-        var gameManager = new GameManager();
-        AddService<IGameManager>(gameManager);
-
         var gameStateHandler = new GameStateHandler();
         AddService<IGameStateHandler>(gameStateHandler);
 
@@ -13,9 +10,6 @@ public class GameServices : Services
 
         var timeManager = new TimeManager();
         AddService<ITimeManager>(timeManager);
-
-        var uiNavigator = new UIControllerNavigator();
-        AddService<IUIControllerNavigator>(uiNavigator);
 
         var soundManager = new SoundManager();
         AddService<ISoundManager>(soundManager);

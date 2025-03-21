@@ -1,91 +1,71 @@
-using System;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
 
 public class InputManager : IInputManager
 {
-    public InputMethod CurrentInputMethod { get; private set; }
-    public Vector2 MousePosition { get; private set; }
-    public Action<Vector3, GameObject> OnLeftMouseButton { get; private set; }
-    public Action OnCancel { get; set; }
-    public Action OnMoveDown { get; set; }
-    public Action OnMoveUp { get; set; }
-    public Action OnMoveLeft { get; set; }
-    public Action OnMoveRight { get; set; }
-    public Action OnSubmit { get; set; }
+    public Vector2 CurrentTouchPosition { get; private set; }
 
-    private bool canNavigateUI;
-    private float lastInputTime;
-    private float inputCooldown = 0.2f;
+    public Vector2 StartingTouchPosition { get; private set; }
 
-    private InputActionAsset inputActions;
-    private InputActionMap uiActionMap;
-    private InputActionMap playerActionMap;
+    public bool InputGiven { get; private set; }
 
-    private InputAction moveAction;
-    private InputAction lookAction;
+    public void Initialize() { }
 
-    public void Initialize()
+    public void Update()
     {
-
-    }
-
-    public void AddInputReference(InputActionAsset inputAsset)
-    {
-        inputActions = inputAsset;
-        uiActionMap = inputActions.FindActionMap("UI");
-        playerActionMap = inputActions.FindActionMap("Player");
-
-        uiActionMap.FindAction("Navigate").performed += ctx => HandleNavigation(ctx);
-        uiActionMap.FindAction("Submit").performed += ctx => OnSubmit?.Invoke();
-        uiActionMap.FindAction("Cancel").performed += ctx => OnCancel?.Invoke();
-
-        moveAction = playerActionMap.FindAction("Move");
-        lookAction = playerActionMap.FindAction("Look");
-
-        uiActionMap.Enable();
-        playerActionMap.Enable();
-    }
-
-    public Vector2 GetMoveInput()
-    {
-        return moveAction.ReadValue<Vector2>();
-    }
-
-    void IUpdateableService.Update()
-    {
-        if (inputActions == null)
-            return;
-    }
-
-    void HandleNavigation(InputAction.CallbackContext context)
-    {
-        Vector2 navigationInput = context.ReadValue<Vector2>();
-
-        if (!context.performed)
+        if (Input.GetKeyDown(KeyCode.A))
         {
-            //Debug.Log("prevent navigation because we are at phase: " + context.phase);
+            StartingTouchPosition = new Vector2(0, 0);
+            CurrentTouchPosition = new Vector2(-500, 0);
+            InputGiven = true;
+        }
+        else if (Input.GetKeyDown(KeyCode.D))
+        {
+            StartingTouchPosition = new Vector2(0, 0);
+            CurrentTouchPosition = new Vector2(500, 0);
+            InputGiven = true;
+        }
+        else if (Input.GetKeyUp(KeyCode.A) || Input.GetKeyUp(KeyCode.D))
+        {
+            if (!Input.anyKey)
+                InputGiven = false;
+        }
+
+        if (GameManager.Instance.GetMouseMovementInput)
+        {
+            if (Input.GetMouseButtonDown(0))
+            {
+                StartingTouchPosition = Input.mousePosition;
+                InputGiven = true;
+            }
+            if (Input.GetMouseButton(0))
+            {
+                CurrentTouchPosition = Input.mousePosition;
+            }
+            if (Input.GetMouseButtonUp(0))
+            {
+                InputGiven = false;
+            }
             return;
         }
-        //else Debug.Log(context.phase);
 
-        if (Time.unscaledTime - lastInputTime < inputCooldown)
+        if (Input.touchCount == 0)
+        {
+            StartingTouchPosition = Vector2.zero;
+            CurrentTouchPosition = Vector2.zero;
+            InputGiven = false;
             return;
+        }
 
-        if (navigationInput.magnitude == 0)
-            return;
+        if (Input.touches[0].phase == TouchPhase.Began)
+        {
+            StartingTouchPosition = Input.touches[0].position;
+            CurrentTouchPosition = Input.GetTouch(0).position;
+        }
+        else if (Input.touches[0].phase == TouchPhase.Moved)
+        {
+            CurrentTouchPosition = Input.GetTouch(0).position;
+        }
 
-        if (navigationInput.y > 0)
-            OnMoveUp?.Invoke();
-        else if (navigationInput.y < 0)
-            OnMoveDown?.Invoke();
-
-        if (navigationInput.x > 0)
-            OnMoveRight?.Invoke();
-        else if (navigationInput.x < 0)
-            OnMoveLeft?.Invoke();
-
-        lastInputTime = Time.unscaledTime;
+        InputGiven = true;
     }
 }
