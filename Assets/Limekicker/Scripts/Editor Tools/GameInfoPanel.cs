@@ -36,6 +36,23 @@ public class GameInfoPanel : EditorWindow
             EditorGUILayout.TextField(item.Key.ToString() + " - " + item.Value.CurrentHealth.ToString());
             EditorGUILayout.EndHorizontal();
         }
+        
+        Vector2 delta = Services.Get<IInputManager>().CurrentTouchPosition - Services.Get<IInputManager>().StartingTouchPosition;
+
+        float horizontalInput = Mathf.Clamp(delta.x / Screen.width, -1f, 1f);
+        float verticalInput = Mathf.Clamp(delta.y / Screen.height, -1f, 1f);
+
+        if (!Services.Get<IInputManager>().InputGiven)
+            delta = Vector2.zero;
+
+        EditorGUILayout.BeginHorizontal();
+        GUILayout.Label("Horizontal input: ");
+        EditorGUILayout.TextField(horizontalInput.ToString());
+        EditorGUILayout.EndHorizontal();
+        EditorGUILayout.BeginHorizontal();
+        GUILayout.Label("Vertical input: ");
+        EditorGUILayout.TextField(verticalInput.ToString());
+        EditorGUILayout.EndHorizontal();
     }
 
     private void SubToEvents()

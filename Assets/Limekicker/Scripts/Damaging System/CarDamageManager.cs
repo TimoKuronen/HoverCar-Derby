@@ -36,11 +36,16 @@ public class CarDamageManager : MonoBehaviour
     public void ApplyDamageToPart(CarPartType partType, float damage)
     {
         OnCarDamaged?.Invoke();
-
+ 
         if (CarParts.TryGetValue(partType, out CarPart part) && part != null)
         {
-            part.TakeDamage(damage);
+            part.TakeDamage(damage * GetDamageReductionMultiplier(partType));
         }
+    }
+
+    public void DealDamageByCar(Collision collision)
+    {
+
     }
 
     public void Repair(float amount)
@@ -121,5 +126,17 @@ public class CarDamageManager : MonoBehaviour
         }
 
         return result;
+    }
+
+    float GetDamageReductionMultiplier(CarPartType carPartHit)
+    {
+        return carPartHit switch
+        {
+            CarPartType.FrontBumper => 0.8f,
+            CarPartType.SidePanel_Left => 0.3f,
+            CarPartType.SidePanel_Right => 0.3f,
+            CarPartType.RearBumper => 0.5f,
+            _ => 0.5f,
+        };
     }
 }

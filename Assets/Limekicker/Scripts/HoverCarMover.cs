@@ -42,7 +42,13 @@ public class HoverCarMover : MonoBehaviour
 
     private void GetInput()
     {
-        Vector2 delta = inputManager.CurrentTouchPosition - inputManager.StartingTouchPosition;
+        Vector2 delta;
+        if (!inputManager.InputGiven)
+        {
+            delta = Vector2.zero;
+        }
+        else
+            delta = inputManager.CurrentTouchPosition - inputManager.StartingTouchPosition;
 
         horizontalInput = Mathf.Clamp(delta.x / Screen.width, -1f, 1f);
         verticalInput = Mathf.Clamp(delta.y / Screen.height, -1f, 1f);

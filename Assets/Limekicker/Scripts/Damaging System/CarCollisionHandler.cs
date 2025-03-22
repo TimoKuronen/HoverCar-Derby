@@ -26,6 +26,17 @@ public class CarCollisionHandler : MonoBehaviour
 
         if (forwardDot > 0.8f)
         {
+            int otherLayer = collision.gameObject.layer;
+
+            if (otherLayer == LayerMask.NameToLayer("Car"))
+            {
+                CarDamageManager otherCar = collision.collider.GetComponent<CarDamageManager>();
+                if (otherCar != null)
+                {
+                    //otherCar.DealDamageByCar
+                }
+            }
+
             damageManager.ApplyDamageToPart(CarPartType.FrontBumper, impactForce * 2f);
         }
         else if (rightDot > 0.5f)

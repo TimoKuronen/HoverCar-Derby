@@ -77,9 +77,8 @@ GameObject:
   - component: {fileID: 2021766897032597652}
   - component: {fileID: 6513018189437385495}
   - component: {fileID: -1746887455403732527}
-  - component: {fileID: 1773029068123434261}
   - component: {fileID: -8266341070008308358}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Hover Car
   m_TagString: Vehicle
   m_Icon: {fileID: 0}
@@ -216,18 +215,6 @@ MonoBehaviour:
   cooldownDuration: 3
   accelerationMultiplierValue: 2
   maxSpeedMultiplier: 1.5
---- !u!114 &1773029068123434261
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 100026}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5aaaff62b5323674c862ba426a7cd102, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &-8266341070008308358
 MonoBehaviour:
   m_ObjectHideFlags: 0
