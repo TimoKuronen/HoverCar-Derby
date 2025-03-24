@@ -4,7 +4,6 @@ using UnityEngine;
 public class StateController : MonoBehaviour
 {
     [Header("Set these:")]
-    [SerializeField] private GameObject visuals;
     [SerializeField] private State remainState;
     [SerializeField] private State startState;
 
@@ -35,18 +34,7 @@ public class StateController : MonoBehaviour
         if (isActive)
         {
             TransitionToState(startState);
-            SetVisuals();
         }
-    }
-
-    async void SetVisuals()
-    {
-        await MathMethods.WaitForGameTimeAsync(0.1f);
-        
-        if (gameObject == null || !gameObject.activeSelf)
-            return;
-
-        visuals.SetActive(true);
     }
 
     public void TransitionToState(State nextState)
@@ -78,22 +66,16 @@ public class StateController : MonoBehaviour
         return stateTimeElapsed >= duration;
     }
 
-    public void ResetTimer()
+    void ResetTimer()
     {
         stateTimeElapsed = 0;
     }
 
-    public virtual void OnExitState()
+    public void OnExitState()
     {
         ResetTimer();
+
         waitForAction = false;
         OnExitStateCalled?.Invoke();
-    }
-
-    private void OnDisable()
-    {
-        SetupStateMachine(false);
-        previousState = null;
-        ResetTimer();
     }
 }

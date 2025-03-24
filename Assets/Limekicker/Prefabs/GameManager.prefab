@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 6206721400610311136}
   - component: {fileID: 4993029517268993294}
   - component: {fileID: -1398324113572660054}
+  - component: {fileID: -8382393879896848478}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -58,3 +59,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   getMouseMovementInput: 1
+  IsGameDataLoaded: 0
+--- !u!114 &-8382393879896848478
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6314307538999999013}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57c5f1140d4992c4882759024b5a6e40, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerPrefab: {fileID: 3339160355484193627, guid: b31427531b7741845bf2a99e6741dd52, type: 3}
+  opponentPrefab: {fileID: 799031937314457187, guid: e8d98c19b16209d41b328e91a06b590e, type: 3}

@@ -6,6 +6,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private bool getMouseMovementInput;
     public bool GetMouseMovementInput => getMouseMovementInput;
 
+    public bool IsGameDataLoaded { get; private set; }
+
     private void Awake()
     {
         Instance = this;

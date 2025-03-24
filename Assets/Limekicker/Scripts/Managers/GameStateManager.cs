@@ -9,19 +9,7 @@ public class GameStateHandler : IGameStateHandler
 
     public void Initialize()
     {
-        SetGameState(GameState.Normal);
-    }
-
-    private void TogglePause()
-    {
-        if (currentGameState == GameState.Normal)
-        {
-            SetGameState(GameState.Paused);
-        }
-        else if (currentGameState == GameState.Paused)
-        {
-            SetGameState(GameState.Normal);
-        }
+        SetGameState(GameState.Preparation);
     }
 
     public void SetGameState(GameState stateToUse)
@@ -34,8 +22,9 @@ public class GameStateHandler : IGameStateHandler
 
 public enum GameState
 {
+    Preparation,
     Normal,
     Paused,
-    LevelUp,
-    Lost
+    Win,
+    Lose,
 }

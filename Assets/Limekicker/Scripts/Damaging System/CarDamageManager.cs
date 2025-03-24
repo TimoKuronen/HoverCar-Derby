@@ -9,12 +9,19 @@ public class CarDamageManager : MonoBehaviour
     public event Action OnCarDamaged;
     public Dictionary<CarPartType, CarPart> CarParts { get; private set; } = new Dictionary<CarPartType, CarPart>();
 
+    private CarManager carManager;
+
     private void Start()
     {
         CarParts[CarPartType.FrontBumper] = GetComponentInChildren<FrontBumper>();
         CarParts[CarPartType.SidePanel_Left] = transform.Find("CarPart_SidePanel_Left").GetComponent<SidePanel>();
         CarParts[CarPartType.SidePanel_Right] = transform.Find("CarPart_SidePanel_Right").GetComponent<SidePanel>();
         CarParts[CarPartType.RearBumper] = GetComponentInChildren<RearBumper>();
+
+        foreach (var part in CarParts)
+        {
+            part.Value.SetMaxHealth(carManager.CarData);
+        }
     }
 
     private void Update()

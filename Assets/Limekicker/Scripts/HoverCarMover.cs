@@ -18,19 +18,24 @@ public class HoverCarMover : MonoBehaviour
 
     private Rigidbody rig;
     private IInputManager inputManager;
+    private CarManager carManager;
+    private IGameStateHandler gameStateHandler;
 
     void Start()
     {
         rig = GetComponent<Rigidbody>();
+        carManager = GetComponent<CarManager>();
+        inputManager = Services.Get<IInputManager>();
+        gameStateHandler = Services.Get<IGameStateHandler>();
 
         originalAccelerationValue = forwardAcceleration;
         originalMaxSpeed = maxSpeed;
-        inputManager = Services.Get<IInputManager>();
     }
 
     void Update()
     {
-        GetInput();
+        if (gameStateHandler.GetCurrentGameState == GameState.Normal)
+            GetInput();
     }
 
     private void FixedUpdate()
@@ -75,7 +80,7 @@ public class HoverCarMover : MonoBehaviour
     {
         if (currentThrust != 0)
         {
-            rig.AddForce(transform.forward * currentThrust, ForceMode.Acceleration);
+            rig.AddForce(carManager.CarData.GetAccelerationMultiplier() * currentThrust * transform.forward, ForceMode.Acceleration);
         }
 
         if (currentTurn != 0)
@@ -85,7 +90,7 @@ public class HoverCarMover : MonoBehaviour
 
         if (rig.velocity.magnitude > maxSpeed)
         {
-            rig.velocity = rig.velocity.normalized * maxSpeed;
+            rig.velocity = carManager.CarData.GetMaxSpeedMultiplier() * maxSpeed * rig.velocity.normalized;
         }
     }
 }

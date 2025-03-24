@@ -4,8 +4,17 @@ using UnityEngine;
 
 public class ScoreManager : IScoreManager
 {
-    public void Initialize()
+    public Dictionary<PlayerData, int> PlayerScores { get; private set; }  = new Dictionary<PlayerData, int>();
+
+    public void Initialize() { }
+
+    public void AddPlayer(PlayerData data)
     {
-        throw new System.NotImplementedException();
+        PlayerScores.Add(data, 0);
+    }
+
+    public void IncreaseScore(PlayerData data, int scoreToAdd)
+    {
+        PlayerScores[data] += scoreToAdd;
     }
 }

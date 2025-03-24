@@ -7,8 +7,12 @@ public class PlayerController : MonoBehaviour
 {
     public static PlayerController Instance;
 
+    [SerializeField] private PlayerData playerData;
+
     public CarDamageManager DamageManager { get; private set; }
+    public PlayerData PlayerData => playerData;
     public event Action OnPlayerCarDamaged;
+
     private NitroBoost nitroBoost;
 
     private void Awake()

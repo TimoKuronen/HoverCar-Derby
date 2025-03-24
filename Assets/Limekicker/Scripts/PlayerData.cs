@@ -2,17 +2,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerData : MonoBehaviour
+public struct PlayerData
 {
-    // Start is called before the first frame update
-    void Start()
+    public string PlayerName { get; private set; }
+    public int Points { get; private set; }
+
+    public void AddPoints(int points)
     {
-        
+        this.Points += points;
     }
 
-    // Update is called once per frame
-    void Update()
+    public void SetPlayerName(string playerName)
     {
-        
+        this.PlayerName = playerName;
     }
 }

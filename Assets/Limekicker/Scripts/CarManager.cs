@@ -5,9 +5,17 @@ using UnityEngine;
 
 public class CarManager : MonoBehaviour
 {
+    [SerializeField] private CarData carData;
     private CarDamageManager damageManager;
 
-    internal void CollectItem(CollisionCollectible collectible)
+    public CarData CarData => carData;
+
+    private void Awake()
+    {
+        damageManager = GetComponent<CarDamageManager>();
+    }
+
+    public void CollectItem(CollisionCollectible collectible)
     {
         switch (collectible)
         {
@@ -27,10 +35,5 @@ public class CarManager : MonoBehaviour
                 Debug.LogWarning("Unknown collectible type!");
                 break;
         }
-    }
-
-    private void Awake()
-    {
-        damageManager = GetComponent<CarDamageManager>();
     }
 }

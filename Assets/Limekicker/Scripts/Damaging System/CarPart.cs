@@ -2,17 +2,18 @@ using System;
 using UnityEngine;
 public abstract class CarPart : MonoBehaviour
 {
-    public float maxHealth = 100f;
+    [SerializeField] private float maxHealth = 100f;
     public float CurrentHealth { get; private set; }
     public event Action<float> OnCarPartHealthUpdated;
 
     protected virtual void Start()
     {
-        CurrentHealth = maxHealth;
-
-        CurrentHealth = UnityEngine.Random.Range(30, maxHealth);
-
         OnCarPartHealthUpdated?.Invoke(CurrentHealth);
+    }
+
+    public void SetMaxHealth(CarData carData)
+    {
+        maxHealth *= carData.GetEnduranceMultiplier();
     }
 
     public virtual void TakeDamage(float damage)
