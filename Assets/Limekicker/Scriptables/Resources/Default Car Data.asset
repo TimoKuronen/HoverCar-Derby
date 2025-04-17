@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fc2b0dad8af9cf46890305f2f6b82c3, type: 3}
   m_Name: Default Car Data
   m_EditorClassIdentifier: 
-  acceleration: 0
-  maxSpeed: 0
-  endurance: 0
+  acceleration: 3
+  maxSpeed: 3
+  endurance: 3

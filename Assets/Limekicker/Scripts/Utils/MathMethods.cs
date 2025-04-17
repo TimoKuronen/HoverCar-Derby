@@ -1,12 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using UnityEngine;
 
 public static class MathMethods
 {
-    public const float Gravity = -15f;
-
     public static Transform FindClosestTransform(Transform[] transforms, Transform target)
     {
         if (transforms == null || transforms.Length == 0 || target == null)
@@ -91,26 +88,6 @@ public static class MathMethods
         return dotProduct > 0;
     }
 
-    public static async Task WaitForGameTimeAsync(float seconds)
-    {
-        float start = Time.time;
-        while (Time.time < start + seconds)
-        {
-            if (Services.Get<IGameStateHandler>().GetCurrentGameState == GameState.Paused)
-            {
-                await Task.Delay(50);  // Wait until the game is unpaused
-            }
-            else
-            {
-                await Task.Yield();  // Yield each frame while the game is not paused
-            }
-        }
-    }
-
-    public static async Task WaitForOneFrame()
-    {
-        await Task.Yield();
-    }
     public static bool IsLookingAtTarget(Transform original, Transform target, float requiredAngle)
     {
         Vector3 direction = (target.position - original.position).normalized;
@@ -120,56 +97,6 @@ public static class MathMethods
             return true;
 
         return false;
-    }
-    public static float CalculateLaunchVelocity(float distance, float heightDifference, float angleRadians)
-    {
-        float cosAngle = Mathf.Cos(angleRadians);
-        float sinAngle = Mathf.Sin(angleRadians);
-
-        // Ensure gravity is positive
-        float positiveGravity = Mathf.Abs(Gravity);
-
-        // Compute initial velocity squared
-        float velocitySquared = (positiveGravity * distance * distance) /
-                                (2 * cosAngle * cosAngle * (distance * Mathf.Tan(angleRadians) - heightDifference));
-
-        // Check if calculation was successful
-        if (velocitySquared < 0f)
-        {
-            Debug.LogWarning("Computed velocity squared is negative. Adjust height or angle.");
-            return 0f;
-        }
-
-        // Return the required initial velocity
-        return Mathf.Sqrt(velocitySquared);
-    }
-
-    // Calculate the velocity vector from the launch velocity
-    public static Vector3 CalculateLaunchVector(float initialVelocity, float angleRadians, Vector3 direction)
-    {
-        // Normalize the horizontal direction
-        Vector3 horizontalDirection = new Vector3(direction.x, 0, direction.z).normalized;
-
-        // Calculate horizontal and vertical components of the velocity
-        float vX = initialVelocity * Mathf.Cos(angleRadians);
-        float vY = initialVelocity * Mathf.Sin(angleRadians);
-
-        // Combine the horizontal velocity with the vertical component
-        Vector3 velocity = horizontalDirection * vX;
-        velocity.y = vY;
-
-        return velocity;
-    }
-
-    public static float CalculateLaunchAngle(Vector3 forward)
-    {
-        // Remove the vertical component to get the forward direction in the XZ plane
-        Vector3 forwardXZ = new Vector3(forward.x, 0, forward.z);
-
-        // Calculate the angle between the forward direction and the XZ plane (horizontal)
-        float angle = Mathf.Atan2(forward.y, forwardXZ.magnitude) * Mathf.Rad2Deg;
-
-        return angle;
     }
 
     public static bool IsApproximately(float a, float b, float threshold)
