@@ -14,6 +14,9 @@ public class GameServices : Services
         var soundManager = new SoundManager();
         AddService<ISoundManager>(soundManager);
 
+        var scoreManager = new ScoreManager();
+        AddService<IScoreManager>(scoreManager);
+
         // Initialize all services
         foreach (var service in serviceMap.Values)
         {

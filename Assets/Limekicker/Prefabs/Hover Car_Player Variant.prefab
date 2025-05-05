@@ -1065,6 +1065,10 @@ PrefabInstance:
       propertyPath: carData
       value: 
       objectReference: {fileID: 11400000, guid: 08421187555d2804ab715aa4a7f2b1c4, type: 2}
+    - target: {fileID: -6952180818947552022, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
+      propertyPath: m_PlayOnAwake
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 100026, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       propertyPath: m_Name
       value: Hover Car_Player Variant
@@ -1216,6 +1220,12 @@ PrefabInstance:
       addedObject: {fileID: 3094839790667579267}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 100026, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
+      insertIndex: 1
+      addedObject: {fileID: -7706482411645960339}
+    - targetCorrespondingSourceObject: {fileID: 100026, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
+      insertIndex: 2
+      addedObject: {fileID: -6519573424936700606}
+    - targetCorrespondingSourceObject: {fileID: 100026, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       insertIndex: -1
       addedObject: {fileID: -4325294149483036752}
     - targetCorrespondingSourceObject: {fileID: 100026, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
@@ -1227,6 +1237,58 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 100026, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
   m_PrefabInstance: {fileID: 3339160355484095969}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &-7706482411645960339
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3339160355484193627}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 729521266
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+--- !u!114 &-6519573424936700606
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3339160355484193627}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8513fbe7f7407b54d8a62fff2365752c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  UseUnreliableDeltas: 0
+  SyncPositionX: 1
+  SyncPositionY: 1
+  SyncPositionZ: 1
+  SyncRotAngleX: 1
+  SyncRotAngleY: 1
+  SyncRotAngleZ: 1
+  SyncScaleX: 0
+  SyncScaleY: 0
+  SyncScaleZ: 0
+  PositionThreshold: 0.001
+  RotAngleThreshold: 0.01
+  ScaleThreshold: 0.01
+  UseQuaternionSynchronization: 0
+  UseQuaternionCompression: 0
+  UseHalfFloatPrecision: 0
+  InLocalSpace: 0
+  Interpolate: 1
+  SlerpPosition: 0
 --- !u!114 &-4325294149483036752
 MonoBehaviour:
   m_ObjectHideFlags: 0

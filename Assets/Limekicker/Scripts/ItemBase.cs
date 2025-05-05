@@ -10,11 +10,11 @@ public class ItemBase : BaseScriptableObject
     [SerializeField] private string itemName;
     [SerializeField] private string description;
 
-    [SerializeField] private PooledMonoBehaviour worldPrefab;
+    [SerializeField] private MonoBehaviour worldPrefab;
     [SerializeField] private GameObject itemVisuals;
 
     public string ItemName { get { return itemName; } }
     public string Description { get { return description; } }
-    public PooledMonoBehaviour WorldPrefab { get { return worldPrefab; } }
+    public MonoBehaviour WorldPrefab { get { return worldPrefab; } }
     public GameObject ItemVisuals { get { return itemVisuals; } }
 }

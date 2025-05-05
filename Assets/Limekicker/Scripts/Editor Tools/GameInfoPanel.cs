@@ -38,12 +38,12 @@ public class GameInfoPanel : EditorWindow
         }
         
         Vector2 delta = Services.Get<IInputManager>().CurrentTouchPosition - Services.Get<IInputManager>().StartingTouchPosition;
+        
+        if (!Services.Get<IInputManager>().InputGiven)
+            delta = Vector2.zero;
 
         float horizontalInput = Mathf.Clamp(delta.x / Screen.width, -1f, 1f);
         float verticalInput = Mathf.Clamp(delta.y / Screen.height, -1f, 1f);
-
-        if (!Services.Get<IInputManager>().InputGiven)
-            delta = Vector2.zero;
 
         EditorGUILayout.BeginHorizontal();
         GUILayout.Label("Horizontal input: ");
@@ -55,8 +55,18 @@ public class GameInfoPanel : EditorWindow
         EditorGUILayout.EndHorizontal();
     }
 
+    void UpdateLoop()
+    {
+        Repaint();
+    }
+
     private void SubToEvents()
     {
-        PlayerController.Instance.OnPlayerCarDamaged += () => Repaint();
+        EditorApplication.update += UpdateLoop;
+    }
+
+    void UnsubFromEvents()
+    {
+        EditorApplication.update -= UpdateLoop;
     }
 }

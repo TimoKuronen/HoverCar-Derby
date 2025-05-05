@@ -9,7 +9,7 @@ public class GameStateHandler : IGameStateHandler
 
     public void Initialize()
     {
-        SetGameState(GameState.Preparation);
+        SetGameState(GameState.Normal);
     }
 
     public void SetGameState(GameState stateToUse)

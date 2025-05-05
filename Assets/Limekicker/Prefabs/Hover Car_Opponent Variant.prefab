@@ -12,6 +12,10 @@ PrefabInstance:
       propertyPath: carData
       value: 
       objectReference: {fileID: 11400000, guid: 08421187555d2804ab715aa4a7f2b1c4, type: 2}
+    - target: {fileID: -6952180818947552022, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
+      propertyPath: m_PlayOnAwake
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 100026, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       propertyPath: m_Name
       value: Hover Car_Opponent Variant
@@ -61,6 +65,12 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 100026, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
+      insertIndex: 1
+      addedObject: {fileID: -3052870067359189820}
+    - targetCorrespondingSourceObject: {fileID: 100026, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
+      insertIndex: 2
+      addedObject: {fileID: 2294682149681721842}
+    - targetCorrespondingSourceObject: {fileID: 100026, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       insertIndex: -1
       addedObject: {fileID: -5296933485970457558}
   m_SourcePrefab: {fileID: 100100000, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
@@ -69,6 +79,58 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 100026, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
   m_PrefabInstance: {fileID: 799031937314554073}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &-3052870067359189820
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 799031937314457187}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 286614872
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+--- !u!114 &2294682149681721842
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 799031937314457187}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8513fbe7f7407b54d8a62fff2365752c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  UseUnreliableDeltas: 0
+  SyncPositionX: 1
+  SyncPositionY: 1
+  SyncPositionZ: 1
+  SyncRotAngleX: 1
+  SyncRotAngleY: 1
+  SyncRotAngleZ: 1
+  SyncScaleX: 0
+  SyncScaleY: 0
+  SyncScaleZ: 0
+  PositionThreshold: 0.001
+  RotAngleThreshold: 0.01
+  ScaleThreshold: 0.01
+  UseQuaternionSynchronization: 0
+  UseQuaternionCompression: 0
+  UseHalfFloatPrecision: 0
+  InLocalSpace: 0
+  Interpolate: 1
+  SlerpPosition: 0
 --- !u!114 &-5296933485970457558
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -81,7 +143,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e1627f7e8b2933540aafc88dc7d9ea70, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  visuals: {fileID: 0}
   remainState: {fileID: 11400000, guid: 03e760add58858046bb12d0e866902c8, type: 2}
   startState: {fileID: 0}
   AudioSource: {fileID: 1482351893086424115}

@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using UnityEngine;
 
-public abstract class CollisionCollectible : PooledMonoBehaviour
+public abstract class CollisionCollectible : MonoBehaviour
 {
     [SerializeField] private GameObject visuals;
 
@@ -46,7 +46,7 @@ public abstract class CollisionCollectible : PooledMonoBehaviour
     {
         yield return new WaitForSeconds(2);
 
-        ReturnToPool();
+        //ReturnToPool();
     }
 
     protected abstract void CollectItem(CollisionCollectible collectible, CarManager carManager);

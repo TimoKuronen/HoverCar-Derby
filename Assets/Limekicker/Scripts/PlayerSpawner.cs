@@ -25,7 +25,7 @@ public class PlayerSpawner : MonoBehaviour
     {
         yield return new WaitForEndOfFrame();
 
-        SpawnPlayers();
+        //SpawnPlayers();
     }
 
     private void SpawnPlayers()
