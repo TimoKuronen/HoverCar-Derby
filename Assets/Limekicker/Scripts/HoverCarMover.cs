@@ -1,7 +1,13 @@
+using Unity.Netcode;
 using UnityEngine;
 
-public class HoverCarMover : MonoBehaviour
+public class HoverCarMover : NetworkBehaviour
 {
+    [Header("References")]
+    [SerializeField] private Rigidbody rig;
+    [SerializeField] private CarManager carManager;
+
+    [Header("Movement")]
     [SerializeField] private float inputDeadZone = 0.1f;
     [SerializeField] private float forwardAcceleration;
     [SerializeField] private float backwardAcceleration;
@@ -16,15 +22,17 @@ public class HoverCarMover : MonoBehaviour
     private float horizontalInput;
     private float verticalInput;
 
-    private Rigidbody rig;
     private IInputManager inputManager;
-    private CarManager carManager;
     private IGameStateHandler gameStateHandler;
+
+    public override void OnNetworkSpawn()
+    {
+        if (!IsOwner)
+            return;
+    }
 
     void Start()
     {
-        rig = GetComponent<Rigidbody>();
-        carManager = GetComponent<CarManager>();
         inputManager = Services.Get<IInputManager>();
         gameStateHandler = Services.Get<IGameStateHandler>();
 
@@ -34,12 +42,18 @@ public class HoverCarMover : MonoBehaviour
 
     void Update()
     {
+        if (!IsOwner)
+            return;
+
         if (gameStateHandler.GetCurrentGameState == GameState.Normal)
             GetInput();
     }
 
     private void FixedUpdate()
     {
+        if (!IsOwner)
+            return;
+
         rig.maxAngularVelocity = maxAngularVelocity;
 
         ApplyMovement();
@@ -92,5 +106,11 @@ public class HoverCarMover : MonoBehaviour
         {
             rig.velocity = carManager.CarData.GetMaxSpeedMultiplier() * maxSpeed * rig.velocity.normalized;
         }
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        if (!IsOwner)
+            return;
     }
 }

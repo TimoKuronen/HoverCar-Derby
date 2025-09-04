@@ -1,14 +1,15 @@
 using System;
+using Unity.Netcode;
 using UnityEngine;
 public abstract class CarPart : MonoBehaviour
 {
     [SerializeField] private float maxHealth = 100f;
-    public float CurrentHealth { get; private set; }
+    public NetworkVariable<float> CurrentHealth = new NetworkVariable<float>();
     public event Action<float> OnCarPartHealthUpdated;
 
     protected virtual void Start()
     {
-        OnCarPartHealthUpdated?.Invoke(CurrentHealth);
+        OnCarPartHealthUpdated?.Invoke(CurrentHealth.Value);
     }
 
     public void SetMaxHealth(CarData carData)
@@ -18,22 +19,22 @@ public abstract class CarPart : MonoBehaviour
 
     public virtual void TakeDamage(float damage)
     {
-        CurrentHealth -= damage;
-        if (CurrentHealth <= 0)
+        CurrentHealth.Value -= damage;
+        if (CurrentHealth.Value <= 0)
         {
-            CurrentHealth = 0;
+            CurrentHealth.Value = 0;
             OnDestroyed();
         }
 
-        OnCarPartHealthUpdated?.Invoke(CurrentHealth);
+        OnCarPartHealthUpdated?.Invoke(CurrentHealth.Value);
     }
 
     public virtual void RepairPart(float newHealthAmount)
     {
         Debug.Log("repairing from " + CurrentHealth + " to " + newHealthAmount);
-        CurrentHealth = newHealthAmount;
+        CurrentHealth.Value = newHealthAmount;
 
-        OnCarPartHealthUpdated?.Invoke(CurrentHealth);
+        OnCarPartHealthUpdated?.Invoke(CurrentHealth.Value);
     }
 
     protected virtual void OnDestroyed()
@@ -43,7 +44,7 @@ public abstract class CarPart : MonoBehaviour
 
     public float GetHealthPercentage()
     {
-        return CurrentHealth / maxHealth;
+        return CurrentHealth.Value / maxHealth;
     }
 }
 public enum CarPartType

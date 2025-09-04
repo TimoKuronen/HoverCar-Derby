@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Default Car Data
   m_EditorClassIdentifier: 
   acceleration: 3
-  maxSpeed: 3
+  maxSpeed: 5
   endurance: 3

@@ -62,7 +62,7 @@ public class CarDamageManager : MonoBehaviour
         int index = 0;
         foreach (var item in CarParts)
         {
-            currentPartHealth[index] = item.Value.CurrentHealth;
+            currentPartHealth[index] = item.Value.CurrentHealth.Value;
             index++;
         }
 
