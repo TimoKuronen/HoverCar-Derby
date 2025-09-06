@@ -1,84 +1,116 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
+/// <summary>
+/// Manages the playing of sounds with constraints on simultaneous sounds per type
+/// </summary>
 public class SoundManager : ISoundManager
 {
-    private int maxSimultaneousImpactSounds = 3;
-    private int maxSimultaneousDeathSounds = 3;
-    private int maxSimultaneousLaunchSounds = 3;
+    // Maximum simultaneous sounds allowed for each sound type.
+    private int maxSimultaneousImpactSounds = 10;
+    private int maxSimultaneousDeathSounds = 5;
+    private int maxSimultaneousLaunchSounds = 20;
     private int maxSimultaneousOtherSounds = 10;
+    private int maxSimultaneousUISounds = 100;
 
-    private Dictionary<SoundType, int> activeSounds;
-    private CoroutineMonoBehavior audioPlayerCoroutine;
-    private GameObject audioPlayerCoroutineObject;
+    // Tracks currently playing sounds by their type.
+    private Dictionary<SoundType, List<PlayingSound>> activeSounds;
 
     public void Initialize()
     {
-        InitializeSoundLimits();
-
-        //audioPlayerCoroutineObject = new GameObject("Audio Player Object");
-        //audioPlayerCoroutine = audioPlayerCoroutineObject.AddComponent<CoroutineMonoBehavior>();
+        activeSounds = new Dictionary<SoundType, List<PlayingSound>>();
     }
 
-    /// <summary>
-    /// Set the starting values
-    /// </summary>
-    private void InitializeSoundLimits()
+    public void Play(AudioCue data, AudioSource audioSource)
     {
-        activeSounds = new Dictionary<SoundType, int>();
-
-        activeSounds[SoundType.Impact] = 0;
-        activeSounds[SoundType.Death] = 0;
-        activeSounds[SoundType.Launch] = 0;
-        activeSounds[SoundType.Other] = 0;
-    }
-
-    /// <summary>
-    /// Call to play sound unless its there are too many of the type playing already
-    /// </summary>
-    /// <param name="audioSource"></param>
-    /// <param name="data"></param>
-    /// <param name="volume"></param>
-    public void PlaySound(AudioSource audioSource, AudioCue data, float volume = 1.0f)
-    {
-        int maxSimultaneousSounds = GetMaxSimultaneousSounds(data.soundType);
-
-        if (activeSounds[data.soundType] < maxSimultaneousSounds)
+        if (data == null)
         {
-            if (audioSource != null && data != null)
-            {
-                audioPlayerCoroutine.StartCoroutine(PlaySoundCoroutine(audioSource, data.clips[0], data.soundType, volume));
-            }
-            else Debug.LogError("Can't play sound because of lack of components");
+            Debug.LogWarning("AudioCue data is NULL! Cannot play sound.");
+            return;
         }
-        //else Debug.Log($"Can't play sound {data.soundType} because max limit {GetMaxSimultaneousSounds(data.soundType)} exceeded");
+
+        if (!Enum.IsDefined(typeof(SoundType), data.soundType))
+        {
+            Debug.LogWarning($"Invalid SoundType: {data.soundType}");
+            return;
+        }
+
+        // UI sounds ignore simultaneous sound constraints.
+        if (data.soundType == SoundType.UI)
+        {
+            CoroutineMonoBehavior.Instance.StartCoroutine(PlaySoundCoroutine(audioSource, data));
+            return;
+        }
+
+        // Initialize the list for the sound type if it doesn't exist.
+        if (!activeSounds.ContainsKey(data.soundType))
+        {
+            activeSounds[data.soundType] = new List<PlayingSound>();
+        }
+
+        // Get the list of active sounds for the given type.
+        List<PlayingSound> soundList = activeSounds[data.soundType];
+        int maxSounds = GetMaxSimultaneousSounds(data.soundType);
+        float now = Time.time;
+
+        // Remove sounds that have finished playing.
+        soundList.RemoveAll(s => now - s.StartTime > s.Cue.playDuration);
+
+        // If the maximum number of sounds is reached, stop the oldest sound.
+        if (soundList.Count >= maxSounds)
+        {
+            var oldest = soundList.OrderBy(s => s.StartTime).FirstOrDefault();
+            if (oldest != null)
+            {
+                Debug.Log("Stopping oldest sound " + oldest.Cue.name + " because count is " + soundList.Count + " and max sound count is " + maxSounds);
+                AudioCuePlayer.Stop(oldest.Cue, oldest.Source);
+                soundList.Remove(oldest);
+            }
+        }
+
+        if (CoroutineMonoBehavior.Instance == null)
+        {
+            Debug.LogError("CoroutineMonoBehavior instance is missing. Cannot play sound.");
+            return;
+        }
+
+        // Start the coroutine to play the sound.
+        CoroutineMonoBehavior.Instance.StartCoroutine(PlaySoundCoroutine(audioSource, data));
+
+        // Add the new sound to the active sounds list.
+        soundList.Add(new PlayingSound
+        {
+            Cue = data,
+            Source = audioSource,
+            StartTime = Time.time
+        });
     }
 
-    /// <summary>
-    /// Coroutine for playing the sound
-    /// </summary>
-    /// <param name="audioSource"></param>
-    /// <param name="clip"></param>
-    /// <param name="soundType"></param>
-    /// <param name="volume"></param>
-    /// <returns></returns>
-    private IEnumerator PlaySoundCoroutine(AudioSource audioSource, AudioClip clip, SoundType soundType, float volume)
+    // Coroutine to play a sound and remove it from the active list once finished.
+    private IEnumerator PlaySoundCoroutine(AudioSource audioSource, AudioCue audioCue)
     {
-        activeSounds[soundType]++;
-        audioSource.volume = volume;
-        audioSource.PlayOneShot(clip);
+        if (audioSource == null)
+        {
+            Debug.LogWarning("AudioSource is NULL. Cannot play sound.");
+            yield break;
+        }
 
-        yield return new WaitForSeconds(clip.length);
+        AudioCuePlayer.Play(audioCue, audioSource);
 
-        activeSounds[soundType]--;
+        yield return new WaitForSeconds(audioCue.playDuration);
+
+        // Remove the sound from the active list once it's done.
+        if (activeSounds.TryGetValue(audioCue.soundType, out List<PlayingSound> soundList))
+        {
+            var entry = soundList.FirstOrDefault(s => s.Cue == audioCue && s.Source == audioSource);
+            if (entry != null)
+                soundList.Remove(entry);
+        }
     }
 
-    /// <summary>
-    /// Get the amount of sounds currently playing of the type so we don't overlap too much
-    /// </summary>
-    /// <param name="soundType"></param>
-    /// <returns></returns>
     private int GetMaxSimultaneousSounds(SoundType soundType)
     {
         return soundType switch
@@ -87,9 +119,32 @@ public class SoundManager : ISoundManager
             SoundType.Death => maxSimultaneousDeathSounds,
             SoundType.Launch => maxSimultaneousLaunchSounds,
             SoundType.Other => maxSimultaneousOtherSounds,
-            _ => 1,
+            SoundType.UI => maxSimultaneousUISounds,
+            _ => 100, // Default case if the type is not recognized.
         };
+    }
+
+    // Stops all active sounds and clears the lists.
+    public void Dispose()
+    {
+        foreach (var list in activeSounds.Values)
+        {
+            foreach (var sound in list)
+            {
+                AudioCuePlayer.Stop(sound.Cue, sound.Source);
+            }
+            list.Clear();
+        }
+    }
+
+    // Represents a currently playing sound with its cue, source, and start time.
+    private class PlayingSound
+    {
+        public AudioCue Cue;
+        public AudioSource Source;
+        public float StartTime;
     }
 }
 
-public enum SoundType { Impact, Death, Launch, Other }
+// Defines the types of sounds.
+public enum SoundType { Impact, Death, Launch, UI, Other }

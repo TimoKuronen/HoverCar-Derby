@@ -1,5 +1,6 @@
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Windows;
 
 public class HoverCarMover : NetworkBehaviour
 {
@@ -33,8 +34,8 @@ public class HoverCarMover : NetworkBehaviour
 
     void Start()
     {
-        inputManager = Services.Get<IInputManager>();
-        gameStateHandler = Services.Get<IGameStateHandler>();
+        inputManager = DIBootstrapper.Container.Resolve<IInputManager>();
+        gameStateHandler = DIBootstrapper.Container.Resolve<IGameStateHandler>();
 
         originalAccelerationValue = forwardAcceleration;
         originalMaxSpeed = maxSpeed;
@@ -61,19 +62,21 @@ public class HoverCarMover : NetworkBehaviour
 
     private void GetInput()
     {
-        Vector2 delta;
-        if (!inputManager.InputGiven)
-        {
-            delta = Vector2.zero;
-        }
-        else
-            delta = inputManager.CurrentTouchPosition - inputManager.StartingTouchPosition;
+        float steer = inputManager.GetSteer();
+        float gas = inputManager.GetGas();
+        float brake = inputManager.GetBrake();
 
-        horizontalInput = Mathf.Clamp(delta.x / Screen.width, -1f, 1f);
-        verticalInput = Mathf.Clamp(delta.y / Screen.height, -1f, 1f);
+        // Forward / backward thrust
+        float rawVertical = gas > 0 ? 1f : (brake > 0 ? -1f : 0f);
 
-        currentThrust = Mathf.Abs(verticalInput) > inputDeadZone ? verticalInput * (verticalInput > 0 ? forwardAcceleration : backwardAcceleration) : 0f;
-        currentTurn = Mathf.Abs(horizontalInput) > inputDeadZone ? horizontalInput * turnStrength : 0f;
+        currentThrust = Mathf.Abs(rawVertical) > inputDeadZone
+            ? rawVertical * (rawVertical > 0 ? forwardAcceleration : backwardAcceleration)
+            : 0f;
+
+        // Turning
+        currentTurn = Mathf.Abs(steer) > inputDeadZone
+            ? steer * turnStrength
+            : 0f;
     }
 
     public void ToggleNitroBoost(bool value, float nitroMultiplierValue, float maxSpeedMultiplier)

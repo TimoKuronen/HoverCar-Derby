@@ -8,9 +8,9 @@ public class TimeManager : ITimeManager
 
     public float GetNormalTimeScale => currentNormalTimeScale;
 
-    public void Initialize()
+    public TimeManager(IGameStateHandler gameStateHandler)
     {
-        Services.Get<IGameStateHandler>().OnGameStateChanged += CheckToAlterTimescale;
+        gameStateHandler.OnGameStateChanged += CheckToAlterTimescale;
     }
 
     public void Update()

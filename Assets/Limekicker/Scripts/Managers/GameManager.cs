@@ -1,25 +1,30 @@
-using UnityEngine;
+﻿using System;
 
-public class GameManager : MonoBehaviour
+internal class GameManager : IGameManager
 {
-    public static GameManager Instance;
-    [SerializeField] private bool getMouseMovementInput;
-    public bool GetMouseMovementInput => getMouseMovementInput;
+    public bool GameSetupCompleted => throw new NotImplementedException();
 
-    public bool IsGameDataLoaded { get; private set; }
+    public event Action OnGameSetupStarted;
+    public event Action VictoryEvent;
+    public event Action DefeatEvent;
 
-    private void Awake()
+    public GameManager()
     {
-        Instance = this;
-        LayerStorage.SetLayerValues();
+        
     }
 
-    private void Update()
+    public void CallLoseState()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            Debug.Log("Escape key pressed.");
-            Debug.Break();
-        }
+        throw new NotImplementedException();
+    }
+
+    public void CallRestart()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void CallWinState()
+    {
+        throw new NotImplementedException();
     }
 }

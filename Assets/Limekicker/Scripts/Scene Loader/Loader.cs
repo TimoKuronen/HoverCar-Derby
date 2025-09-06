@@ -8,41 +8,27 @@ public static class Loader
     public enum Scene
     {
         Empty,
-        TempMenu,
-        LoaderScene,
-        timo_sandbox
+        MainMenu,
+        Loader,
+        PlayScene
     }
 
     public static event Action OnSceneLoadStarted;
 
     private static AsyncOperation loadingAsyncOperation;
-    private static Scene targetScene = Scene.TempMenu;
+    private static Scene targetScene = Scene.MainMenu;
 
     private static float delayBeforeLoading = 0f;
-
-    public static bool IsGameScene()
-    {
-        return GetCurrentScene() == Scene.Empty || GetCurrentScene() > Scene.LoaderScene;
-    }
-
-    /// <summary>
-    /// Load a scene asynchronously with a loading screen.
-    /// </summary>
-    public static void Load(Scene scene, float delay = 0f)
-    {
-        targetScene = scene;
-        delayBeforeLoading = delay;
-        SceneManager.LoadScene(Scene.LoaderScene.ToString());
-    }
 
     public static IEnumerator CallDelayedLoad(Scene scene, float delay = 0f)
     {
         OnSceneLoadStarted?.Invoke();
 
-        yield return new WaitForSeconds(delay);
+        yield return new WaitForSecondsRealtime(delay);
 
         targetScene = scene;
-        SceneManager.LoadScene(Scene.LoaderScene.ToString());
+        Debug.Log("Loading scene: " + scene);
+        SceneManager.LoadScene(Scene.Loader.ToString());
     }
 
     /// <summary>
@@ -60,7 +46,7 @@ public static class Loader
     public static void Restart()
     {
         Scene currentScene = GetCurrentScene();
-        Load(currentScene);
+        CallDelayedLoad(currentScene, 1);
     }
 
     /// <summary>
@@ -73,6 +59,7 @@ public static class Loader
         {
             return sceneEnum;
         }
+
         return default;
     }
 
@@ -80,9 +67,11 @@ public static class Loader
     {
         OnSceneLoadStarted?.Invoke();
 
+        Debug.Log("Begin loading scene: " + scene);
+
         if (delay > 0)
         {
-            yield return new WaitForSeconds(delay);
+            yield return new WaitForSecondsRealtime(delay);
         }
 
         loadingAsyncOperation = SceneManager.LoadSceneAsync(scene.ToString());
@@ -92,7 +81,7 @@ public static class Loader
             yield return null;
         }
 
-        //OnSceneLoadCompleted?.Invoke();
+        Reset();
         Debug.Log("Current Scene: " + SceneManager.GetActiveScene().name);
     }
 
@@ -102,5 +91,17 @@ public static class Loader
     public static float GetLoadingProgress()
     {
         return loadingAsyncOperation?.progress ?? 1f;
+    }
+
+    public static void Reset()
+    {
+        loadingAsyncOperation = null;
+        targetScene = Scene.MainMenu;
+        delayBeforeLoading = 0f;
+    }
+
+    public static bool IsGameScene()
+    {
+        return GetCurrentScene() != Scene.Empty && GetCurrentScene() > Scene.Loader;
     }
 }

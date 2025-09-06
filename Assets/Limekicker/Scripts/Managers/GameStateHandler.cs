@@ -7,7 +7,7 @@ public class GameStateHandler : IGameStateHandler
 
     public event Action<GameState> OnGameStateChanged;
 
-    public void Initialize()
+    public GameStateHandler()
     {
         SetGameState(GameState.Normal);
     }

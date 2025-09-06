@@ -9,11 +9,11 @@ public class CollectibleSpawner : MonoBehaviour
     
     private float timer;
 
-    IGameStateHandler gameStateHandler;
+    private IGameStateHandler gameStateHandler;
 
-    IEnumerator Start()
+    private IEnumerator Start()
     {
-        yield return new WaitUntil(() => GameManager.Instance.IsGameDataLoaded);
+        yield return new WaitUntil(() => DIBootstrapper.Container.Resolve<IGameManager>().GameSetupCompleted);
     }
 
     private void Update()

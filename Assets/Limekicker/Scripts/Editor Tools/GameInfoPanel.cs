@@ -1,6 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -22,6 +19,9 @@ public class GameInfoPanel : EditorWindow
             return;
         }
 
+        if (PlayerController.Instance == null)
+            return;
+
         if (!subscribedToEvents)
         {
             subscribedToEvents = true;
@@ -30,28 +30,24 @@ public class GameInfoPanel : EditorWindow
 
         GUILayout.Label("Game Info", EditorStyles.boldLabel);
 
-        foreach (var item in PlayerController.Instance.DamageManager.CarParts)
-        {
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.TextField(item.Key.ToString() + " - " + item.Value.CurrentHealth.ToString());
-            EditorGUILayout.EndHorizontal();
-        }
-        
-        Vector2 delta = Services.Get<IInputManager>().CurrentTouchPosition - Services.Get<IInputManager>().StartingTouchPosition;
-        
-        if (!Services.Get<IInputManager>().InputGiven)
-            delta = Vector2.zero;
+        //foreach (var item in PlayerController.Instance.DamageManager.CarParts)
+        //{
+        //    EditorGUILayout.BeginHorizontal();
+        //    EditorGUILayout.TextField(item.Key.ToString() + " - " + item.Value.CurrentHealth.ToString());
+        //    EditorGUILayout.EndHorizontal();
+        //}
 
-        float horizontalInput = Mathf.Clamp(delta.x / Screen.width, -1f, 1f);
-        float verticalInput = Mathf.Clamp(delta.y / Screen.height, -1f, 1f);
+        float deltaX = DIBootstrapper.Container.Resolve<IInputManager>().GetSteer();
+        int gasValue = (int)DIBootstrapper.Container.Resolve<IInputManager>().GetGas();
+        float horizontalInput = Mathf.Clamp(deltaX / Screen.width, -1f, 1f);
 
         EditorGUILayout.BeginHorizontal();
         GUILayout.Label("Horizontal input: ");
         EditorGUILayout.TextField(horizontalInput.ToString());
         EditorGUILayout.EndHorizontal();
         EditorGUILayout.BeginHorizontal();
-        GUILayout.Label("Vertical input: ");
-        EditorGUILayout.TextField(verticalInput.ToString());
+        GUILayout.Label("Gas input: ");
+        EditorGUILayout.TextField(gasValue.ToString());
         EditorGUILayout.EndHorizontal();
     }
 

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 public class CameraFollow : MonoBehaviour
@@ -15,9 +16,21 @@ public class CameraFollow : MonoBehaviour
 
     private Vector3 velocity = Vector3.zero;
 
+    private void Start()
+    {
+        NetworkManager.Singleton.OnClientConnectedCallback += (id) =>
+        {
+            if (NetworkManager.Singleton.IsHost)
+            {
+                target = GameObject.FindGameObjectWithTag("Vehicle").transform;
+            }
+        };
+    }
+
     void LateUpdate()
     {
-        if (!target) return;
+        if (!target) 
+            return;
 
         // Get car velocity
         Rigidbody rb = target.GetComponent<Rigidbody>();

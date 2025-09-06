@@ -48,7 +48,7 @@ public class PlayerSpawner : MonoBehaviour
                 
             }
 
-            Services.Get<IScoreManager>().AddPlayer(players[i]);
+            DIBootstrapper.Container.Resolve<IScoreManager>().AddPlayer(players[i]);
 
         }
     }

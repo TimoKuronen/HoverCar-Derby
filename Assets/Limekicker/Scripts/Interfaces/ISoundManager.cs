@@ -2,5 +2,5 @@
 
 public interface ISoundManager : IService
 {
-    void PlaySound(AudioSource audioSource, AudioCue data, float volume = 1.0f);
+    void Play(AudioCue data, AudioSource audioSource);
 }

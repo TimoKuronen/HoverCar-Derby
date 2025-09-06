@@ -2688,7 +2688,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d464a68c2279b1c428016cefcaf7627b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  target: {fileID: 1728893783}
+  target: {fileID: 0}
   distance: 15
   height: 12.5
   rotationSpeed: 8.25
@@ -5649,11 +5649,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1693684968}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!4 &1728893783 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 3339160355484225391, guid: b31427531b7741845bf2a99e6741dd52, type: 3}
-  m_PrefabInstance: {fileID: 1785538816}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1782202751
 GameObject:
   m_ObjectHideFlags: 0
@@ -5759,71 +5754,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1785982361}
   m_LocalEulerAnglesHint: {x: -8.099, y: 32.052, z: 15.115}
---- !u!1001 &1785538816
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: -7706482411645960339, guid: b31427531b7741845bf2a99e6741dd52, type: 3}
-      propertyPath: GlobalObjectIdHash
-      value: 2052137101
-      objectReference: {fileID: 0}
-    - target: {fileID: -7706482411645960339, guid: b31427531b7741845bf2a99e6741dd52, type: 3}
-      propertyPath: InScenePlacedSourceGlobalObjectIdHash
-      value: 729521266
-      objectReference: {fileID: 0}
-    - target: {fileID: 3339160355484193627, guid: b31427531b7741845bf2a99e6741dd52, type: 3}
-      propertyPath: m_Name
-      value: Hover Car_Player Variant
-      objectReference: {fileID: 0}
-    - target: {fileID: 3339160355484225391, guid: b31427531b7741845bf2a99e6741dd52, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 11.2
-      objectReference: {fileID: 0}
-    - target: {fileID: 3339160355484225391, guid: b31427531b7741845bf2a99e6741dd52, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3339160355484225391, guid: b31427531b7741845bf2a99e6741dd52, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 3339160355484225391, guid: b31427531b7741845bf2a99e6741dd52, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.7071068
-      objectReference: {fileID: 0}
-    - target: {fileID: 3339160355484225391, guid: b31427531b7741845bf2a99e6741dd52, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3339160355484225391, guid: b31427531b7741845bf2a99e6741dd52, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0.7071068
-      objectReference: {fileID: 0}
-    - target: {fileID: 3339160355484225391, guid: b31427531b7741845bf2a99e6741dd52, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3339160355484225391, guid: b31427531b7741845bf2a99e6741dd52, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3339160355484225391, guid: b31427531b7741845bf2a99e6741dd52, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 90
-      objectReference: {fileID: 0}
-    - target: {fileID: 3339160355484225391, guid: b31427531b7741845bf2a99e6741dd52, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: b31427531b7741845bf2a99e6741dd52, type: 3}
 --- !u!1 &1785982360
 GameObject:
   m_ObjectHideFlags: 0
@@ -6550,7 +6480,7 @@ MonoBehaviour:
   m_Priority: 10
   m_StandbyUpdate: 2
   m_LookAt: {fileID: 0}
-  m_Follow: {fileID: 1728893783}
+  m_Follow: {fileID: 0}
   m_Lens:
     FieldOfView: 60.000004
     OrthographicSize: 10
@@ -6894,7 +6824,6 @@ SceneRoots:
   m_Roots:
   - {fileID: 963194228}
   - {fileID: 705507995}
-  - {fileID: 1785538816}
   - {fileID: 1998296486}
   - {fileID: 1785982361}
   - {fileID: 782097478895933185}
