@@ -1,11 +1,11 @@
-using UnityEngine;
-using UnityEditor;
+#if UNITY_EDITOR
 using System.Collections.Generic;
+using UnityEditor;
+using UnityEngine;
 
 public class SelectPrefabTool : EditorWindow
 {
     private const string PrefabKey = "SelectedPrefabGUID";
-    //private const string WeaponDataKey = "SelectedWeaponDataGUID";
     private const string AutoSelectKey = "AutoSelectPlayer";
 
     // Dictionary to store prefabs and their keys
@@ -20,13 +20,10 @@ public class SelectPrefabTool : EditorWindow
 
     private void OnEnable()
     {
-        // Initialize dictionary with keys for prefab and WeaponData slots
         assets[PrefabKey] = null;
-        //assets[WeaponDataKey] = null;
 
         // Load saved assets and settings
         LoadAsset(PrefabKey, typeof(GameObject));
-        //LoadAsset(WeaponDataKey, typeof(ScriptableObject));
         autoSelectPlayer = EditorPrefs.GetBool(AutoSelectKey, false);
 
         EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
@@ -36,7 +33,7 @@ public class SelectPrefabTool : EditorWindow
     {
         if (state == PlayModeStateChange.EnteredPlayMode)
         {
-            ExecuteWeaponDataAction();
+            OnPlayModeChanged();
         }
     }
 
@@ -52,7 +49,6 @@ public class SelectPrefabTool : EditorWindow
 
         // Draw and update each asset slot
         DrawAssetField("Prefab", PrefabKey, typeof(GameObject));
-        //DrawAssetField("Weapon Data", WeaponDataKey, typeof(ScriptableObject));
 
         // Toggle for auto-select with saving state
         bool newAutoSelectPlayer = EditorGUILayout.Toggle("Autoselect Player", autoSelectPlayer);
@@ -99,22 +95,12 @@ public class SelectPrefabTool : EditorWindow
         }
     }
 
-    private void ExecuteWeaponDataAction()
+    private void OnPlayModeChanged()
     {
-        // Ensure WeaponData is assigned
-        //if (assets[WeaponDataKey] is WeaponData weaponData)
-        //{
-        //    // Call a custom function on the WeaponData ScriptableObject
-        //    Services.Get<IWeaponManager>().AddWeapon(weaponData);
-        //}
-        //else
-        //{
-        //    Debug.LogWarning("No Weapon Data assigned.");
-        //}
-
         if (autoSelectPlayer)
         {
             Selection.activeGameObject = GameObject.FindGameObjectWithTag("Player");
         }
     }
 }
+#endif

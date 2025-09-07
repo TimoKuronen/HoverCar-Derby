@@ -10,7 +10,7 @@ public static class LayerStorage
 #else
     public static int PlayerLayer { get; private set; }
     public static int GroundLayer { get; private set; }
-    public static int ObstacleLayer { get; private set; 
+    public static int ObstacleLayer { get; private set; }
     public static int CollectibleLayer { get; private set; }
 #endif
     public static void SetLayerValues()

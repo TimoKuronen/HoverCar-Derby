@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Gizmo : MonoBehaviour
@@ -23,7 +21,7 @@ public class Gizmo : MonoBehaviour
         float scalex = 1f, scaley = 1f, scalez = 1f;
         Gizmos.color = color;
 
-        if(scaleWithObject)
+        if (scaleWithObject)
         {
             scalex = transform.localScale.x;
             scaley = transform.localScale.y;
@@ -43,7 +41,7 @@ public class Gizmo : MonoBehaviour
                 else Gizmos.DrawWireSphere(transform.position, size * scalex);
                 break;
             case GizmoTypes.Icon:
-                if(sprite != null)
+                if (sprite != null)
                     Gizmos.DrawIcon(transform.position, sprite.name, true, Color.white);
                 break;
             case GizmoTypes.Arrow:

@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -44,7 +43,7 @@ public class CarDamageManager : MonoBehaviour
     public void ApplyDamageToPart(CarPartType partType, float damage)
     {
         OnCarDamaged?.Invoke();
- 
+
         if (CarParts.TryGetValue(partType, out CarPart part) && part != null)
         {
             part.TakeDamage(damage * GetDamageReductionMultiplier(partType));

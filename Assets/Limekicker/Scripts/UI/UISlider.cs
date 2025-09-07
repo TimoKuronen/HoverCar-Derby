@@ -11,7 +11,7 @@ public class UISlider : UIInteractable
     }
     public void AdjustValue(float direction)
     {
-        if((direction > 0 && slider.value == slider.maxValue) || (direction < 0 && slider.value == slider.minValue))
+        if ((direction > 0 && slider.value == slider.maxValue) || (direction < 0 && slider.value == slider.minValue))
         {
             Debug.Log("can't adjust slider outside range");
             return;

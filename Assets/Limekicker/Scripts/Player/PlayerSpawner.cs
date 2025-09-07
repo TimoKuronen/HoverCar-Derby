@@ -1,8 +1,6 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using System.Linq;
+using UnityEngine;
 
 public class PlayerSpawner : MonoBehaviour
 {
@@ -45,7 +43,7 @@ public class PlayerSpawner : MonoBehaviour
                 PlayerData playerData = new PlayerData();
                 playerData.SetPlayerName(opponent.ToString() + i.ToString());
                 players[i] = playerData;
-                
+
             }
 
             DIBootstrapper.Container.Resolve<IScoreManager>().AddPlayer(players[i]);

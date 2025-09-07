@@ -25,8 +25,8 @@ public abstract class UIInteractable : MonoBehaviour, IUIInteractable, IPointerE
         OnActivate?.Invoke();
     }
 
-    public void AdjustValue(float direction) 
-    { 
+    public void AdjustValue(float direction)
+    {
         OnAdjustValue?.Invoke(direction);
     }
 

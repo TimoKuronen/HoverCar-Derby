@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -29,7 +27,7 @@ public class CameraFollow : MonoBehaviour
 
     void LateUpdate()
     {
-        if (!target) 
+        if (!target)
             return;
 
         // Get car velocity

@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class BlowUpRigidBodies : MonoBehaviour
 {
@@ -14,7 +12,7 @@ public class BlowUpRigidBodies : MonoBehaviour
 
     public void Awake()
     {
-        if(bodies==null)
+        if (bodies == null)
             bodies = GetComponentsInChildren<Rigidbody>();
         originalPositions = new Vector3[bodies.Length];
         originalRotations = new Quaternion[bodies.Length];

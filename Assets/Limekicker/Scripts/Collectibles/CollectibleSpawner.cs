@@ -1,12 +1,11 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class CollectibleSpawner : MonoBehaviour
 {
     [SerializeField] private bool randomizeSpawnType;
     [SerializeField] private float spawnInterval;
-    
+
     private float timer;
 
     private IGameStateHandler gameStateHandler;

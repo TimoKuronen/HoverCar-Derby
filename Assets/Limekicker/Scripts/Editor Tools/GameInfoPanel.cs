@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
 
@@ -66,3 +67,4 @@ public class GameInfoPanel : EditorWindow
         EditorApplication.update -= UpdateLoop;
     }
 }
+#endif

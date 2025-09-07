@@ -44,7 +44,7 @@ public abstract class UIMenu : MonoBehaviour
 
                     foreach (var item in interactables)
                         item.Deselect();
-                    
+
                     interactables[currentIndex].Select();
                 }
 

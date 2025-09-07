@@ -17,7 +17,7 @@ public class TimeManager : ITimeManager
     {
         passedTime += Time.deltaTime;
 
-        if(Input.GetKeyDown(KeyCode.Escape))
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
             Debug.Break();
         }

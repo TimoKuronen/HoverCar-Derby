@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class AudioCuePlayer : MonoBehaviour
 {
@@ -13,7 +11,7 @@ public class AudioCuePlayer : MonoBehaviour
         if (!cue || !audioSource || !audioSource.isActiveAndEnabled)
             return -1;
 
-        if(cue.clips.Length < 1)
+        if (cue.clips.Length < 1)
             return -1;
 
         if (cue.stopPrevious)
@@ -32,8 +30,8 @@ public class AudioCuePlayer : MonoBehaviour
 
         if (clipIndex == _previousClip)
             clipIndex++;
-        
-        if(clipIndex >= cue.clips.Length)
+
+        if (clipIndex >= cue.clips.Length)
             clipIndex = 0;
 
         if (cue.clips[clipIndex] == null)

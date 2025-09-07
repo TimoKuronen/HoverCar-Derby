@@ -1,4 +1,4 @@
 using UnityEngine;
 
 [SelectionBase]
-public class SelectionBase : MonoBehaviour {}
+public class SelectionBase : MonoBehaviour { }

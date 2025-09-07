@@ -10,7 +10,7 @@ internal class GameManager : IGameManager
 
     public GameManager()
     {
-        
+
     }
 
     public void CallLoseState()
