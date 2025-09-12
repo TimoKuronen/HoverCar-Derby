@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Unity.Services.Core;
 using UnityEngine;
@@ -25,5 +26,10 @@ public class ClientGameManager
     public void GoToMenu()
     {
         SceneManager.LoadScene(MenuSceneName);
+    }
+
+    internal async Task StartHostAsync()
+    {
+        throw new NotImplementedException();
     }
 }
