@@ -1,12 +1,13 @@
-using System.Collections;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Unity.Services.Core;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class ClientGameManager 
 {
-    public async Task InitAsync()
+    private const string MenuSceneName = "MainMenu";
+
+    public async Task<bool> InitAsync()
     {
         await UnityServices.InitializeAsync();
 
@@ -15,7 +16,14 @@ public class ClientGameManager
         if(authenticatorState != AuthenticatorState.Authenticated)
         {
             Debug.LogError("Authentication failed. Cannot proceed with ClientGameManager initialization.");
-            return;
+            return false;
         }
+
+        return true;
+    }
+
+    public void GoToMenu()
+    {
+        SceneManager.LoadScene(MenuSceneName);
     }
 }
