@@ -14,9 +14,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Limekicker/Scenes/PlayScene.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
-  - enabled: 1
-    path: Assets/Limekicker/Scenes/Loader.unity
-    guid: c2b94853e8001154283efb3ed4f0b567
   m_configObjects:
     com.unity.input.settings: {fileID: 11400000, guid: 318916b076bf970498b9d67bd24fa592, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 695ebceaca2716c4c9b32ad6c841e124, type: 3}

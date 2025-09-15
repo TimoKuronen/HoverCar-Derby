@@ -17,7 +17,6 @@ public class PlayerController : MonoBehaviour
     {
         Instance = this;
 
-        Debug.Log("PlayerController Awake");
         nitroBoost = GetComponent<NitroBoost>();
         DamageManager = GetComponent<CarDamageManager>();
         DamageManager.OnCarDamaged += () => OnPlayerCarDamaged?.Invoke();

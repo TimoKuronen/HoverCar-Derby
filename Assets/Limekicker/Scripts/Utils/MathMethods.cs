@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public static class MathMethods
@@ -171,5 +172,11 @@ public static class MathMethods
         int seconds = Mathf.FloorToInt(totalSeconds % 60f);
 
         return $"{minutes}:{seconds:D2}";
+    }
+
+    public static T[] ShuffleArray<T>(T[] array)
+    {
+        System.Random random = new System.Random();
+        return array.OrderBy(x => random.Next()).ToArray();
     }
 }

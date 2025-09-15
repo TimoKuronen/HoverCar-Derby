@@ -11,6 +11,8 @@ public class CarCollisionHandler : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
+        return; // Temporarily disable collision damage
+
         float impactForce = collision.relativeVelocity.magnitude;
         //Debug.Log(impactForce);
 

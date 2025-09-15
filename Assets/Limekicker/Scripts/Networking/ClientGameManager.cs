@@ -1,11 +1,17 @@
 using System;
 using System.Threading.Tasks;
+using Unity.Netcode;
+using Unity.Netcode.Transports.UTP;
+using Unity.Networking.Transport.Relay;
 using Unity.Services.Core;
+using Unity.Services.Relay;
+using Unity.Services.Relay.Models;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class ClientGameManager 
+public class ClientGameManager
 {
+    private JoinAllocation allocation;
     private const string MenuSceneName = "MainMenu";
 
     public async Task<bool> InitAsync()
@@ -14,7 +20,7 @@ public class ClientGameManager
 
         AuthenticatorState authenticatorState = await AuthenticatorHandler.DoAuthentication();
 
-        if(authenticatorState != AuthenticatorState.Authenticated)
+        if (authenticatorState != AuthenticatorState.Authenticated)
         {
             Debug.LogError("Authentication failed. Cannot proceed with ClientGameManager initialization.");
             return false;
@@ -28,8 +34,24 @@ public class ClientGameManager
         SceneManager.LoadScene(MenuSceneName);
     }
 
-    internal async Task StartHostAsync()
+    public async Task StartClientAsync(string joinCode)
     {
-        throw new NotImplementedException();
+        try
+        {
+            allocation = await Relay.Instance.JoinAllocationAsync(joinCode);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Failed to start client: {e.Message}");
+            return;
+        }
+
+        UnityTransport transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+
+        // Use "dtls" for more security but if facing issues, try "udp"
+        RelayServerData relayServerData = new RelayServerData(allocation, "dtls");
+        transport.SetRelayServerData(relayServerData);
+
+        NetworkManager.Singleton.StartClient();
     }
 }

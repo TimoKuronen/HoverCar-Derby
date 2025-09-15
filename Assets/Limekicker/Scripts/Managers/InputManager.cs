@@ -9,7 +9,6 @@ public class InputManager : IInputManager
 
     public InputManager()
     {
-        UnityEngine.Debug.Log("InputManager Constructor");
         actions = new InputSystem_Actions();
         actions.Enable();
 
