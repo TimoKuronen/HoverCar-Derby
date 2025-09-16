@@ -72,6 +72,8 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
 /*
-!/Assets
+!/Assets/
 /Assets/*
-!/Assets/Limekicker
+!/Assets/Limekicker/
+!/Assets/JMO Assets/
+!/Assets/RPGPP_LT/
