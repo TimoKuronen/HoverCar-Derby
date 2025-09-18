@@ -1,22 +1,24 @@
 using System;
-using UnityEngine;
-using UnityEngine.SceneManagement;
+using System.Collections;
+using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using Unity.Networking.Transport.Relay;
-using Unity.Services.Relay;
-using Unity.Services.Relay.Models;
 using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
-using System.Collections.Generic;
-using System.Collections;
+using Unity.Services.Relay;
+using Unity.Services.Relay.Models;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class HostGameManager : MonoBehaviour
 {
     private string joinCode;
     private string lobbyID;
     private Allocation allocation;
+    private NetworkServer networkServer;
     private const int MaxConnections = 8;
     private const string GameSceneName = "PlayScene";
 
@@ -65,8 +67,10 @@ public class HostGameManager : MonoBehaviour
                 }
             };
 
+            string playerName = PlayerPrefs.GetString(NameSelector.PlayerNameKey, "Unknown");
+
             Lobby lobby = await Lobbies.Instance.CreateLobbyAsync(
-                "My Lobby", MaxConnections, lobbyOptions);
+               $"{playerName}'s Lobby", MaxConnections, lobbyOptions);
 
             lobbyID = lobby.Id;
 
@@ -77,6 +81,16 @@ public class HostGameManager : MonoBehaviour
             Debug.LogError($"Failed to start host: {e.Message}");
             return;
         }
+
+        networkServer = new NetworkServer(NetworkManager.Singleton);
+
+        UserData userData = new UserData
+        {
+            Username = PlayerPrefs.GetString(NameSelector.PlayerNameKey, "!!Missing Name!!")
+        };
+
+        string payload = JsonUtility.ToJson(userData);
+        byte[] payloadBytes = Encoding.UTF8.GetBytes(payload);
 
         NetworkManager.Singleton.StartHost();
         NetworkManager.Singleton.SceneManager.LoadScene(GameSceneName, LoadSceneMode.Single);
