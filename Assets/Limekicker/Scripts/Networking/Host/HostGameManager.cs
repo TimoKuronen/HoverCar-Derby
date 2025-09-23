@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using Unity.Networking.Transport.Relay;
+using Unity.Services.Authentication;
 using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 using Unity.Services.Relay;
@@ -86,7 +87,8 @@ public class HostGameManager : MonoBehaviour
 
         UserData userData = new UserData
         {
-            Username = PlayerPrefs.GetString(NameSelector.PlayerNameKey, "!!Missing Name!!")
+            Username = PlayerPrefs.GetString(NameSelector.PlayerNameKey, "!!Missing Name!!"),
+            UserAuthId = AuthenticationService.Instance.PlayerId
         };
 
         string payload = JsonUtility.ToJson(userData);
