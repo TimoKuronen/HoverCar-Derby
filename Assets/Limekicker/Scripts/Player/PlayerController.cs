@@ -1,25 +1,40 @@
+using Cinemachine;
 using System;
+using Unity.Collections;
+using Unity.Netcode;
 using UnityEngine;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : NetworkBehaviour
 {
-    public static PlayerController Instance;
-
     [SerializeField] private PlayerData playerData;
+    [SerializeField] private CinemachineVirtualCamera playerCamera;
+    [SerializeField] private int cameraPriority = 10;
 
     public CarDamageManager DamageManager { get; private set; }
     public PlayerData PlayerData => playerData;
+    public NetworkVariable<FixedString32Bytes> PlayerName = new NetworkVariable<FixedString32Bytes>(new FixedString32Bytes("Player"));
     public event Action OnPlayerCarDamaged;
 
     private NitroBoost nitroBoost;
 
-    private void Awake()
+    public override void OnNetworkSpawn()
     {
-        Instance = this;
+        if(IsServer)
+        {
+            UserData userdata = HostSingleton.Instance.GameManager.NetworkServer.GetUserData(OwnerClientId);
 
-        nitroBoost = GetComponent<NitroBoost>();
-        DamageManager = GetComponent<CarDamageManager>();
-        DamageManager.OnCarDamaged += () => OnPlayerCarDamaged?.Invoke();
+            PlayerName.Value = userdata.Username;
+        }
+
+        if (IsOwner)
+        {
+            nitroBoost = GetComponent<NitroBoost>();
+            DamageManager = GetComponent<CarDamageManager>();
+            
+            DamageManager.OnCarDamaged += () => OnPlayerCarDamaged?.Invoke();
+
+            playerCamera.Priority = cameraPriority;
+        }
     }
 
     private void OnDisable()

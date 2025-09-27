@@ -20,9 +20,6 @@ public class GameInfoPanel : EditorWindow
             return;
         }
 
-        if (PlayerController.Instance == null)
-            return;
-
         if (!subscribedToEvents)
         {
             subscribedToEvents = true;
