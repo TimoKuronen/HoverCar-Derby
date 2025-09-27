@@ -14,7 +14,7 @@ using Unity.Services.Relay.Models;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class HostGameManager : MonoBehaviour
+public class HostGameManager : IDisposable
 {
     private string joinCode;
     private string lobbyID;
@@ -108,5 +108,24 @@ public class HostGameManager : MonoBehaviour
 
             yield return delay;
         }
+    }
+
+    public async void Dispose()
+    {
+        HostSingleton.Instance.StopCoroutine(nameof(HeartbeatLobby));
+
+        if(!string.IsNullOrEmpty(lobbyID))
+        {
+            try
+            {
+                await Lobbies.Instance.DeleteLobbyAsync(lobbyID);
+            }
+            catch (LobbyServiceException e)
+            {
+                Debug.LogError($"Failed to delete lobby: {e.Message}");
+            }
+        }
+
+        networkServer?.Dispose();
     }
 }

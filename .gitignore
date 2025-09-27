@@ -74,6 +74,7 @@ crashlytics-build.properties
 /*
 !/Assets/
 /Assets/*
+!/Assets/Editor
 !/Assets/Limekicker/
 !/Assets/JMO Assets/
 !/Assets/RPGPP_LT/
