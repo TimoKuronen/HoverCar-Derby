@@ -22,14 +22,6 @@ public class PlayerController : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        if (IsServer)
-        {
-            UserData userdata = HostSingleton.Instance.GameManager.NetworkServer.GetUserData(OwnerClientId);
-            PlayerName.Value = userdata.Username;
-
-            OnPlayerSpawned?.Invoke(this);
-        }
-
         if (IsOwner)
         {
             nitroBoost = GetComponent<NitroBoost>();
@@ -38,6 +30,14 @@ public class PlayerController : NetworkBehaviour
             DamageManager.OnCarDamaged += () => OnPlayerCarDamaged?.Invoke();
 
             playerCamera.Priority = cameraPriority;
+        }
+
+        if (IsServer)
+        {
+            UserData userdata = HostSingleton.Instance.GameManager.NetworkServer.GetUserData(OwnerClientId);
+            PlayerName.Value = userdata.Username;
+
+            OnPlayerSpawned?.Invoke(this);
         }
     }
 

@@ -1,6 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -14,7 +12,7 @@ public class RespawnHandler : NetworkBehaviour
             return;
 
         // Handle already spawned players (in case of host)
-        PlayerController[] players = FindObjectsOfType<PlayerController>();
+        PlayerController[] players = FindObjectsByType<PlayerController>(FindObjectsSortMode.None);
         foreach (var player in players)
         {
             HandlePlayerSpawned(player);
