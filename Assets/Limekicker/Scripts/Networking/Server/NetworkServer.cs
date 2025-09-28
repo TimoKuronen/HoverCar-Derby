@@ -27,7 +27,10 @@ public class NetworkServer : IDisposable
         clientIdToAuth[request.ClientNetworkId] = userData.Username;
         authIdToUserData[userData.UserAuthId] = userData;
 
+        (Vector3, Quaternion) posAndRot = SpawnPoint.GetRandomSpawnPos();
         response.Approved = true;
+        response.Position = posAndRot.Item1;
+        response.Rotation = posAndRot.Item2;
         response.CreatePlayerObject = true;
     }
 

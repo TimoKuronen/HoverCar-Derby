@@ -10,6 +10,9 @@ public class CarDamageManager : MonoBehaviour
 
     private CarManager carManager;
 
+    public event Action OnCarDestroyed;
+    private float totalHealth;
+
     private void Start()
     {
         carManager = GetComponent<CarManager>();
@@ -21,6 +24,7 @@ public class CarDamageManager : MonoBehaviour
         foreach (var part in CarParts)
         {
             part.Value.SetMaxHealth(carManager.CarData);
+            totalHealth += part.Value.CurrentHealth.Value;
         }
     }
 
@@ -46,7 +50,14 @@ public class CarDamageManager : MonoBehaviour
 
         if (CarParts.TryGetValue(partType, out CarPart part) && part != null)
         {
-            part.TakeDamage(damage * GetDamageReductionMultiplier(partType));
+            float damageDealt = damage * GetDamageReductionMultiplier(partType);
+            part.TakeDamage(damageDealt);
+            totalHealth -= damageDealt;
+        }
+
+        if(totalHealth <= 0)
+        {
+            OnCarDestroyed?.Invoke();
         }
     }
 
