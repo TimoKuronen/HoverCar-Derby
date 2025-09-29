@@ -10,7 +10,8 @@ public class PlayerController : NetworkBehaviour
     [SerializeField] private CinemachineVirtualCamera playerCamera;
     [SerializeField] private int cameraPriority = 10;
 
-    public CarDamageManager DamageManager { get; private set; }
+    public CarDamageManager DamageManager { get; private set; }   
+    public int Cash { get; private set; } // sync this with leaderbaord
     public PlayerData PlayerData => playerData;
     public NetworkVariable<FixedString32Bytes> PlayerName = new NetworkVariable<FixedString32Bytes>(new FixedString32Bytes("Player"));
 

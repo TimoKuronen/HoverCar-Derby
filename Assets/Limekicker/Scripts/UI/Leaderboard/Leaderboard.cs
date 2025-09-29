@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -7,6 +9,7 @@ public class Leaderboard : NetworkBehaviour
     [SerializeField] private LeaderboardEntity leaderboardEntityPrefab;
 
     private NetworkList<LeaderboardEntityState> leaderboardEntities;
+    private List<LeaderboardEntity> leaderboardDisplays = new List<LeaderboardEntity>();
 
     private void Awake()
     {
@@ -21,7 +24,10 @@ public class Leaderboard : NetworkBehaviour
             PlayerName = player.PlayerName.Value,
             Cash = 0
         };
+
         leaderboardEntities.Add(newEntry);
+
+        // Subscribe to cash change event
     }
 
     private void HandlePlayerDespanwed(PlayerController player)
@@ -34,6 +40,8 @@ public class Leaderboard : NetworkBehaviour
                 break;
             }
         }
+
+        // Unsubscribe from cash change event
     }
 
     public override void OnNetworkSpawn()
@@ -70,9 +78,32 @@ public class Leaderboard : NetworkBehaviour
         switch (changeEvent.Type)
         {
             case NetworkListEvent<LeaderboardEntityState>.EventType.Add:
-                var newEntity = Instantiate(leaderboardEntityPrefab, leaderboardEntityHolder);
+                if (leaderboardDisplays.Any(x => x.ClientId == changeEvent.Value.ClientId))
+                {
+                    var newEntity = Instantiate(leaderboardEntityPrefab, leaderboardEntityHolder);
+                    newEntity.Initialise(
+                        changeEvent.Value.ClientId,
+                        changeEvent.Value.PlayerName,
+                        changeEvent.Value.Cash);
+                    leaderboardDisplays.Add(newEntity);
+                }
                 break;
+
             case NetworkListEvent<LeaderboardEntityState>.EventType.Remove:
+                var entityToRemove = leaderboardDisplays.FirstOrDefault(x => x.ClientId == changeEvent.Value.ClientId);
+                if (entityToRemove != null)
+                {
+                    entityToRemove.transform.SetParent(null);
+                    Destroy(entityToRemove.gameObject);
+                    leaderboardDisplays.Remove(entityToRemove);
+                }
+                break;
+            case NetworkListEvent<LeaderboardEntityState>.EventType.Value:
+                var entityToUpdate = leaderboardDisplays.FirstOrDefault(x => x.ClientId == changeEvent.Value.ClientId);
+                if (entityToUpdate != null)
+                {
+                    entityToUpdate.UpdateCash(changeEvent.Value.Cash);
+                }
                 break;
         }
     }
@@ -89,5 +120,28 @@ public class Leaderboard : NetworkBehaviour
 
         PlayerController.OnPlayerSpawned -= HandlePlayerSpawned;
         PlayerController.OnPlayerDespawned -= HandlePlayerDespanwed;
+    }
+
+    /// <summary>
+    /// To-do: Implement cash change handling
+    /// </summary>
+    /// <param name="clientId"></param>
+    /// <param name="newCash"></param>
+    private void HandleCashChanged(ulong clientId, int newCash)
+    {
+        for (int i = 0; i < leaderboardEntities.Count; i++)
+        {
+            if (leaderboardEntities[i].ClientId == clientId)
+            {
+                leaderboardEntities[i] = new LeaderboardEntityState
+                {
+                    ClientId = leaderboardEntities[i].ClientId,
+                    PlayerName = leaderboardEntities[i].PlayerName,
+                    Cash = newCash
+                };
+
+                break;
+            }
+        }
     }
 }

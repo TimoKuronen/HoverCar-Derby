@@ -1,18 +1,36 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
+using Unity.Collections;
 using UnityEngine;
 
 public class LeaderboardEntity : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    [SerializeField] private TextMeshProUGUI displayText;
+
+    public ulong ClientId { get; private set; }
+    public int Cash { get; private set; }
+    private FixedString32Bytes playerName;
+
+    public void Initialise(ulong clientId, FixedString32Bytes playerName, int cash)
     {
-        
+        this.ClientId = clientId;
+        this.playerName = playerName;
+        Cash = cash;
+
+        UpdateCash(cash);
     }
 
-    // Update is called once per frame
-    void Update()
+    public void UpdateCash(int cash)
     {
-        
+        Cash = cash;
+
+        UpdateText();
+    }
+
+    private void UpdateText()
+    {
+        displayText.text = $"1. {playerName} ({Cash})";
     }
 }
