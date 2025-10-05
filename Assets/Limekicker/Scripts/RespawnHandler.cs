@@ -4,7 +4,10 @@ using UnityEngine;
 
 public class RespawnHandler : NetworkBehaviour
 {
-    [SerializeField] private NetworkObject playerPrefab;
+    [SerializeField] private PlayerController playerPrefab;
+    [SerializeField] private float cashKeptPercentage = 0.8f;
+
+    private int currentCash;
 
     public override void OnNetworkSpawn()
     {
@@ -34,6 +37,8 @@ public class RespawnHandler : NetworkBehaviour
 
     private void HandlePlayerDie(PlayerController controller)
     {
+        currentCash = (int)(controller.Cash * (cashKeptPercentage / 100));
+
         Destroy(controller.gameObject);
 
         StartCoroutine(RespawnPlayer(controller.OwnerClientId));
@@ -44,8 +49,12 @@ public class RespawnHandler : NetworkBehaviour
         yield return null;
 
         (Vector3 spawnPosition, Quaternion spawnRotation) = SpawnPoint.GetRandomSpawnPos();
-        NetworkObject playerInstance = Instantiate(playerPrefab, spawnPosition, spawnRotation);
-        playerInstance.SpawnAsPlayerObject(ownerClientId);
+        
+        PlayerController playerInstance = Instantiate(playerPrefab, spawnPosition, spawnRotation);
+
+        playerInstance.NetworkObject.SpawnAsPlayerObject(ownerClientId);
+
+        // set cash to the saved value
     }
 
     public override void OnNetworkDespawn()
