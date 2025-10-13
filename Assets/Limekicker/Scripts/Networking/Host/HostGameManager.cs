@@ -95,7 +95,22 @@ public class HostGameManager : IDisposable
         byte[] payloadBytes = Encoding.UTF8.GetBytes(payload);
 
         NetworkManager.Singleton.StartHost();
+
+        NetworkServer.OnClientLeft += HandleClientLeft;
+
         NetworkManager.Singleton.SceneManager.LoadScene(GameSceneName, LoadSceneMode.Single);
+    }
+
+    private async void HandleClientLeft(string authId)
+    {
+        try
+        {
+            await LobbyService.Instance.RemovePlayerAsync(lobbyID, authId);
+        }
+        catch (LobbyServiceException e)
+        {
+            Debug.LogError($"Failed to remove player from lobby: {e.Message}");
+        }
     }
 
     private IEnumerator HeartbeatLobby(float waitTimeSeconds)
@@ -110,11 +125,16 @@ public class HostGameManager : IDisposable
         }
     }
 
-    public async void Dispose()
+    public void Dispose()
+    {
+        Shutdown();
+    }
+
+    public async void Shutdown()
     {
         HostSingleton.Instance.StopCoroutine(nameof(HeartbeatLobby));
 
-        if(!string.IsNullOrEmpty(lobbyID))
+        if (!string.IsNullOrEmpty(lobbyID))
         {
             try
             {
@@ -125,6 +145,8 @@ public class HostGameManager : IDisposable
                 Debug.LogError($"Failed to delete lobby: {e.Message}");
             }
         }
+
+        NetworkServer.OnClientLeft -= HandleClientLeft;
 
         NetworkServer?.Dispose();
     }
