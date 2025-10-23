@@ -26,8 +26,8 @@ public class NetworkServer : IDisposable
         string payload = System.Text.Encoding.UTF8.GetString(request.Payload);
         UserData userData = JsonUtility.FromJson<UserData>(payload);
 
-        clientIdToAuth[request.ClientNetworkId] = userData.Username;
-        authIdToUserData[userData.UserAuthId] = userData;
+        clientIdToAuth[request.ClientNetworkId] = userData.userName;
+        authIdToUserData[userData.userAuthId] = userData;
 
         (Vector3, Quaternion) posAndRot = SpawnPoint.GetRandomSpawnPos();
         response.Approved = true;

@@ -36,7 +36,7 @@ public class PlayerController : NetworkBehaviour
         if (IsServer)
         {
             UserData userdata = HostSingleton.Instance.GameManager.NetworkServer.GetUserData(OwnerClientId);
-            PlayerName.Value = userdata.Username;
+            PlayerName.Value = userdata.userName;
 
             OnPlayerSpawned?.Invoke(this);
         }

@@ -87,8 +87,8 @@ public class HostGameManager : IDisposable
 
         UserData userData = new UserData
         {
-            Username = PlayerPrefs.GetString(NameSelector.PlayerNameKey, "!!Missing Name!!"),
-            UserAuthId = AuthenticationService.Instance.PlayerId
+            userName = PlayerPrefs.GetString(NameSelector.PlayerNameKey, "!!Missing Name!!"),
+            userAuthId = AuthenticationService.Instance.PlayerId
         };
 
         string payload = JsonUtility.ToJson(userData);
