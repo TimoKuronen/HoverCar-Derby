@@ -31,6 +31,11 @@ public class GameInfo
 
     public string ToMultiplayQueue()
     {
-        return "";
+        return gameQue switch
+        {
+            GameQue.Solo => "solo-queue",
+            GameQue.Team => "team-queue",
+            _ => "solo-queue"
+        };
     }
 }

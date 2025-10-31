@@ -17,17 +17,27 @@ public class ClientGameManager : IDisposable
     private const string MenuSceneName = "MainMenu";
 
     private NetworkClient networkClient;
+    private MatchplayMatchmaker matchmaker;
+
+    private UserData userData;
 
     public async Task<bool> InitAsync()
     {
         await UnityServices.InitializeAsync(); 
 
         networkClient = new NetworkClient(NetworkManager.Singleton);
+        matchmaker = new MatchplayMatchmaker();
 
         AuthenticatorState authenticatorState = await AuthenticatorHandler.DoAuthentication();
 
         if (authenticatorState != AuthenticatorState.Authenticated)
         {
+            userData = new UserData
+            {
+                userName = PlayerPrefs.GetString(NameSelector.PlayerNameKey, "!!Missing Name!!"),
+                userAuthId = AuthenticationService.Instance.PlayerId
+            };
+
             Debug.LogError("Authentication failed. Cannot proceed with ClientGameManager initialization.");
             return false;
         }
@@ -58,19 +68,26 @@ public class ClientGameManager : IDisposable
         RelayServerData relayServerData = new RelayServerData(allocation, "dtls");
         transport.SetRelayServerData(relayServerData);
 
-        UserData userData = new UserData
-        {
-            userName = PlayerPrefs.GetString(NameSelector.PlayerNameKey, "!!Missing Name!!"),
-            userAuthId = AuthenticationService.Instance.PlayerId
-        };
-
         string payload = JsonUtility.ToJson(userData);
         byte[] payloadBytes = Encoding.UTF8.GetBytes(payload);
 
         NetworkManager.Singleton.NetworkConfig.ConnectionData = payloadBytes;
-
         NetworkManager.Singleton.StartClient();
     }
+
+    private async Task<MatchmakerPollingResult> PollMatchmakerAsync()
+    {
+        MatchmakingResult matchmakingResult = await matchmaker.Matchmake(userData);
+
+        if (matchmakingResult.result == MatchmakerPollingResult.Success)
+        {
+            // Connect to the allocated server 
+            return MatchmakerPollingResult.Success;
+        }
+
+        return matchmakingResult.result;     
+    }
+
     public void Disconnect()
     {
         networkClient.Disconnect();
