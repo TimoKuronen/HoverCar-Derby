@@ -35,18 +35,18 @@ public class GameInfoPanel : EditorWindow
         //    EditorGUILayout.EndHorizontal();
         //}
 
-        float deltaX = DIBootstrapper.Container.Resolve<IInputManager>().GetSteer();
-        int gasValue = (int)DIBootstrapper.Container.Resolve<IInputManager>().GetGas();
-        float horizontalInput = Mathf.Clamp(deltaX / Screen.width, -1f, 1f);
+        //float deltaX = DIBootstrapper.Container.Resolve<IInputManager>().GetSteer();
+        //int gasValue = (int)DIBootstrapper.Container.Resolve<IInputManager>().GetGas();
+        //float horizontalInput = Mathf.Clamp(deltaX / Screen.width, -1f, 1f);
 
-        EditorGUILayout.BeginHorizontal();
-        GUILayout.Label("Horizontal input: ");
-        EditorGUILayout.TextField(horizontalInput.ToString());
-        EditorGUILayout.EndHorizontal();
-        EditorGUILayout.BeginHorizontal();
-        GUILayout.Label("Gas input: ");
-        EditorGUILayout.TextField(gasValue.ToString());
-        EditorGUILayout.EndHorizontal();
+        //EditorGUILayout.BeginHorizontal();
+        //GUILayout.Label("Horizontal input: ");
+        //EditorGUILayout.TextField(horizontalInput.ToString());
+        //EditorGUILayout.EndHorizontal();
+        //EditorGUILayout.BeginHorizontal();
+        //GUILayout.Label("Gas input: ");
+        //EditorGUILayout.TextField(gasValue.ToString());
+        //EditorGUILayout.EndHorizontal();
     }
 
     void UpdateLoop()

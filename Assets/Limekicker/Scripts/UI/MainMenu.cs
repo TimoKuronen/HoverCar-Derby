@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -33,7 +34,7 @@ public class MainMenu : MonoBehaviour
         {
             queueStatusText.text = "Canceling...";
             isCanceling = true;
-            // logic here to cancel matchmaking
+            await ClientSingleton.Instance.GameManager.CancelMatchmaking();
             isCanceling = false;
             isMatchmaking = false;
 
@@ -43,10 +44,35 @@ public class MainMenu : MonoBehaviour
             return;
         }
 
-        // queue logic here
+        ClientSingleton.Instance.GameManager.MatchmakeAsync(OnMatchMade);
         findMatchButtonText.text = "Cancel";
         queueStatusText.text = "Searching...";
         isMatchmaking = true;
+    }
+
+    private void OnMatchMade(MatchmakerPollingResult result)
+    {
+        switch (result)
+        {
+            case MatchmakerPollingResult.Success:
+                queueStatusText.text = "Match found! Joining...";
+                break;
+            case MatchmakerPollingResult.TicketCreationError:
+                queueStatusText.text = "Matchmaking failed. Please try again.";
+                isMatchmaking = false;
+                findMatchButtonText.text = "Find Match";
+                break;
+            case MatchmakerPollingResult.TicketCancellationError:
+                queueStatusText.text = "Matchmaking canceled.";
+                isMatchmaking = false;
+                findMatchButtonText.text = "Find Match";
+                break;
+            default:
+                queueStatusText.text = "Unknown matchmaking result.";
+                isMatchmaking = false;
+                findMatchButtonText.text = "Find Match";
+                break;
+        }
     }
 
     public async void StartHost()
