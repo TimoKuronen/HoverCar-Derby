@@ -30,7 +30,7 @@ public class ClientGameManager : IDisposable
 
         AuthenticatorState authenticatorState = await AuthenticatorHandler.DoAuthentication();
 
-        if (authenticatorState != AuthenticatorState.Authenticated)
+        if (authenticatorState == AuthenticatorState.Authenticated)
         {
             userData = new UserData
             {
@@ -38,11 +38,11 @@ public class ClientGameManager : IDisposable
                 userAuthId = AuthenticationService.Instance.PlayerId
             };
 
-            Debug.LogError("Authentication failed. Cannot proceed with ClientGameManager initialization.");
-            return false;
+            return true;
         }
 
-        return true;
+        Debug.LogError("Authentication failed. Cannot proceed with ClientGameManager initialization.");
+        return false;
     }
 
     public void GoToMenu()
