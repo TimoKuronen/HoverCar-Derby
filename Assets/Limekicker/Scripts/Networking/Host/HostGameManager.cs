@@ -19,9 +19,15 @@ public class HostGameManager : IDisposable
     private string joinCode;
     private string lobbyID;
     private Allocation allocation;
+    private NetworkObject playerPrefab;
     public NetworkServer NetworkServer { get; private set; }
     private const int MaxConnections = 8;
     private const string GameSceneName = "PlayScene";
+
+    public HostGameManager(NetworkObject playerPrefab)
+    {
+        this.playerPrefab = playerPrefab;
+    }
 
     public async Task StartHostAsync()
     {
@@ -83,7 +89,7 @@ public class HostGameManager : IDisposable
             return;
         }
 
-        NetworkServer = new NetworkServer(NetworkManager.Singleton);
+        NetworkServer = new NetworkServer(NetworkManager.Singleton, playerPrefab);
 
         UserData userData = new UserData
         {

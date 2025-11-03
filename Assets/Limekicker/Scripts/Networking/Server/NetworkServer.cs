@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine;
@@ -9,6 +10,8 @@ public class NetworkServer : IDisposable
 {
     private NetworkManager networkManager;
 
+    private NetworkObject playerPrefab;
+
     public Action<UserData> OnUserJoined;
     public Action<UserData> OnUserLeft;
     public Action<string> OnClientLeft;
@@ -16,9 +19,10 @@ public class NetworkServer : IDisposable
     private Dictionary<ulong, string> clientIdToAuth = new Dictionary<ulong, string>();
     private Dictionary<string, UserData> authIdToUserData = new Dictionary<string, UserData>();
 
-    public NetworkServer(NetworkManager networkManager)
+    public NetworkServer(NetworkManager networkManager, NetworkObject playerPrefab)
     {
         this.networkManager = networkManager;
+        this.playerPrefab = playerPrefab;
 
         networkManager.ConnectionApprovalCallback += ApprovalCheck;
         networkManager.OnServerStarted += OnNetworkReady;
@@ -40,11 +44,19 @@ public class NetworkServer : IDisposable
         authIdToUserData[userData.userAuthId] = userData;
         OnUserJoined?.Invoke(userData);
 
-        (Vector3, Quaternion) posAndRot = SpawnPoint.GetRandomSpawnPos();
+        _ = SpawnPlayerDelay(request.ClientNetworkId);
+
         response.Approved = true;
-        response.Position = posAndRot.Item1;
-        response.Rotation = posAndRot.Item2;
-        response.CreatePlayerObject = true;
+        response.CreatePlayerObject = false;
+    }
+
+    private async Task SpawnPlayerDelay(ulong clientId)
+    {
+        await Task.Delay(1000);
+      
+        NetworkObject playerInstance = GameObject.Instantiate(playerPrefab, SpawnPoint.GetRandomSpawnPos().Item1, Quaternion.identity);
+
+        playerInstance.SpawnAsPlayerObject(clientId);
     }
 
     private void OnNetworkReady()

@@ -118,7 +118,7 @@ public class MultiplayAllocationService : IDisposable
         if (multiplayService == null)
             return;
 
-        serverCheckManager = await multiplayService.StartServerQueryHandlerAsync(20, "Server", "", "0", "");
+        serverCheckManager = await multiplayService.StartServerQueryHandlerAsync((ushort)20, "Server", "", "0", "");
         ServerCheckLoop(serverCheckCancel.Token);
     }
 
