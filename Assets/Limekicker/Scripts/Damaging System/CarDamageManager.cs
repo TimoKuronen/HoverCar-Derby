@@ -6,6 +6,13 @@ using UnityEngine.InputSystem;
 
 public class CarDamageManager : MonoBehaviour
 {
+    [SerializeField] private ParticleSystem damageSmoke;
+    [SerializeField] private ParticleSystem damageImpactEffect;
+    [SerializeField] private Color normalDamageSmokeColor;
+    [SerializeField] private Color heavyDamageSmokeColor;
+
+    private ParticleSystem.EmissionModule emissionModule;
+
     public event Action OnCarDamaged;
     public Dictionary<CarPartType, CarPart> CarParts { get; private set; } = new Dictionary<CarPartType, CarPart>();
 
@@ -21,6 +28,8 @@ public class CarDamageManager : MonoBehaviour
         CarParts.Add(CarPartType.SidePanel_Left, transform.Find("CarPart_SidePanel_Left").GetComponent<SidePanel>());
         CarParts.Add(CarPartType.SidePanel_Right, transform.Find("CarPart_SidePanel_Right").GetComponent<SidePanel>());
         CarParts.Add(CarPartType.RearBumper, GetComponentInChildren<RearBumper>());
+
+        emissionModule = damageSmoke.emission;
 
         foreach (var part in CarParts)
         {
@@ -58,7 +67,7 @@ public class CarDamageManager : MonoBehaviour
             totalHealth -= damageDealt;
         }
 
-        if(totalHealth <= 0)
+        if (totalHealth <= 0)
         {
             OnCarDestroyed?.Invoke();
         }
