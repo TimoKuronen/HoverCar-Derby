@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class CarDamageManager : MonoBehaviour
 {
@@ -30,7 +31,8 @@ public class CarDamageManager : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Alpha1))
+#if UNITY_EDITOR
+        if (Keyboard.current.digit1Key.wasPressedThisFrame)
         {
             CarPartType[] parts = (CarPartType[])Enum.GetValues(typeof(CarPartType));
             int index = UnityEngine.Random.Range(0, parts.Length);
@@ -38,10 +40,11 @@ public class CarDamageManager : MonoBehaviour
             ApplyDamageToPart(parts[index], 33);
         }
 
-        if (Input.GetKeyDown(KeyCode.Alpha2))
+        if (Keyboard.current.digit2Key.wasPressedThisFrame)
         {
             Repair(30);
         }
+#endif
     }
 
     public void ApplyDamageToPart(CarPartType partType, float damage)

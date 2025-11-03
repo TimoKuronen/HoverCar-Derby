@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class TimeManager : ITimeManager
 {
@@ -17,7 +18,7 @@ public class TimeManager : ITimeManager
     {
         passedTime += Time.deltaTime;
 
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (Keyboard.current.escapeKey.wasPressedThisFrame)
         {
             Debug.Break();
         }

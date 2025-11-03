@@ -20,8 +20,7 @@ public class RaceSetupManager : MonoBehaviour
     public void AssignSpawnPosition(ulong clientId, PlayerController player)
     {
         Transform spawn = startingPositions[nextSpawnIndex % startingPositions.Length].transform;
-        player.transform.position = spawn.position;
-        player.transform.rotation = spawn.rotation;
+        player.transform.SetPositionAndRotation(spawn.position, spawn.rotation);
         nextSpawnIndex++;
     }
 

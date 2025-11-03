@@ -17,7 +17,8 @@ public class CarPartConditionEffects : MonoBehaviour
 
     public void Toggle(bool value)
     {
-        objectVisuals.SetActive(value);
+        if(objectVisuals != null)
+            objectVisuals.SetActive(value);
 
         if (value)
         {
