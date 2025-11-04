@@ -35,12 +35,38 @@ public class NetworkServer : IDisposable
         return networkManager.StartServer();
     }
 
+    public void RegisterHostUserData(UserData userData)
+    {
+        ulong hostClientId = NetworkManager.Singleton.LocalClientId; // typically 0
+
+        clientIdToAuth[hostClientId] = userData.userAuthId;
+        authIdToUserData[userData.userAuthId] = userData;
+
+        Debug.Log($"[NetworkServer] Registered host user data for client {hostClientId} ({userData.userName})");
+    }
+
     private void ApprovalCheck(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response)
     {
+        if (request.Payload == null || request.Payload.Length == 0)
+        {
+            Debug.Log("[NetworkServer] Host approval with no payload – auto-approve self.");
+            response.Approved = true;
+            response.CreatePlayerObject = false;
+            return;
+        }
+
         string payload = System.Text.Encoding.UTF8.GetString(request.Payload);
         UserData userData = JsonUtility.FromJson<UserData>(payload);
 
-        clientIdToAuth[request.ClientNetworkId] = userData.userName;
+        if (userData == null)
+        {
+            Debug.LogWarning("[NetworkServer] Invalid userData payload – approving anyway.");
+            response.Approved = true;
+            response.CreatePlayerObject = false;
+            return;
+        }
+
+        clientIdToAuth[request.ClientNetworkId] = userData.userAuthId;
         authIdToUserData[userData.userAuthId] = userData;
         OnUserJoined?.Invoke(userData);
 
@@ -66,6 +92,7 @@ public class NetworkServer : IDisposable
 
     public UserData GetUserData(ulong clientId)
     {
+        Debug.Log($"Getting user data for client ID: {clientId}");
         if (clientIdToAuth.TryGetValue(clientId, out string authId))
         {
             if (authIdToUserData.TryGetValue(authId, out UserData userData))
@@ -73,6 +100,7 @@ public class NetworkServer : IDisposable
                 return userData;
             }
         }
+        Debug.Log($"User data not found for client ID: {clientId}");
         return null;
     }
 

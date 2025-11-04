@@ -23,5 +23,4 @@ public class RaceSetupManager : MonoBehaviour
         player.transform.SetPositionAndRotation(spawn.position, spawn.rotation);
         nextSpawnIndex++;
     }
-
 }

@@ -91,6 +91,15 @@ public class HostGameManager : IDisposable
 
         NetworkServer = new NetworkServer(NetworkManager.Singleton, playerPrefab);
 
+        UserData hostUserData = new UserData
+        {
+            userName = PlayerPrefs.GetString(NameSelector.PlayerNameKey, "!!Missing Name!!"),
+            userAuthId = AuthenticationService.Instance.PlayerId
+        };
+
+        // Register host manually so GetUserData works later
+        NetworkServer.RegisterHostUserData(hostUserData);
+
         UserData userData = new UserData
         {
             userName = PlayerPrefs.GetString(NameSelector.PlayerNameKey, "!!Missing Name!!"),
@@ -104,7 +113,12 @@ public class HostGameManager : IDisposable
 
         NetworkServer.OnClientLeft += HandleClientLeft;
 
-        NetworkManager.Singleton.SceneManager.LoadScene(GameSceneName, LoadSceneMode.Single);
+        await Task.Yield();
+
+        if (NetworkManager.Singleton.IsServer)
+        {
+            NetworkManager.Singleton.SceneManager.LoadScene(GameSceneName, LoadSceneMode.Single);
+        }
     }
 
     private async void HandleClientLeft(string authId)

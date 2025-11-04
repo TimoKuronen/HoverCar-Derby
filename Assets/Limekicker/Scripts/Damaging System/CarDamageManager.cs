@@ -24,10 +24,10 @@ public class CarDamageManager : MonoBehaviour
     private void Start()
     {
         carManager = GetComponent<CarManager>();
-        CarParts.Add(CarPartType.FrontBumper, GetComponentInChildren<FrontBumper>());
-        CarParts.Add(CarPartType.SidePanel_Left, transform.Find("CarPart_SidePanel_Left").GetComponent<SidePanel>());
-        CarParts.Add(CarPartType.SidePanel_Right, transform.Find("CarPart_SidePanel_Right").GetComponent<SidePanel>());
-        CarParts.Add(CarPartType.RearBumper, GetComponentInChildren<RearBumper>());
+        //CarParts.Add(CarPartType.FrontBumper, GetComponentInChildren<FrontBumper>());
+        //CarParts.Add(CarPartType.SidePanel_Left, transform.Find("CarPart_SidePanel_Left").GetComponent<SidePanel>());
+        //CarParts.Add(CarPartType.SidePanel_Right, transform.Find("CarPart_SidePanel_Right").GetComponent<SidePanel>());
+        //CarParts.Add(CarPartType.RearBumper, GetComponentInChildren<RearBumper>());
 
         emissionModule = damageSmoke.emission;
 

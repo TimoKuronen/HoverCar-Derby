@@ -20,7 +20,7 @@ public class LobbiesList : MonoBehaviour
 
     public async void RefreshLobbiesList()
     {
-        if (isRefreshing)
+        if (isRefreshing || !gameObject.scene.isLoaded)
             return;
 
         isRefreshing = true;
