@@ -3,15 +3,17 @@
 public class CoroutineMonoBehavior : MonoBehaviour
 {
     public static CoroutineMonoBehavior Instance;
-    public CoroutineMonoBehavior()
+    void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
-            Destroy(gameObject);
+            Destroy(this.gameObject);
+            return;
         }
     }
 }

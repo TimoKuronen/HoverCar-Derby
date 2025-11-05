@@ -6,14 +6,14 @@ using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine;
 
-public class NetworkServer : IDisposable
+public class NetworkServer : INetworkServer, IDisposable
 {
     private NetworkManager networkManager;
 
-    private NetworkObject playerPrefab;
+    public NetworkObject PlayerPrefab { get; private set; }
 
-    public Action<UserData> OnUserJoined;
-    public Action<UserData> OnUserLeft;
+    public event Action<UserData> OnUserJoined;
+    public event Action<UserData> OnUserLeft;
     public Action<string> OnClientLeft;
 
     private Dictionary<ulong, string> clientIdToAuth = new Dictionary<ulong, string>();
@@ -22,7 +22,7 @@ public class NetworkServer : IDisposable
     public NetworkServer(NetworkManager networkManager, NetworkObject playerPrefab)
     {
         this.networkManager = networkManager;
-        this.playerPrefab = playerPrefab;
+        this.PlayerPrefab = playerPrefab;
 
         networkManager.ConnectionApprovalCallback += ApprovalCheck;
         networkManager.OnServerStarted += OnNetworkReady;
@@ -37,11 +37,12 @@ public class NetworkServer : IDisposable
 
     public void RegisterHostUserData(UserData userData)
     {
-        ulong hostClientId = NetworkManager.Singleton.LocalClientId; // typically 0
+        ulong hostClientId = NetworkManager.Singleton.LocalClientId;
 
         clientIdToAuth[hostClientId] = userData.userAuthId;
         authIdToUserData[userData.userAuthId] = userData;
 
+        OnUserJoined?.Invoke(userData);
         Debug.Log($"[NetworkServer] Registered host user data for client {hostClientId} ({userData.userName})");
     }
 
@@ -69,20 +70,9 @@ public class NetworkServer : IDisposable
         clientIdToAuth[request.ClientNetworkId] = userData.userAuthId;
         authIdToUserData[userData.userAuthId] = userData;
         OnUserJoined?.Invoke(userData);
-
-        _ = SpawnPlayerDelay(request.ClientNetworkId);
-
+        Debug.Log($"[NetworkServer] Approved connection for {userData.userName} (Client ID: {request.ClientNetworkId})");
         response.Approved = true;
         response.CreatePlayerObject = false;
-    }
-
-    private async Task SpawnPlayerDelay(ulong clientId)
-    {
-        await Task.Delay(1000);
-      
-        NetworkObject playerInstance = GameObject.Instantiate(playerPrefab, SpawnPoint.GetRandomSpawnPos().Item1, Quaternion.identity);
-
-        playerInstance.SpawnAsPlayerObject(clientId);
     }
 
     private void OnNetworkReady()
@@ -104,6 +94,16 @@ public class NetworkServer : IDisposable
         return null;
     }
 
+    public IReadOnlyList<UserData> GetConnectedUsers()
+    {
+        var list = new List<UserData>();
+        foreach (var authId in clientIdToAuth.Values)
+        {
+            if (authIdToUserData.TryGetValue(authId, out var user)) list.Add(user);
+        }
+        return list;
+    }
+
     private void OnClientDisconnect(ulong clientId)
     {
         if (clientIdToAuth.TryGetValue(clientId, out string authId))
@@ -120,7 +120,6 @@ public class NetworkServer : IDisposable
         if (networkManager == null)
             return;
 
-
         networkManager.ConnectionApprovalCallback -= ApprovalCheck;
         networkManager.OnServerStarted -= OnNetworkReady;
         networkManager.OnClientDisconnectCallback -= OnClientDisconnect;
@@ -129,6 +128,5 @@ public class NetworkServer : IDisposable
         {
             networkManager.Shutdown();
         }
-
     }
 }

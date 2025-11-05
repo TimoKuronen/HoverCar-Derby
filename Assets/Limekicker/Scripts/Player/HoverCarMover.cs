@@ -23,7 +23,6 @@ public class HoverCarMover : NetworkBehaviour
     private float verticalInput;
 
     private IInputManager inputManager;
-    private IGameStateHandler gameStateHandler;
 
     public override void OnNetworkSpawn()
     {
@@ -33,8 +32,7 @@ public class HoverCarMover : NetworkBehaviour
 
     void Start()
     {
-        inputManager = DIBootstrapper.Container.Resolve<IInputManager>();
-        gameStateHandler = DIBootstrapper.Container.Resolve<IGameStateHandler>();
+        //inputManager = DIBootstrapper.Container.Resolve<IInputManager>();
 
         originalAccelerationValue = forwardAcceleration;
         originalMaxSpeed = maxSpeed;
@@ -45,8 +43,7 @@ public class HoverCarMover : NetworkBehaviour
         if (!IsOwner)
             return;
 
-        if (gameStateHandler.GetCurrentGameState == GameState.Normal)
-            GetInput();
+        GetInput();
     }
 
     private void FixedUpdate()

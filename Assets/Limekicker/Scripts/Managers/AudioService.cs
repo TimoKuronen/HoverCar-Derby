@@ -7,7 +7,7 @@ using UnityEngine;
 /// <summary>
 /// Manages the playing of sounds with constraints on simultaneous sounds per type
 /// </summary>
-public class SoundManager : ISoundManager
+public class AudioService : IAudioService
 {
     // Maximum simultaneous sounds allowed for each sound type.
     private int maxSimultaneousImpactSounds = 10;

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public interface ISoundManager : IService
+public interface IAudioService
 {
     void Play(AudioCue data, AudioSource audioSource);
 }

@@ -8,18 +8,13 @@ public class CollectibleSpawner : MonoBehaviour
 
     private float timer;
 
-    private IGameStateHandler gameStateHandler;
-
     private IEnumerator Start()
     {
-        yield return new WaitUntil(() => DIBootstrapper.Container.Resolve<IGameManager>().GameSetupCompleted);
+        yield return new WaitUntil(() => GameSignals.IsSessionLoaded);
     }
 
     private void Update()
     {
-        if (gameStateHandler.GetCurrentGameState != GameState.Normal)
-            return;
-
         timer += Time.deltaTime;
     }
 }
