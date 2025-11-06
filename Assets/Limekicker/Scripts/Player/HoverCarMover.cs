@@ -8,42 +8,34 @@ public class HoverCarMover : NetworkBehaviour
     [SerializeField] private CarManager carManager;
 
     [Header("Movement")]
-    [SerializeField] private float inputDeadZone = 0.1f;
-    [SerializeField] private float forwardAcceleration;
-    [SerializeField] private float backwardAcceleration;
+    [SerializeField] private float forwardAcceleration = 30f;
     [SerializeField] private float turnStrength = 10f;
-    [SerializeField] private float maxSpeed;
+    [SerializeField] private float maxSpeed = 40f;
     [SerializeField] private float maxAngularVelocity = 60f;
 
-    private float currentThrust = 0.0f;
+    private float currentThrust;
     private float currentTurn;
     private float originalAccelerationValue;
     private float originalMaxSpeed;
-    private float horizontalInput;
-    private float verticalInput;
 
-    private IInputManager inputManager;
+    private IInputService inputService;
+
+    public void Construct(IInputService inputService)
+    {
+        Debug.Log("[HoverCarMover] Constructed");
+        this.inputService = inputService;
+    }
 
     public override void OnNetworkSpawn()
     {
         if (!IsOwner)
-            return;
+            enabled = false;
     }
 
     void Start()
     {
-        //inputManager = DIBootstrapper.Container.Resolve<IInputManager>();
-
         originalAccelerationValue = forwardAcceleration;
         originalMaxSpeed = maxSpeed;
-    }
-
-    void Update()
-    {
-        if (!IsOwner)
-            return;
-
-        GetInput();
     }
 
     private void FixedUpdate()
@@ -52,27 +44,30 @@ public class HoverCarMover : NetworkBehaviour
             return;
 
         rig.maxAngularVelocity = maxAngularVelocity;
-
         ApplyMovement();
     }
 
-    private void GetInput()
+    private void ApplyMovement()
     {
-        float steer = inputManager.GetSteer();
-        float gas = inputManager.GetGas();
-        float brake = inputManager.GetBrake();
-
-        // Forward / backward thrust
-        float rawVertical = gas > 0 ? 1f : (brake > 0 ? -1f : 0f);
-
-        currentThrust = Mathf.Abs(rawVertical) > inputDeadZone
-            ? rawVertical * (rawVertical > 0 ? forwardAcceleration : backwardAcceleration)
-            : 0f;
+        // Thrust
+        currentThrust = inputService.IsGasPressed ? forwardAcceleration : 0f;
+        if (currentThrust != 0)
+        {
+            rig.AddForce(carManager.CarData.GetAccelerationMultiplier() * currentThrust * transform.forward, ForceMode.Acceleration);
+        }
 
         // Turning
-        currentTurn = Mathf.Abs(steer) > inputDeadZone
-            ? steer * turnStrength
-            : 0f;
+        currentTurn = inputService.Steering * turnStrength;
+        if (Mathf.Abs(currentTurn) > 0.01f)
+        {
+            rig.AddTorque(Vector3.up * currentTurn, ForceMode.Acceleration);
+        }
+
+        // Speed limit
+        if (rig.velocity.magnitude > maxSpeed)
+        {
+            rig.velocity = carManager.CarData.GetMaxSpeedMultiplier() * maxSpeed * rig.velocity.normalized;
+        }
     }
 
     public void ToggleNitroBoost(bool value, float nitroMultiplierValue, float maxSpeedMultiplier)
@@ -87,29 +82,5 @@ public class HoverCarMover : NetworkBehaviour
             forwardAcceleration = originalAccelerationValue;
             maxSpeed = originalMaxSpeed;
         }
-    }
-
-    private void ApplyMovement()
-    {
-        if (currentThrust != 0)
-        {
-            rig.AddForce(carManager.CarData.GetAccelerationMultiplier() * currentThrust * transform.forward, ForceMode.Acceleration);
-        }
-
-        if (currentTurn != 0)
-        {
-            rig.AddTorque(Vector3.up * currentTurn, ForceMode.Acceleration);
-        }
-
-        if (rig.velocity.magnitude > maxSpeed)
-        {
-            rig.velocity = carManager.CarData.GetMaxSpeedMultiplier() * maxSpeed * rig.velocity.normalized;
-        }
-    }
-
-    public override void OnNetworkDespawn()
-    {
-        if (!IsOwner)
-            return;
     }
 }

@@ -1,4 +1,4 @@
-public interface IScoreManager : IService
+public interface IScoreManager
 {
     void AddPlayer(PlayerData data) { }
 

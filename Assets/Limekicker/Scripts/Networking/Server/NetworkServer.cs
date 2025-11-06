@@ -50,7 +50,7 @@ public class NetworkServer : INetworkServer, IDisposable
     {
         if (request.Payload == null || request.Payload.Length == 0)
         {
-            Debug.Log("[NetworkServer] Host approval with no payload – auto-approve self.");
+            Debug.Log("[NetworkServer] Host approval with no payload ï¿½ auto-approve self.");
             response.Approved = true;
             response.CreatePlayerObject = false;
             return;
@@ -61,7 +61,7 @@ public class NetworkServer : INetworkServer, IDisposable
 
         if (userData == null)
         {
-            Debug.LogWarning("[NetworkServer] Invalid userData payload – approving anyway.");
+            Debug.LogWarning("[NetworkServer] Invalid userData payload ï¿½ approving anyway.");
             response.Approved = true;
             response.CreatePlayerObject = false;
             return;
@@ -102,6 +102,27 @@ public class NetworkServer : INetworkServer, IDisposable
             if (authIdToUserData.TryGetValue(authId, out var user)) list.Add(user);
         }
         return list;
+    }
+
+    public bool TryGetClientIdByAuthId(string userAuthId, out ulong clientId)
+    {
+        foreach (var kvp in clientIdToAuth)
+        {
+            if (kvp.Value == userAuthId)
+            {
+                clientId = kvp.Key;
+                return true;
+            }
+        }
+        clientId = 0UL;
+        return false;
+    }
+
+    public bool TryGetClientIdForUser(UserData userData, out ulong clientId)
+    {
+        clientId = 0UL;
+        if (userData == null || string.IsNullOrEmpty(userData.userAuthId)) return false;
+        return TryGetClientIdByAuthId(userData.userAuthId, out clientId);
     }
 
     private void OnClientDisconnect(ulong clientId)

@@ -1,6 +1,6 @@
 using System;
 
-public interface IGameManager : IService
+public interface IGameManager
 {
     event Action OnGameSetupStarted;
     bool GameSetupCompleted { get; }

@@ -7,6 +7,7 @@ using VContainer;
 public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
 {
     private INetworkServer networkServer;
+    private IInputService inputService;
 
     [Inject]
     public void Construct()
@@ -21,9 +22,11 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
 
         yield return new WaitUntil(() => ResolveNetworkServer() != null);
 
-        Debug.Log("[PlayerSpawnManager] Initialized and listening for joins.");
-
         networkServer = ResolveNetworkServer();
+        networkServer.OnUserJoined += HandleUserJoined;
+        networkServer.OnUserLeft += HandleUserLeft;
+
+        Debug.Log("[PlayerSpawnManager] Initialized and listening for joins.");
 
         foreach (var existing in networkServer.GetConnectedUsers())
         {
@@ -64,31 +67,32 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
         Vector3 spawnPos = SpawnPoint.GetRandomSpawnPos().Item1;
         Quaternion spawnRot = Quaternion.identity;
 
-        NetworkObject playerPrefab = HostSingleton.Instance.GameManager.NetworkServer.PlayerPrefab;
-        var instance = UnityEngine.Object.Instantiate(playerPrefab, spawnPos, spawnRot);
-        instance.SpawnAsPlayerObject(GetClientIdForUser(userData));
+        var server = ResolveNetworkServer();
+        if (server == null || server.PlayerPrefab == null)
+        {
+            Debug.LogWarning("[PlayerSpawnManager] NetworkServer or PlayerPrefab is null; aborting spawn.");
+            return;
+        }
+
+        if (!server.TryGetClientIdForUser(userData, out var clientId))
+        {
+            Debug.LogWarning($"[PlayerSpawnManager] Could not resolve clientId for {userData.userName}; aborting spawn.");
+            return;
+        }
+
+        var instance = UnityEngine.Object.Instantiate(server.PlayerPrefab, spawnPos, spawnRot);
+        instance.SpawnAsPlayerObject(clientId);
+
+        var mover = instance.GetComponent<HoverCarMover>();
+        if (mover != null && inputService != null)
+        {
+            mover.Construct(inputService);
+        }
 
         Debug.Log($"[PlayerSpawnManager] Spawned player object for {userData.userName} at {spawnPos}");
     }
 
-    private ulong GetClientIdForUser(UserData userData)
-    {
-        // Your existing mapping logic lives in NetworkServer;
-        // temporarily expose a method for lookup.
-        if (NetworkManager.Singleton.ConnectedClientsIds.Count > 0)
-        {
-            foreach (var clientId in NetworkManager.Singleton.ConnectedClientsIds)
-            {
-                if (NetworkManager.Singleton.ConnectedClients[clientId]
-                    .PlayerObject.OwnerClientId == clientId)
-                {
-                    return clientId;
-                }
-            }
-        }
-        Debug.LogWarning($"[PlayerSpawnManager] Couldn't find client ID for {userData.userName}");
-        return 0;
-    }
+    // Removed fragile NetworkManager lookups. Mapping is provided by NetworkServer.
 
     private void HandleUserLeft(UserData userData)
     {
