@@ -27,12 +27,12 @@ public class RespawnHandler : NetworkBehaviour
 
     private void HandlePlayerDespawned(PlayerController controller)
     {
-        controller.DamageManager.OnCarDestroyed += () => HandlePlayerDie(controller);
+        //controller.DamageManager.OnCarDestroyed += () => HandlePlayerDie(controller);
     }
 
     private void HandlePlayerSpawned(PlayerController controller)
     {
-        controller.DamageManager.OnCarDestroyed -= () => HandlePlayerDie(controller);
+        //controller.DamageManager.OnCarDestroyed -= () => HandlePlayerDie(controller);
     }
 
     private void HandlePlayerDie(PlayerController controller)

@@ -70,20 +70,9 @@ public class TouchInputService : IInputService, ITickable
         return false;
     }
 
-#if UNITY_EDITOR
-    // Optional: editor fallback (A/D keys)
-    private void OnGUI()
-    {
-        if (Application.isEditor)
-        {
-            targetSteer = Input.GetAxis("Horizontal");
-        }
-    }
-
     public void Tick()
     {
         HandleTouchInput();
         SmoothSteering();
     }
-#endif
 }

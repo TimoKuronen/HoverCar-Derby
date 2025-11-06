@@ -3513,7 +3513,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2469b9251279e1f4b9bf43c25546059a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerCamera: {fileID: 0}
+  playerCamera: {fileID: 1408358443300798053}
   cameraPriority: 10
   PlayerName:
     m_InternalValue:

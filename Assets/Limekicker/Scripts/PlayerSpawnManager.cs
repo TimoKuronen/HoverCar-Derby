@@ -10,9 +10,10 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
     private IInputService inputService;
 
     [Inject]
-    public void Construct()
+    public void Construct(IInputService inputService)
     {
-        Debug.Log("[PlayerSpawnManager] Constructed, starting initialization...");
+        this.inputService = inputService;
+        Debug.Log("[PlayerSpawnManager] Constructed, starting initialization with input service " + inputService);
         CoroutineMonoBehavior.Instance.StartCoroutine(Initialize());
     }
 
@@ -87,6 +88,10 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
         if (mover != null && inputService != null)
         {
             mover.Construct(inputService);
+        }
+        else
+        {
+            Debug.LogWarning($"[PlayerSpawnManager] mover: {mover}, inputService: {inputService}");
         }
 
         Debug.Log($"[PlayerSpawnManager] Spawned player object for {userData.userName} at {spawnPos}");

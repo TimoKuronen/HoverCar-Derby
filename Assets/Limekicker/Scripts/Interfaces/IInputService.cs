@@ -1,4 +1,6 @@
-public interface IInputService
+using VContainer.Unity;
+
+public interface IInputService : ITickable
 {
     float Steering { get; }
     bool IsGasPressed { get; }
