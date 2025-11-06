@@ -56,7 +56,7 @@ public class PlayerController : NetworkBehaviour
 
     private void OnDisable()
     {
-        DamageManager.OnCarDamaged -= () => OnPlayerCarDamaged?.Invoke();
+        //DamageManager.OnCarDamaged -= () => OnPlayerCarDamaged?.Invoke();
     }
 
     public override void OnNetworkDespawn()

@@ -17,7 +17,7 @@ public class ServerSingleton : MonoBehaviour
                 instance = FindObjectOfType<ServerSingleton>();
                 if (instance == null)
                 {
-                    Debug.LogError("ClientSingleton instance not found in the scene.");
+                    Debug.LogError("ServerSingleton instance not found in the scene.");
                 }
             }
             return instance;

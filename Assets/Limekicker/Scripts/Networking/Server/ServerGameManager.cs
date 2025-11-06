@@ -70,10 +70,11 @@ public class ServerGameManager : IDisposable
         Task<MatchmakingResults> matchmakerPayloadTask = multiplayAllocationService.SubscribeAndAwaitMatchmakerAllocation();
         if (await Task.WhenAny(matchmakerPayloadTask, Task.Delay(20000)) == matchmakerPayloadTask)
         {
-            Debug.LogError("Matchmaker allocation timed out.");
+            // Completed within timeout
             return matchmakerPayloadTask.Result;
         }
 
+        Debug.LogError("Matchmaker allocation timed out.");
         return null;
     }
     private async Task StartBackfill(MatchmakingResults matchmakerPayload)

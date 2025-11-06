@@ -12,7 +12,6 @@ public class ApplicationController : MonoBehaviour
     [SerializeField] private ServerSingleton serverPrefab;
     [SerializeField] private NetworkObject playerPrefab;
 
-    private ApplicationData appData;
 
     private const string GameSceneName = "PlayScene";
 
@@ -28,8 +27,6 @@ public class ApplicationController : MonoBehaviour
         if (isDedicatedServer)
         {
             Application.targetFrameRate = 60;
-
-            appData = new ApplicationData();
 
             ServerSingleton serverSingleton = Instantiate(serverPrefab);
 

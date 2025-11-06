@@ -100,15 +100,6 @@ public class HostGameManager : IDisposable
         // Register host manually so GetUserData works later
         NetworkServer.RegisterHostUserData(hostUserData);
 
-        UserData userData = new UserData
-        {
-            userName = PlayerPrefs.GetString(NameSelector.PlayerNameKey, "!!Missing Name!!"),
-            userAuthId = AuthenticationService.Instance.PlayerId
-        };
-
-        string payload = JsonUtility.ToJson(userData);
-        byte[] payloadBytes = Encoding.UTF8.GetBytes(payload);
-
         NetworkManager.Singleton.StartHost();
 
         NetworkServer.OnClientLeft += HandleClientLeft;
