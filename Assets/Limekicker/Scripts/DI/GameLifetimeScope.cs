@@ -9,6 +9,7 @@ public class GameLifetimeScope : LifetimeScope
         Debug.Log("[GameLifetimeScope] Configuring DI container...");
 
         builder.Register<IPlayerSpawnManager, PlayerSpawnManager>(Lifetime.Scoped);
+        builder.RegisterComponentInHierarchy<GasButton>();
 
         builder.RegisterBuildCallback(container =>
         {

@@ -50,7 +50,17 @@ public class PlayerController : NetworkBehaviour
 
             DamageManager.OnCarDamaged += () => OnPlayerCarDamaged?.Invoke();
 
-            playerCamera.Priority = cameraPriority;
+            if (playerCamera != null)
+            {
+                playerCamera.Priority = cameraPriority;
+                playerCamera.enabled = true;
+            }
+        }
+        else if (playerCamera != null)
+        {
+            // Lower priority and disable non-owner cameras so host doesn't switch to joining client's camera
+            playerCamera.Priority = 0;
+            playerCamera.enabled = false;
         }
     }
 
