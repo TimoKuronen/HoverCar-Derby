@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/Limekicker/Scenes/NetBootstrap.unity
     guid: c3d19f381184bea48ada955f1edf4026
   - enabled: 1
+    path: Assets/Limekicker/Scenes/Bootstrap.unity
+    guid: 8a68588d5c610774eb2d28c45985c066
+  - enabled: 1
     path: Assets/Limekicker/Scenes/MainMenu.unity
     guid: 817376f2e84dc7c4b81ede2c9fb9c406
   - enabled: 1

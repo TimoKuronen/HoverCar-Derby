@@ -26,6 +26,7 @@ public class NetworkServer : INetworkServer, IDisposable
 
         networkManager.ConnectionApprovalCallback += ApprovalCheck;
         networkManager.OnServerStarted += OnNetworkReady;
+        networkManager.OnClientConnectedCallback += OnClientConnected;
     }
 
     public bool OpenConnection(string ip, int port)
@@ -69,7 +70,6 @@ public class NetworkServer : INetworkServer, IDisposable
 
         clientIdToAuth[request.ClientNetworkId] = userData.userAuthId;
         authIdToUserData[userData.userAuthId] = userData;
-        OnUserJoined?.Invoke(userData);
         Debug.Log($"[NetworkServer] Approved connection for {userData.userName} (Client ID: {request.ClientNetworkId})");
         response.Approved = true;
         response.CreatePlayerObject = false;
@@ -78,6 +78,18 @@ public class NetworkServer : INetworkServer, IDisposable
     private void OnNetworkReady()
     {
         networkManager.OnClientDisconnectCallback += OnClientDisconnect;
+    }
+
+    private void OnClientConnected(ulong clientId)
+    {
+        if (clientIdToAuth.TryGetValue(clientId, out var authId))
+        {
+            if (authIdToUserData.TryGetValue(authId, out var userData))
+            {
+                Debug.Log($"[NetworkServer] Client connected: {clientId} ({userData.userName}) — raising OnUserJoined");
+                OnUserJoined?.Invoke(userData);
+            }
+        }
     }
 
     public UserData GetUserData(ulong clientId)
@@ -143,6 +155,7 @@ public class NetworkServer : INetworkServer, IDisposable
 
         networkManager.ConnectionApprovalCallback -= ApprovalCheck;
         networkManager.OnServerStarted -= OnNetworkReady;
+        networkManager.OnClientConnectedCallback -= OnClientConnected;
         networkManager.OnClientDisconnectCallback -= OnClientDisconnect;
 
         if (networkManager.IsListening)

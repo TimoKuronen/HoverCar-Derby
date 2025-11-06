@@ -15,6 +15,7 @@ public class ClientGameManager : IDisposable
 {
     private JoinAllocation allocation;
     private const string MenuSceneName = "MainMenu";
+    private const string PlaySceneName = "PlayScene";
 
     private NetworkClient networkClient;
     private MatchplayMatchmaker matchmaker;
@@ -81,12 +82,39 @@ public class ClientGameManager : IDisposable
 
     private void ConnectClient()
     {
+        // Attach diagnostics and scene sync guards
+        var nm = NetworkManager.Singleton;
+        if (nm.SceneManager != null)
+        {
+            nm.SceneManager.OnSceneEvent -= HandleSceneEvent;
+            nm.SceneManager.OnSceneEvent += HandleSceneEvent;
+        }
+        nm.OnClientConnectedCallback -= HandleClientConnected;
+        nm.OnClientConnectedCallback += HandleClientConnected;
 
         string payload = JsonUtility.ToJson(userData);
         byte[] payloadBytes = Encoding.UTF8.GetBytes(payload);
 
         NetworkManager.Singleton.NetworkConfig.ConnectionData = payloadBytes;
         NetworkManager.Singleton.StartClient();
+    }
+
+    private void HandleClientConnected(ulong clientId)
+    {
+        // If scene management is off, clients won't auto-switch to the server scene
+        if (!NetworkManager.Singleton.NetworkConfig.EnableSceneManagement)
+        {
+            Debug.LogWarning("[Client] Enable Scene Management is OFF; loading PlayScene locally as fallback.");
+            if (SceneManager.GetActiveScene().name != PlaySceneName)
+            {
+                SceneManager.LoadScene(PlaySceneName);
+            }
+        }
+    }
+
+    private void HandleSceneEvent(SceneEvent sceneEvent)
+    {
+        Debug.Log($"[Client] SceneEvent: {sceneEvent.SceneEventType} -> {sceneEvent.SceneName} (client={sceneEvent.ClientId})");
     }
 
     public async void MatchmakeAsync(Action<MatchmakerPollingResult> onMatchmakeResponse)
