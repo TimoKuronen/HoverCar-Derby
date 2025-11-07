@@ -9,6 +9,9 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
     private INetworkServer networkServer;
     private IInputService inputService;
 
+    public event Action<UserData, NetworkObject> OnPlayerSpawned;
+    public event Action<UserData, NetworkObject> OnPlayerDespawned;
+
     [Inject]
     public void Construct(IInputService inputService)
     {
@@ -93,6 +96,8 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
         {
             Debug.LogWarning($"[PlayerSpawnManager] mover: {mover}, inputService: {inputService}");
         }
+
+        OnPlayerSpawned?.Invoke(userData, instance);
 
         Debug.Log($"[PlayerSpawnManager] Spawned player object for {userData.userName} at {spawnPos}");
     }

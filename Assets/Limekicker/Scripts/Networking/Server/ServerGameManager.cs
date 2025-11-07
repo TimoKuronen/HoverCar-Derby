@@ -70,6 +70,11 @@ public class ServerGameManager : IDisposable
     {
         // Start server health check (reports server status to Multiplay)
         await multiplayAllocationService.BeginServerCheck();
+#if UNITY_SERVER
+        // Advertise basic server data to query handler (optional but helpful)
+        multiplayAllocationService.SetMaxPlayers(20);
+        multiplayAllocationService.SetServerName("HoverCar Server");
+#endif
 
         try
         {

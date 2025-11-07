@@ -93,7 +93,7 @@ public class MainMenu : MonoBehaviour
                 findMatchButtonText.text = "Find Match";
                 break;
             default:
-                queueStatusText.text = "Unknown matchmaking result.";
+                queueStatusText.text = "Timeout Error.";
                 isMatchmaking = false;
                 findMatchButtonText.text = "Find Match";
                 break;
