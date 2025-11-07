@@ -16,7 +16,6 @@ public class SteeringWheel : MonoBehaviour
     [Inject]
     public void Construct(IInputService inputService)
     {
-        Debug.Log("[GasButton] Constructed");
         this.inputService = inputService;
     }
 

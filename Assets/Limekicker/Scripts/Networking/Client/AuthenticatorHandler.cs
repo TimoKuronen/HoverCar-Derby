@@ -7,6 +7,7 @@ public static class AuthenticatorHandler
 {
     public static AuthenticatorState AuthenticatorState { get; private set; } = AuthenticatorState.NotAuthenticated;
 
+    /// <summary>Performs anonymous authentication with Unity Services. Retries up to maxTries times.</summary>
     public static async Task<AuthenticatorState> DoAuthentication(int maxTries = 5)
     {
         if (AuthenticatorState == AuthenticatorState.Authenticated)
@@ -28,6 +29,7 @@ public static class AuthenticatorHandler
         return AuthenticatorState;
     }
 
+    /// <summary>Waits for ongoing authentication to complete.</summary>
     private static async Task<AuthenticatorState> Authenticating()
     {
         while (AuthenticatorState == AuthenticatorState.Authenticating || AuthenticatorState == AuthenticatorState.NotAuthenticated)
@@ -38,6 +40,7 @@ public static class AuthenticatorHandler
         return AuthenticatorState;
     }
 
+    /// <summary>Attempts anonymous sign-in with retry logic.</summary>
     private static async Task SignInAnonymouslyAsync(int maxTries)
     {
         int tries = 0;

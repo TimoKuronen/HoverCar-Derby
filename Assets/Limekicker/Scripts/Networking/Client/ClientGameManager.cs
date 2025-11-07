@@ -22,6 +22,7 @@ public class ClientGameManager : IDisposable
 
     private UserData userData;
 
+    /// <summary>Initializes Unity Services, authenticates user, and creates UserData.</summary>
     public async Task<bool> InitAsync()
     {
         await UnityServices.InitializeAsync();
@@ -46,11 +47,13 @@ public class ClientGameManager : IDisposable
         return false;
     }
 
+    /// <summary>Loads MainMenu scene.</summary>
     public void GoToMenu()
     {
         SceneManager.LoadScene(MenuSceneName);
     }
 
+    /// <summary>Connects client directly to server via IP/port (used for matchmaking).</summary>
     public void StartClient(string ip, int port)
     {
         UnityTransport transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
@@ -59,6 +62,7 @@ public class ClientGameManager : IDisposable
         ConnectClient();
     }
 
+    /// <summary>Connects client via Relay join code (used for lobby-based joining).</summary>
     public async Task StartClientAsync(string joinCode)
     {
         try
@@ -80,6 +84,7 @@ public class ClientGameManager : IDisposable
         ConnectClient();
     }
 
+    /// <summary>Sets up connection callbacks and starts client with UserData payload.</summary>
     private void ConnectClient()
     {
         // Attach diagnostics and scene sync guards
@@ -99,6 +104,7 @@ public class ClientGameManager : IDisposable
         NetworkManager.Singleton.StartClient();
     }
 
+    /// <summary>Fallback scene loading if Netcode scene management is disabled.</summary>
     private void HandleClientConnected(ulong clientId)
     {
         // If scene management is off, clients won't auto-switch to the server scene
@@ -112,11 +118,13 @@ public class ClientGameManager : IDisposable
         }
     }
 
+    /// <summary>Logs scene events for debugging.</summary>
     private void HandleSceneEvent(SceneEvent sceneEvent)
     {
         Debug.Log($"[Client] SceneEvent: {sceneEvent.SceneEventType} -> {sceneEvent.SceneName} (client={sceneEvent.ClientId})");
     }
 
+    /// <summary>Starts matchmaking process. Calls callback with result.</summary>
     public async void MatchmakeAsync(Action<MatchmakerPollingResult> onMatchmakeResponse)
     {
         if (matchmaker.IsMatchmaking)
@@ -127,6 +135,7 @@ public class ClientGameManager : IDisposable
         onMatchmakeResponse?.Invoke(matchResult);
     }
 
+    /// <summary>Polls matchmaker for match assignment. Connects to server if found.</summary>
     private async Task<MatchmakerPollingResult> GetMatchAsync()
     {
         MatchmakingResult matchmakingResult = await matchmaker.Matchmake(userData);
@@ -140,11 +149,13 @@ public class ClientGameManager : IDisposable
         return matchmakingResult.result;
     }
 
+    /// <summary>Cancels active matchmaking ticket.</summary>
     public async Task CancelMatchmaking()
     {
         await matchmaker.CancelMatchmaking();
     }
 
+    /// <summary>Disconnects from server and returns to menu.</summary>
     public void Disconnect()
     {
         networkClient.Disconnect();

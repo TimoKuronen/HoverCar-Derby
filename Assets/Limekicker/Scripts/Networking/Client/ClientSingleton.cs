@@ -29,6 +29,7 @@ public class ClientSingleton : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
+    /// <summary>Creates ClientGameManager and initializes authentication. Returns true if successful.</summary>
     public async Task<bool> CreateClient()
     {
         GameManager = new ClientGameManager();

@@ -29,6 +29,7 @@ public class NetworkServer : INetworkServer, IDisposable
         networkManager.OnClientConnectedCallback += OnClientConnected;
     }
 
+    /// <summary>Opens server connection on specified IP and port.</summary>
     public bool OpenConnection(string ip, int port)
     {
         UnityTransport transport = networkManager.GetComponent<UnityTransport>();
@@ -36,6 +37,7 @@ public class NetworkServer : INetworkServer, IDisposable
         return networkManager.StartServer();
     }
 
+    /// <summary>Registers host user data and raises OnUserJoined event. Called when host starts.</summary>
     public void RegisterHostUserData(UserData userData)
     {
         ulong hostClientId = NetworkManager.Singleton.LocalClientId;
@@ -47,6 +49,7 @@ public class NetworkServer : INetworkServer, IDisposable
         Debug.Log($"[NetworkServer] Registered host user data for client {hostClientId} ({userData.userName})");
     }
 
+    /// <summary>Approves client connections. Extracts UserData from payload and maps clientId to authId.</summary>
     private void ApprovalCheck(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response)
     {
         if (request.Payload == null || request.Payload.Length == 0)
@@ -75,11 +78,13 @@ public class NetworkServer : INetworkServer, IDisposable
         response.CreatePlayerObject = false;
     }
 
+    /// <summary>Sets up disconnect callback when server becomes ready.</summary>
     private void OnNetworkReady()
     {
         networkManager.OnClientDisconnectCallback += OnClientDisconnect;
     }
 
+    /// <summary>Raises OnUserJoined when client fully connects. Called after approval.</summary>
     private void OnClientConnected(ulong clientId)
     {
         if (clientIdToAuth.TryGetValue(clientId, out var authId))
@@ -92,6 +97,7 @@ public class NetworkServer : INetworkServer, IDisposable
         }
     }
 
+    /// <summary>Retrieves UserData for a given clientId.</summary>
     public UserData GetUserData(ulong clientId)
     {
         Debug.Log($"Getting user data for client ID: {clientId}");
@@ -106,6 +112,7 @@ public class NetworkServer : INetworkServer, IDisposable
         return null;
     }
 
+    /// <summary>Returns list of all currently connected users.</summary>
     public IReadOnlyList<UserData> GetConnectedUsers()
     {
         var list = new List<UserData>();
@@ -116,6 +123,7 @@ public class NetworkServer : INetworkServer, IDisposable
         return list;
     }
 
+    /// <summary>Maps userAuthId to clientId. Returns false if not found.</summary>
     public bool TryGetClientIdByAuthId(string userAuthId, out ulong clientId)
     {
         foreach (var kvp in clientIdToAuth)
@@ -130,6 +138,7 @@ public class NetworkServer : INetworkServer, IDisposable
         return false;
     }
 
+    /// <summary>Gets clientId for a UserData object via its authId.</summary>
     public bool TryGetClientIdForUser(UserData userData, out ulong clientId)
     {
         clientId = 0UL;
@@ -137,6 +146,7 @@ public class NetworkServer : INetworkServer, IDisposable
         return TryGetClientIdByAuthId(userData.userAuthId, out clientId);
     }
 
+    /// <summary>Handles client disconnect: raises OnUserLeft and cleans up mappings.</summary>
     private void OnClientDisconnect(ulong clientId)
     {
         if (clientIdToAuth.TryGetValue(clientId, out string authId))

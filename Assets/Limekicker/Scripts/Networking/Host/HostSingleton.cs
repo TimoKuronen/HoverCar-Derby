@@ -27,6 +27,7 @@ public class HostSingleton : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
+    /// <summary>Creates HostGameManager for client-hosted games.</summary>
     public void CreateHost(NetworkObject playerPrefab)
     {
         GameManager = new HostGameManager(playerPrefab);

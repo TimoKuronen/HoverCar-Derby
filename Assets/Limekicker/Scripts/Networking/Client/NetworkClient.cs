@@ -18,6 +18,7 @@ public class NetworkClient : IDisposable
         networkManager.OnClientDisconnectCallback += OnClientDisconnect;
     }
 
+    /// <summary>Handles disconnect events. Only processes local client disconnects.</summary>
     private void OnClientDisconnect(ulong clientId)
     {
         if (clientId != 0 && clientId != networkManager.LocalClientId)
@@ -28,6 +29,7 @@ public class NetworkClient : IDisposable
         Disconnect();
     }
 
+    /// <summary>Disconnects client and returns to MainMenu scene.</summary>
     public void Disconnect()
     {
         if (SceneManager.GetActiveScene().name != MenuSceneName)

@@ -6,6 +6,9 @@ using Unity.Services.Matchmaker;
 using Unity.Services.Matchmaker.Models;
 using UnityEngine;
 
+/// <summary>
+/// Result of matchmaking attempt.
+/// </summary>
 public enum MatchmakerPollingResult
 {
     Success,
@@ -15,6 +18,9 @@ public enum MatchmakerPollingResult
     MatchAssignmentError
 }
 
+/// <summary>
+/// Contains matchmaking result with server IP/port if successful.
+/// </summary>
 public class MatchmakingResult
 {
     public string ip;
@@ -23,6 +29,27 @@ public class MatchmakingResult
     public string resultMessage;
 }
 
+/// <summary>
+/// CLIENT-SIDE MATCHMAKING SERVICE
+/// 
+/// Handles matchmaking flow for clients:
+/// 1. Client calls Matchmake() with UserData (includes queue preference: solo-queue or team-queue)
+/// 2. Creates matchmaking ticket via Unity Matchmaker Service
+/// 3. Polls ticket status until match is found or timeout/error
+/// 4. When match found, returns server IP/port from MultiplayAssignment
+/// 5. Client connects to returned server IP/port
+/// 
+/// MATCHMAKING PIPELINE:
+/// - Client creates ticket -> Matchmaker Service assigns to available dedicated server
+/// - Dedicated server (built with UNITY_SERVER) receives allocation via MultiplayAllocationService
+/// - Server gets matchmaker payload, starts backfilling via MatchplayBackfiller
+/// - Client receives assignment, connects to server
+/// 
+/// REQUIRES:
+/// - Unity Cloud Dashboard: Matchmaker configured with queues (solo-queue, team-queue)
+/// - Dedicated server build (Linux) deployed to Multiplay
+/// - Server build must have UNITY_SERVER scripting define symbol
+/// </summary>
 public class MatchplayMatchmaker : IDisposable
 {
     private string lastUsedTicket;
@@ -32,6 +59,10 @@ public class MatchplayMatchmaker : IDisposable
 
     public bool IsMatchmaking { get; private set; }
 
+    /// <summary>
+    /// Starts matchmaking process. Creates ticket, polls until match found.
+    /// Returns server IP/port when match is assigned by matchmaker.
+    /// </summary>
     public async Task<MatchmakingResult> Matchmake(UserData data)
     {
         cancelToken = new CancellationTokenSource();
@@ -94,6 +125,7 @@ public class MatchplayMatchmaker : IDisposable
         return ReturnMatchResult(MatchmakerPollingResult.TicketRetrievalError, "Cancelled Matchmaking", null);
     }
 
+    /// <summary>Cancels active matchmaking ticket and stops polling.</summary>
     public async Task CancelMatchmaking()
     {
         if (!IsMatchmaking) { return; }
@@ -112,6 +144,7 @@ public class MatchplayMatchmaker : IDisposable
         await MatchmakerService.Instance.DeleteTicketAsync(lastUsedTicket);
     }
 
+    /// <summary>Formats matchmaking result with server IP/port or error message.</summary>
     private MatchmakingResult ReturnMatchResult(MatchmakerPollingResult resultErrorType, string message, MultiplayAssignment assignment)
     {
         IsMatchmaking = false;

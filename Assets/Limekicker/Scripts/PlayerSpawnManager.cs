@@ -97,8 +97,6 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
         Debug.Log($"[PlayerSpawnManager] Spawned player object for {userData.userName} at {spawnPos}");
     }
 
-    // Removed fragile NetworkManager lookups. Mapping is provided by NetworkServer.
-
     private void HandleUserLeft(UserData userData)
     {
         Debug.Log($"[PlayerSpawnManager] Player {userData.userName} left.");

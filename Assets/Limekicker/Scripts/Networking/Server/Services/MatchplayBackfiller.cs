@@ -5,6 +5,26 @@ using Unity.Services.Matchmaker;
 using Unity.Services.Matchmaker.Models;
 using UnityEngine;
 
+/// <summary>
+/// DEDICATED SERVER: Backfill Manager
+/// 
+/// Manages backfilling for partially-filled matches on dedicated servers.
+/// 
+/// BACKFILLING FLOW:
+/// 1. Matchmaker creates initial match with some players, assigns to server
+/// 2. Server receives matchmaker payload with BackfillTicketId
+/// 3. Server creates/updates backfill ticket to request more players
+/// 4. Matchmaker assigns additional players to backfill ticket
+/// 5. Server adds players to match, updates backfill ticket
+/// 6. When match is full (or timeout), server stops backfilling
+/// 
+/// USAGE:
+/// - Created by ServerGameManager when matchmaker payload received
+/// - Automatically manages player additions/removals
+/// - Stops when match reaches max players or all players leave
+/// 
+/// REQUIRES: Dedicated server build with UNITY_SERVER define and Multiplay deployment.
+/// </summary>
 public class MatchplayBackfiller : IDisposable
 {
     private CreateBackfillTicketOptions createBackfillOptions;
@@ -36,6 +56,7 @@ public class MatchplayBackfiller : IDisposable
         };
     }
 
+    /// <summary>Creates backfill ticket if needed and starts backfill loop.</summary>
     public async Task BeginBackfilling()
     {
         if (IsBackfilling)
@@ -56,6 +77,7 @@ public class MatchplayBackfiller : IDisposable
         BackfillLoop();
     }
 
+    /// <summary>Adds player to match properties and marks data as dirty for update.</summary>
     public void AddPlayerToMatch(UserData userData)
     {
         if (!IsBackfilling)
@@ -80,6 +102,7 @@ public class MatchplayBackfiller : IDisposable
         localDataDirty = true;
     }
 
+    /// <summary>Removes player from match properties. Returns current player count.</summary>
     public int RemovePlayerFromMatch(string userId)
     {
         Player playerToRemove = GetPlayerById(userId);
@@ -96,17 +119,20 @@ public class MatchplayBackfiller : IDisposable
         return MatchPlayerCount;
     }
 
+    /// <summary>Returns true if match needs more players to reach max capacity.</summary>
     public bool NeedsPlayers()
     {
         return MatchPlayerCount < maxPlayers;
     }
 
+    /// <summary>Finds player in match by userAuthId.</summary>
     private Player GetPlayerById(string userId)
     {
         return MatchProperties.Players.FirstOrDefault(
             p => p.Id.Equals(userId));
     }
 
+    /// <summary>Deletes backfill ticket and stops backfilling.</summary>
     public async Task StopBackfill()
     {
         if (!IsBackfilling)
@@ -120,6 +146,7 @@ public class MatchplayBackfiller : IDisposable
         localBackfillTicket.Id = null;
     }
 
+    /// <summary>Main backfill loop: updates ticket when dirty, approves when clean, stops when full.</summary>
     private async void BackfillLoop()
     {
         while (IsBackfilling)

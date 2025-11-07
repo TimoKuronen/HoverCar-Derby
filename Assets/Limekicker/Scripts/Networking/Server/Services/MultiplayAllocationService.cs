@@ -12,9 +12,30 @@ using Unity.Services.Matchmaker.Models; // needed for the stub return type
 #endif
 
 /// <summary>
-/// Handles Multiplay allocation and server heartbeat.
-/// Fully functional in dedicated server builds.
-/// Behaves as a harmless stub in client/mobile builds.
+/// DEDICATED SERVER: Multiplay Allocation Service
+/// 
+/// Handles server allocation and matchmaker integration for dedicated servers.
+/// 
+/// HOW IT WORKS:
+/// 1. Server build (Linux) deployed to Multiplay with UNITY_SERVER define
+/// 2. Multiplay allocates server instance when matchmaker assigns players
+/// 3. Server receives allocation ID and matchmaker payload via SubscribeAndAwaitMatchmakerAllocation()
+/// 4. Payload contains: QueueName, MatchProperties (players, teams, backfill ticket ID)
+/// 5. Server uses payload to start backfilling (MatchplayBackfiller) and manage match
+/// 
+/// BUILD REQUIREMENTS:
+/// - Build target: Linux (headless)
+/// - Scripting define: UNITY_SERVER (set in Player Settings > Other Settings)
+/// - Unity Cloud Dashboard: Multiplay fleet configured
+/// - Matchmaker queues configured (solo-queue, team-queue)
+/// 
+/// DEPLOYMENT PIPELINE:
+/// 1. Build Linux server (File > Build Settings > Linux > Build)
+/// 2. Upload to Multiplay (via Unity Cloud Dashboard or CLI)
+/// 3. Configure fleet with server build
+/// 4. Matchmaker will allocate servers when clients request matches
+/// 
+/// NOTE: In client/editor builds, this is a stub (no-op) since UNITY_SERVER is not defined.
 /// </summary>
 public class MultiplayAllocationService : IDisposable
 {
@@ -48,6 +69,7 @@ public class MultiplayAllocationService : IDisposable
 
     // SERVER IMPLEMENTATION ------------------------------------------------------
 #if UNITY_SERVER
+    /// <summary>Subscribes to Multiplay events, waits for allocation, and retrieves matchmaker payload.</summary>
     public async Task<MatchmakingResults> SubscribeAndAwaitMatchmakerAllocation()
     {
         if (multiplayService == null)
@@ -66,6 +88,7 @@ public class MultiplayAllocationService : IDisposable
         return matchmakingPayload;
     }
 
+    /// <summary>Polls ServerConfig until allocation ID is available.</summary>
     private async Task AwaitAllocationID()
     {
         var config = multiplayService.ServerConfig;
@@ -88,6 +111,7 @@ public class MultiplayAllocationService : IDisposable
         }
     }
 
+    /// <summary>Retrieves matchmaker payload from Multiplay allocation JSON.</summary>
     private async Task<MatchmakingResults> GetMatchmakerAllocationPayloadAsync()
     {
         var payload = await MultiplayService.Instance.GetPayloadAllocationFromJsonAs<MatchmakingResults>();
@@ -96,6 +120,7 @@ public class MultiplayAllocationService : IDisposable
         return payload;
     }
 
+    /// <summary>Handles Multiplay allocation event.</summary>
     private void OnMultiplayAllocation(MultiplayAllocation allocation)
     {
         Debug.Log($"[Multiplay] OnAllocation: {allocation.AllocationId}");
@@ -103,16 +128,19 @@ public class MultiplayAllocationService : IDisposable
             allocationId = allocation.AllocationId;
     }
 
+    /// <summary>Handles Multiplay deallocation event.</summary>
     private void OnMultiplayDeAllocation(MultiplayDeallocation deallocation)
     {
         Debug.Log($"[Multiplay] Deallocated: {deallocation.AllocationId} (Server {deallocation.ServerId})");
     }
 
+    /// <summary>Handles Multiplay error events.</summary>
     private void OnMultiplayError(MultiplayError error)
     {
         Debug.LogError($"[Multiplay] Error: {error.Reason}\n{error.Detail}");
     }
 
+    /// <summary>Starts server health check loop that reports status to Multiplay.</summary>
     public async Task BeginServerCheck()
     {
         if (multiplayService == null)
@@ -122,6 +150,7 @@ public class MultiplayAllocationService : IDisposable
         ServerCheckLoop(serverCheckCancel.Token);
     }
 
+    /// <summary>Continuously updates server status for Multiplay query handler.</summary>
     private async void ServerCheckLoop(CancellationToken token)
     {
         while (!token.IsCancellationRequested)

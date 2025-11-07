@@ -29,6 +29,7 @@ public class ServerSingleton : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
+    /// <summary>Initializes Unity Services and creates ServerGameManager for dedicated server.</summary>
     public async Task CreateServer(NetworkObject playerPrefab)
     {
         await UnityServices.InitializeAsync();

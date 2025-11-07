@@ -9,7 +9,6 @@ public class GasButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     [Inject]
     public void Construct(IInputService inputService)
     {
-        Debug.Log("[GasButton] Constructed");
         this.inputService = inputService;
     }
 
