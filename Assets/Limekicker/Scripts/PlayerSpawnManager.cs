@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 using VContainer;
@@ -12,12 +13,41 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
     public event Action<UserData, NetworkObject> OnPlayerSpawned;
     public event Action<UserData, NetworkObject> OnPlayerDespawned;
 
+    private SpawnPoint[] spawnPoints;
+
     [Inject]
     public void Construct(IInputService inputService)
     {
         this.inputService = inputService;
         Debug.Log("[PlayerSpawnManager] Constructed, starting initialization with input service " + inputService);
+        spawnPoints = GameObject.FindObjectsOfType<SpawnPoint>();
+
+        ShuffleWaypoints();
+
         CoroutineMonoBehavior.Instance.StartCoroutine(Initialize());
+    }
+
+    private void ShuffleWaypoints()
+    {
+        Transform[] points = new Transform[spawnPoints.Length];
+        for (int i = 0; i < spawnPoints.Length; i++)
+        {
+            points[i] = spawnPoints[i].transform;
+        }
+
+        System.Random rng = new System.Random();
+        int n = points.Length;
+        while (n > 1)
+        {
+            int k = rng.Next(n--);
+            Transform temp = points[n];
+            points[n] = points[k];
+            points[k] = temp;
+        }
+        for (int i = 0; i < spawnPoints.Length; i++)
+        {
+            spawnPoints[i].transform.SetPositionAndRotation(points[i].position, points[i].rotation);
+        }
     }
 
     public IEnumerator Initialize()
@@ -86,6 +116,8 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
 
         var instance = UnityEngine.Object.Instantiate(server.PlayerPrefab, spawnPos, spawnRot);
         instance.SpawnAsPlayerObject(clientId);
+        int playerIndex = instance.NetworkManager.ConnectedClients.Count - 1;
+        instance.transform.SetPositionAndRotation(spawnPoints[playerIndex].transform.position, spawnPoints[playerIndex].transform.rotation);
 
         if (instance.TryGetComponent<HoverCarMover>(out HoverCarMover mover) && inputService != null)
         {
