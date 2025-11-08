@@ -44,6 +44,7 @@ GameObject:
   - component: {fileID: 2526545187613604929}
   - component: {fileID: 1044891384741340466}
   - component: {fileID: 2833721185373939256}
+  - component: {fileID: 2047756161947855130}
   m_Layer: 0
   m_Name: CarPart_SidePanel_Left
   m_TagString: Untagged
@@ -159,6 +160,19 @@ MonoBehaviour:
   - carPartState: 4
     stateHealth: -20
     stateObject: {fileID: 0}
+--- !u!114 &2047756161947855130
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 475256342094874095}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f81df8db0fc02b14d92211853daaa8b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partColorType: 0
 --- !u!1 &600548431012748864
 GameObject:
   m_ObjectHideFlags: 0
@@ -257,6 +271,7 @@ GameObject:
   - component: {fileID: 3959261888214547911}
   - component: {fileID: 6228435964824971616}
   - component: {fileID: 216531051001965429}
+  - component: {fileID: 1800553442818969296}
   m_Layer: 0
   m_Name: CarPart_SidePanel_Right
   m_TagString: Untagged
@@ -372,6 +387,19 @@ MonoBehaviour:
   - carPartState: 4
     stateHealth: -20
     stateObject: {fileID: 0}
+--- !u!114 &1800553442818969296
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 664606013087963392}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f81df8db0fc02b14d92211853daaa8b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partColorType: 1
 --- !u!1 &935610633659610625
 GameObject:
   m_ObjectHideFlags: 0
@@ -385,6 +413,7 @@ GameObject:
   - component: {fileID: 4557570750801591986}
   - component: {fileID: 2903899002478452656}
   - component: {fileID: 8243828016514225246}
+  - component: {fileID: 2205592936458414418}
   m_Layer: 0
   m_Name: CarPart_SidePanel_Right
   m_TagString: Untagged
@@ -500,6 +529,19 @@ MonoBehaviour:
   - carPartState: 4
     stateHealth: -20
     stateObject: {fileID: 0}
+--- !u!114 &2205592936458414418
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 935610633659610625}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f81df8db0fc02b14d92211853daaa8b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partColorType: 0
 --- !u!1 &1301637398003091983
 GameObject:
   m_ObjectHideFlags: 0
@@ -546,6 +588,7 @@ GameObject:
   - component: {fileID: 3990231515825915677}
   - component: {fileID: 9053517304883424910}
   - component: {fileID: 3548734185982383392}
+  - component: {fileID: 6682926220517017232}
   m_Layer: 0
   m_Name: CarPart_Hull
   m_TagString: Untagged
@@ -661,6 +704,19 @@ MonoBehaviour:
   - carPartState: 4
     stateHealth: -20
     stateObject: {fileID: 0}
+--- !u!114 &6682926220517017232
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1411276844075961905}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f81df8db0fc02b14d92211853daaa8b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partColorType: 1
 --- !u!1 &1724901390024139321
 GameObject:
   m_ObjectHideFlags: 0
@@ -674,6 +730,7 @@ GameObject:
   - component: {fileID: 6514294407391504785}
   - component: {fileID: 784994633527507876}
   - component: {fileID: 1612292553373269352}
+  - component: {fileID: 838673120177238063}
   m_Layer: 0
   m_Name: CarPart_FrontBumber
   m_TagString: Untagged
@@ -789,6 +846,19 @@ MonoBehaviour:
   - carPartState: 4
     stateHealth: -20
     stateObject: {fileID: 0}
+--- !u!114 &838673120177238063
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1724901390024139321}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f81df8db0fc02b14d92211853daaa8b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partColorType: 3
 --- !u!1 &2479972900285511966
 GameObject:
   m_ObjectHideFlags: 0
@@ -800,6 +870,7 @@ GameObject:
   - component: {fileID: 4773187518841789598}
   - component: {fileID: 4461093496828536396}
   - component: {fileID: 7562355018626273342}
+  - component: {fileID: 5019106546582192619}
   m_Layer: 0
   m_Name: HoverEngine
   m_TagString: Untagged
@@ -872,6 +943,19 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &5019106546582192619
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2479972900285511966}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f81df8db0fc02b14d92211853daaa8b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partColorType: 1
 --- !u!1 &2809118555292892487
 GameObject:
   m_ObjectHideFlags: 0
@@ -887,7 +971,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &2531793999745696083
 Transform:
   m_ObjectHideFlags: 0
@@ -924,6 +1008,7 @@ GameObject:
   - component: {fileID: 1117016708904767112}
   - component: {fileID: 1554846468780254608}
   - component: {fileID: 1684531400967270792}
+  - component: {fileID: 8381442950246266174}
   m_Layer: 0
   m_Name: Cube
   m_TagString: Untagged
@@ -996,6 +1081,19 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &8381442950246266174
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3363822733440097390}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f81df8db0fc02b14d92211853daaa8b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partColorType: 2
 --- !u!1 &3691955573042696807
 GameObject:
   m_ObjectHideFlags: 0
@@ -1064,6 +1162,7 @@ GameObject:
   - component: {fileID: 8240293189311494724}
   - component: {fileID: 1804629253150122162}
   - component: {fileID: 4075547633674106101}
+  - component: {fileID: 5370872155317477834}
   m_Layer: 0
   m_Name: CarPart_BackBumper
   m_TagString: Untagged
@@ -1179,6 +1278,19 @@ MonoBehaviour:
   - carPartState: 4
     stateHealth: -20
     stateObject: {fileID: 0}
+--- !u!114 &5370872155317477834
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3712424318224257861}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f81df8db0fc02b14d92211853daaa8b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partColorType: 3
 --- !u!1 &3746280183448918843
 GameObject:
   m_ObjectHideFlags: 0
@@ -1190,6 +1302,7 @@ GameObject:
   - component: {fileID: 2440418335496151504}
   - component: {fileID: 1014379036922190246}
   - component: {fileID: 4758855672848901173}
+  - component: {fileID: 6530128837776147281}
   m_Layer: 0
   m_Name: Sphere (1)
   m_TagString: Untagged
@@ -1262,6 +1375,19 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &6530128837776147281
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3746280183448918843}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f81df8db0fc02b14d92211853daaa8b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partColorType: 2
 --- !u!1 &3997401141184787329
 GameObject:
   m_ObjectHideFlags: 0
@@ -1273,6 +1399,7 @@ GameObject:
   - component: {fileID: 1261679123159084038}
   - component: {fileID: 3393244050887459940}
   - component: {fileID: 8307427756987295668}
+  - component: {fileID: 2209057903663900601}
   m_Layer: 0
   m_Name: Capsule (2)
   m_TagString: Untagged
@@ -1345,6 +1472,19 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &2209057903663900601
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3997401141184787329}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f81df8db0fc02b14d92211853daaa8b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partColorType: 2
 --- !u!1 &4249068147345065274
 GameObject:
   m_ObjectHideFlags: 0
@@ -1433,6 +1573,7 @@ GameObject:
   - component: {fileID: 2281459514234441629}
   - component: {fileID: 5183890559414375920}
   - component: {fileID: 4711807327712137626}
+  - component: {fileID: 6406765029218510395}
   m_Layer: 0
   m_Name: HoverEngine
   m_TagString: Untagged
@@ -1505,6 +1646,19 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &6406765029218510395
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4757453880728283978}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f81df8db0fc02b14d92211853daaa8b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partColorType: 1
 --- !u!1 &4808148231061463657
 GameObject:
   m_ObjectHideFlags: 0
@@ -1516,6 +1670,7 @@ GameObject:
   - component: {fileID: 7392813294490903795}
   - component: {fileID: 5265920144172951833}
   - component: {fileID: 4314134086521504876}
+  - component: {fileID: 7588621199508977630}
   m_Layer: 0
   m_Name: Capsule
   m_TagString: Untagged
@@ -1588,6 +1743,19 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &7588621199508977630
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4808148231061463657}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f81df8db0fc02b14d92211853daaa8b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partColorType: 2
 --- !u!1 &4942605354541609863
 GameObject:
   m_ObjectHideFlags: 0
@@ -1599,6 +1767,7 @@ GameObject:
   - component: {fileID: 8867056895347140208}
   - component: {fileID: 4322694643162152531}
   - component: {fileID: 2109415184411851665}
+  - component: {fileID: 8598972397838417031}
   m_Layer: 0
   m_Name: Cube (4)
   m_TagString: Untagged
@@ -1671,6 +1840,19 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &8598972397838417031
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4942605354541609863}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f81df8db0fc02b14d92211853daaa8b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partColorType: 2
 --- !u!1 &5118385001462503827
 GameObject:
   m_ObjectHideFlags: 0
@@ -1682,6 +1864,7 @@ GameObject:
   - component: {fileID: 1684063489082261489}
   - component: {fileID: 1962949575515197000}
   - component: {fileID: 4674328383840120699}
+  - component: {fileID: 1849066571335924833}
   m_Layer: 0
   m_Name: Capsule (1)
   m_TagString: Untagged
@@ -1754,6 +1937,19 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &1849066571335924833
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5118385001462503827}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f81df8db0fc02b14d92211853daaa8b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partColorType: 2
 --- !u!1 &5337946739219481039
 GameObject:
   m_ObjectHideFlags: 0
@@ -1767,6 +1963,7 @@ GameObject:
   - component: {fileID: 3014184161249090429}
   - component: {fileID: 3317379374023058839}
   - component: {fileID: 7513993273656522964}
+  - component: {fileID: 5487182286634308140}
   m_Layer: 0
   m_Name: CarPart_Hull
   m_TagString: Untagged
@@ -1882,6 +2079,19 @@ MonoBehaviour:
   - carPartState: 4
     stateHealth: -20
     stateObject: {fileID: 0}
+--- !u!114 &5487182286634308140
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5337946739219481039}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f81df8db0fc02b14d92211853daaa8b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partColorType: 0
 --- !u!1 &5354630152506786809
 GameObject:
   m_ObjectHideFlags: 0
@@ -1893,6 +2103,7 @@ GameObject:
   - component: {fileID: 5321888318142386621}
   - component: {fileID: 2372558279554647616}
   - component: {fileID: 4982752740422425175}
+  - component: {fileID: 13791928598403722}
   m_Layer: 0
   m_Name: HoverEngine
   m_TagString: Untagged
@@ -1965,6 +2176,19 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &13791928598403722
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5354630152506786809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f81df8db0fc02b14d92211853daaa8b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partColorType: 1
 --- !u!1 &5754775619567072545
 GameObject:
   m_ObjectHideFlags: 0
@@ -1976,6 +2200,7 @@ GameObject:
   - component: {fileID: 4222849608180667881}
   - component: {fileID: 8427541256295014685}
   - component: {fileID: 8180702942672084223}
+  - component: {fileID: 759008178753598154}
   m_Layer: 0
   m_Name: Cube (2)
   m_TagString: Untagged
@@ -2048,6 +2273,19 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &759008178753598154
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5754775619567072545}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f81df8db0fc02b14d92211853daaa8b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partColorType: 2
 --- !u!1 &5898341142517915318
 GameObject:
   m_ObjectHideFlags: 0
@@ -2061,6 +2299,7 @@ GameObject:
   - component: {fileID: 8544678976232952424}
   - component: {fileID: 8054344056409946398}
   - component: {fileID: 950769940649807269}
+  - component: {fileID: 396337473299730910}
   m_Layer: 0
   m_Name: CarPart_SidePanel_Left
   m_TagString: Untagged
@@ -2176,6 +2415,19 @@ MonoBehaviour:
   - carPartState: 4
     stateHealth: -20
     stateObject: {fileID: 0}
+--- !u!114 &396337473299730910
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5898341142517915318}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f81df8db0fc02b14d92211853daaa8b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partColorType: 1
 --- !u!1 &5960719300857052488
 GameObject:
   m_ObjectHideFlags: 0
@@ -2187,6 +2439,7 @@ GameObject:
   - component: {fileID: 5323228038828242490}
   - component: {fileID: 1133372186983295805}
   - component: {fileID: 9054178734055353982}
+  - component: {fileID: 4971747276710717636}
   m_Layer: 0
   m_Name: Sphere
   m_TagString: Untagged
@@ -2259,6 +2512,19 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &4971747276710717636
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5960719300857052488}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f81df8db0fc02b14d92211853daaa8b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partColorType: 2
 --- !u!1 &5970190580043531074
 GameObject:
   m_ObjectHideFlags: 0
@@ -2270,6 +2536,7 @@ GameObject:
   - component: {fileID: 3048048001134889799}
   - component: {fileID: 8944768656062154150}
   - component: {fileID: 5340770172378920475}
+  - component: {fileID: 4042117467331364264}
   m_Layer: 0
   m_Name: HoverEngine
   m_TagString: Untagged
@@ -2342,6 +2609,19 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &4042117467331364264
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5970190580043531074}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f81df8db0fc02b14d92211853daaa8b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partColorType: 1
 --- !u!1 &6630370754207726680
 GameObject:
   m_ObjectHideFlags: 0
@@ -2441,6 +2721,7 @@ GameObject:
   - component: {fileID: 243775536150960155}
   - component: {fileID: 7634083147304721029}
   - component: {fileID: 8615738992277797790}
+  - component: {fileID: 2423412847059430908}
   m_Layer: 0
   m_Name: Cube (1)
   m_TagString: Untagged
@@ -2513,6 +2794,19 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &2423412847059430908
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6726444008795769198}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f81df8db0fc02b14d92211853daaa8b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partColorType: 2
 --- !u!1 &7151933487315041469
 GameObject:
   m_ObjectHideFlags: 0
@@ -2560,6 +2854,7 @@ GameObject:
   - component: {fileID: 515011505500091736}
   - component: {fileID: 7535626351965197120}
   - component: {fileID: 8537624992198700944}
+  - component: {fileID: 9041172209258385673}
   m_Layer: 0
   m_Name: HoverEngine
   m_TagString: Untagged
@@ -2632,6 +2927,19 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &9041172209258385673
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7398220519789955231}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f81df8db0fc02b14d92211853daaa8b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partColorType: 1
 --- !u!1 &7893076028790511572
 GameObject:
   m_ObjectHideFlags: 0
@@ -2643,6 +2951,7 @@ GameObject:
   - component: {fileID: 2709864553864283462}
   - component: {fileID: 7610104482592601188}
   - component: {fileID: 834772862063868863}
+  - component: {fileID: 8892254188602669141}
   m_Layer: 0
   m_Name: HoverEngine
   m_TagString: Untagged
@@ -2715,6 +3024,19 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &8892254188602669141
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7893076028790511572}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f81df8db0fc02b14d92211853daaa8b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partColorType: 1
 --- !u!1 &8104003272164411906
 GameObject:
   m_ObjectHideFlags: 0
@@ -2726,6 +3048,7 @@ GameObject:
   - component: {fileID: 8141952014259290962}
   - component: {fileID: 6714078395773752711}
   - component: {fileID: 7959850375867414065}
+  - component: {fileID: 6508066732409762233}
   m_Layer: 0
   m_Name: HoverEngine
   m_TagString: Untagged
@@ -2798,6 +3121,19 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &6508066732409762233
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8104003272164411906}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f81df8db0fc02b14d92211853daaa8b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partColorType: 1
 --- !u!1 &8556749946579501032
 GameObject:
   m_ObjectHideFlags: 0
@@ -2811,6 +3147,7 @@ GameObject:
   - component: {fileID: 4217288583523463543}
   - component: {fileID: 4453267578821562570}
   - component: {fileID: 3560769304711891394}
+  - component: {fileID: 2300818041766067140}
   m_Layer: 0
   m_Name: CarPart_FrontBumber
   m_TagString: Untagged
@@ -2926,6 +3263,19 @@ MonoBehaviour:
   - carPartState: 4
     stateHealth: -20
     stateObject: {fileID: 0}
+--- !u!114 &2300818041766067140
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8556749946579501032}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f81df8db0fc02b14d92211853daaa8b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partColorType: 3
 --- !u!1 &8977105131773119513
 GameObject:
   m_ObjectHideFlags: 0
@@ -2939,6 +3289,7 @@ GameObject:
   - component: {fileID: 6069031462123156544}
   - component: {fileID: 804988896387065377}
   - component: {fileID: 6108651032450164981}
+  - component: {fileID: 9024420440279498067}
   m_Layer: 0
   m_Name: CarPart_BackBumper
   m_TagString: Untagged
@@ -3054,6 +3405,19 @@ MonoBehaviour:
   - carPartState: 4
     stateHealth: -20
     stateObject: {fileID: 0}
+--- !u!114 &9024420440279498067
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8977105131773119513}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f81df8db0fc02b14d92211853daaa8b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partColorType: 3
 --- !u!1 &9000799854702849360
 GameObject:
   m_ObjectHideFlags: 0
@@ -3065,6 +3429,7 @@ GameObject:
   - component: {fileID: 7958127506195714653}
   - component: {fileID: 4201312408194350228}
   - component: {fileID: 6436214345088101077}
+  - component: {fileID: 6742708085822790640}
   m_Layer: 0
   m_Name: HoverEngine
   m_TagString: Untagged
@@ -3137,6 +3502,19 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &6742708085822790640
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9000799854702849360}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f81df8db0fc02b14d92211853daaa8b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partColorType: 1
 --- !u!1 &9219925489609778824
 GameObject:
   m_ObjectHideFlags: 0
@@ -3148,6 +3526,7 @@ GameObject:
   - component: {fileID: 7135604939812465625}
   - component: {fileID: 2166897222919015975}
   - component: {fileID: 8149977711510249941}
+  - component: {fileID: 1605638291211100622}
   m_Layer: 0
   m_Name: Cube (3)
   m_TagString: Untagged
@@ -3220,6 +3599,19 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &1605638291211100622
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9219925489609778824}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f81df8db0fc02b14d92211853daaa8b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  partColorType: 2
 --- !u!1001 &3339160355484095969
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3471,9 +3863,9 @@ MonoBehaviour:
   SyncRotAngleX: 1
   SyncRotAngleY: 1
   SyncRotAngleZ: 1
-  SyncScaleX: 0
-  SyncScaleY: 0
-  SyncScaleZ: 0
+  SyncScaleX: 1
+  SyncScaleY: 1
+  SyncScaleZ: 1
   PositionThreshold: 0.001
   RotAngleThreshold: 0.01
   ScaleThreshold: 0.01
@@ -3496,6 +3888,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerCamera: {fileID: 1408358443300798053}
+  carColorPainter: {fileID: 6176741447133205457}
+  DamageManager: {fileID: 3628167237232739701}
+  nitroBoost: {fileID: 5302667209806529584}
   cameraPriority: 10
   PlayerName:
     m_InternalValue:
@@ -3562,25 +3957,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2f5dfcc69895e8d4ea550b889e856499, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  carBody:
+  - {fileID: 4401692046640037794}
+  - {fileID: 2809118555292892487}
   carColorPalette: {fileID: 11400000, guid: ecfa205af7a8e8740b7b893fd23f6cda, type: 2}
-  primaryPartRenderers:
-  - {fileID: 4557570750801591986}
-  - {fileID: 2526545187613604929}
-  secondaryPartRenderers:
-  - {fileID: 3990231515825915677}
-  decorationPartRenderers:
-  - {fileID: 1684531400967270792}
-  - {fileID: 8615738992277797790}
-  - {fileID: 2109415184411851665}
-  - {fileID: 8180702942672084223}
-  - {fileID: 8149977711510249941}
-  bumperPartRenderers:
-  - {fileID: 6514294407391504785}
-  - {fileID: 6069031462123156544}
-  - {fileID: 834772862063868863}
-  - {fileID: 4982752740422425175}
-  - {fileID: 7959850375867414065}
-  - {fileID: 5340770172378920475}
+  primaryPartRenderers: []
+  secondaryPartRenderers: []
+  decorationPartRenderers: []
+  bumperPartRenderers: []
 --- !u!4 &3339160355484225391 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 400014, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
@@ -3591,6 +3975,28 @@ Rigidbody:
   m_CorrespondingSourceObject: {fileID: 5400000, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
   m_PrefabInstance: {fileID: 3339160355484095969}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &3628167237232739701 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2021766897032597652, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
+  m_PrefabInstance: {fileID: 3339160355484095969}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3339160355484193627}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de30bb68325f3e14cafc5a7b00bcafbd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &5302667209806529584 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: -1746887455403732527, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
+  m_PrefabInstance: {fileID: 3339160355484095969}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3339160355484193627}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04fb63a47988ec746af1c938bf02de42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &6143274181295575897 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8869382030903854776, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}

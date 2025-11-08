@@ -4,6 +4,7 @@ using UnityEngine;
 public abstract class CarPart : MonoBehaviour
 {
     [SerializeField] private float maxHealth = 100f;
+
     public NetworkVariable<float> CurrentHealth = new NetworkVariable<float>();
     public event Action<float> OnCarPartHealthUpdated;
 

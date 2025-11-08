@@ -6,20 +6,20 @@ using UnityEngine.InputSystem;
 
 public class CarDamageManager : MonoBehaviour
 {
+    [Header("Damage Effects")]
     [SerializeField] private ParticleSystem damageSmoke;
     [SerializeField] private ParticleSystem damageImpactEffect;
     [SerializeField] private Color normalDamageSmokeColor;
     [SerializeField] private Color heavyDamageSmokeColor;
 
+    private CarManager carManager;
+    private float totalHealth;
     private ParticleSystem.EmissionModule emissionModule;
 
-    public event Action OnCarDamaged;
     public Dictionary<CarPartType, CarPart> CarParts { get; private set; } = new Dictionary<CarPartType, CarPart>();
 
-    private CarManager carManager;
-
     public event Action OnCarDestroyed;
-    private float totalHealth;
+    public event Action OnCarDamaged;
 
     private void Start()
     {

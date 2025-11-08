@@ -2,6 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum ColorType
+{
+    Primary,
+    Secondary,
+    Decoration,
+    Bumper
+}
+
 [CreateAssetMenu(fileName = "CarColorPalette", menuName = "Limekicker/CarColorPalette", order = 1)]
 public class CarColorPalette : ScriptableObject
 {

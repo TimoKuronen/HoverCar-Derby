@@ -6,20 +6,24 @@ using UnityEngine;
 
 public class PlayerController : NetworkBehaviour
 {
-    [SerializeField] private PlayerData playerData;
+    [Header("References")]
     [SerializeField] private CinemachineVirtualCamera playerCamera;
-    [SerializeField] private int cameraPriority = 10;
+    [SerializeField] private CarColorPainter carColorPainter;
+    [SerializeField] private CarDamageManager DamageManager;
+    [SerializeField] private NitroBoost nitroBoost;
 
-    public CarDamageManager DamageManager { get; private set; }   
+    [Header("Settings")]
+    [SerializeField] private int cameraPriority = 10;
+        
     public int Cash { get; private set; } // sync this with leaderbaord
-    public PlayerData PlayerData => playerData;
+    public int PlayerIndex { get; private set; }
+    public PlayerData PlayerData { get; private set; }
+
     public NetworkVariable<FixedString32Bytes> PlayerName = new NetworkVariable<FixedString32Bytes>(new FixedString32Bytes("Player"));
 
     public static event Action<PlayerController> OnPlayerSpawned;
     public static event Action<PlayerController> OnPlayerDespawned;
     public event Action OnPlayerCarDamaged;
-
-    private NitroBoost nitroBoost;
 
     public override void OnNetworkSpawn()
     {
@@ -45,11 +49,6 @@ public class PlayerController : NetworkBehaviour
 
         if (IsOwner)
         {
-            nitroBoost = GetComponent<NitroBoost>();
-            DamageManager = GetComponent<CarDamageManager>();
-
-            DamageManager.OnCarDamaged += () => OnPlayerCarDamaged?.Invoke();
-
             if (playerCamera != null)
             {
                 playerCamera.Priority = cameraPriority;
@@ -62,6 +61,14 @@ public class PlayerController : NetworkBehaviour
             playerCamera.Priority = 0;
             playerCamera.enabled = false;
         }
+    }
+
+    public void Initialize(int playerIndex)
+    {
+        DamageManager.OnCarDamaged += () => OnPlayerCarDamaged?.Invoke();
+
+        PlayerIndex = playerIndex;
+        carColorPainter.AssignColor(playerIndex);
     }
 
     private void OnDisable()

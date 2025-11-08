@@ -4,21 +4,39 @@ using UnityEngine;
 
 public class CarColorPainter : MonoBehaviour
 {
+    [SerializeField] private GameObject[] carBody;
     [SerializeField] private CarColorPalette carColorPalette;
-    [SerializeField] private MeshRenderer[] primaryPartRenderers;
-    [SerializeField] private MeshRenderer[] secondaryPartRenderers;
-    [SerializeField] private MeshRenderer[] decorationPartRenderers;
-    [SerializeField] private MeshRenderer[] bumperPartRenderers;
+    [SerializeField] private List<MeshRenderer> primaryPartRenderers = new List<MeshRenderer>();
+    [SerializeField] private List<MeshRenderer> secondaryPartRenderers = new List<MeshRenderer>();
+    [SerializeField] private List<MeshRenderer> decorationPartRenderers = new List<MeshRenderer>();
+    [SerializeField] private List<MeshRenderer> bumperPartRenderers = new List<MeshRenderer>();
 
-    IEnumerator Start()
+    public void AddCarPart(ColorType colorType, MeshRenderer partType)
     {
-        // Wait one frame to ensure all components are initialized
-        yield return null;
-        AssignColor(PlayerPrefs.GetInt("SelectedCarColorIndex", Random.Range(0, 1)));
+        switch (colorType)
+        {
+            case ColorType.Primary:
+                primaryPartRenderers.Add(partType);
+                break;
+            case ColorType.Secondary:
+                secondaryPartRenderers.Add(partType);
+                break;
+            case ColorType.Decoration:
+                decorationPartRenderers.Add(partType);
+                break;
+            case ColorType.Bumper:
+                bumperPartRenderers.Add(partType);
+                break;
+        }
     }
 
     public void AssignColor(int index)
     {
+        for (int i = 0; i < carBody.Length; i++)
+        {
+            carBody[i].SetActive(i == index);
+        }
+
         carColorPalette = carColorPalette == null ? Resources.Load<CarColorPalette>("CarColorPalette") : carColorPalette;
         CarColors selectedColors = carColorPalette.GetCarColors(index);
 

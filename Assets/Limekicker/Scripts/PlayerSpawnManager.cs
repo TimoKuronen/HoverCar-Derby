@@ -87,14 +87,21 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
         var instance = UnityEngine.Object.Instantiate(server.PlayerPrefab, spawnPos, spawnRot);
         instance.SpawnAsPlayerObject(clientId);
 
-        var mover = instance.GetComponent<HoverCarMover>();
-        if (mover != null && inputService != null)
+        if (instance.TryGetComponent<HoverCarMover>(out HoverCarMover mover) && inputService != null)
         {
             mover.Construct(inputService);
         }
         else
         {
             Debug.LogWarning($"[PlayerSpawnManager] mover: {mover}, inputService: {inputService}");
+        }
+        if (instance.TryGetComponent<PlayerController>(out PlayerController controller))
+        {
+            controller.Initialize(instance.NetworkManager.ConnectedClients.Count - 1);
+        }
+        else
+        {
+            Debug.LogWarning($"[PlayerSpawnManager] Could not find PlayerController on spawned instance for {userData.userName}");
         }
 
         OnPlayerSpawned?.Invoke(userData, instance);
