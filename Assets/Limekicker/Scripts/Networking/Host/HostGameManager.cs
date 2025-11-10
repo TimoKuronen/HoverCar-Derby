@@ -69,7 +69,8 @@ public class HostGameManager : IDisposable
 
         try
         {
-            joinCode = await Relay.Instance.GetJoinCodeAsync(allocation.AllocationId);
+            //joinCode = await Relay.Instance.GetJoinCodeAsync(allocation.AllocationId);
+            joinCode = "666"; // TEMPORARY HARDCODED JOIN CODE FOR TESTING WITHOUT RELAY
             Debug.Log($"Join code: {joinCode}");
         }
         catch (Exception e)

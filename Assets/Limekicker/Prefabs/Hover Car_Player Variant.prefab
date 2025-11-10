@@ -183,7 +183,6 @@ GameObject:
   m_Component:
   - component: {fileID: 545033882683497104}
   - component: {fileID: 1408358443300798053}
-  - component: {fileID: 6641066528693753663}
   m_Layer: 0
   m_Name: CM_FollowCam
   m_TagString: Untagged
@@ -214,7 +213,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 600548431012748864}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 45e653bab7fb20e499bda25e1b646fea, type: 3}
   m_Name: 
@@ -246,18 +245,6 @@ MonoBehaviour:
         m_Calls: []
   m_LegacyBlendHint: 0
   m_ComponentOwner: {fileID: 1551461802709998601}
---- !u!114 &6641066528693753663
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 600548431012748864}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ffb5e005b04b6364da57942381778355, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &664606013087963392
 GameObject:
   m_ObjectHideFlags: 0
@@ -3887,7 +3874,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2469b9251279e1f4b9bf43c25546059a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerCamera: {fileID: 1408358443300798053}
+  playerCamera: {fileID: 0}
   carColorPainter: {fileID: 6176741447133205457}
   DamageManager: {fileID: 3628167237232739701}
   nitroBoost: {fileID: 5302667209806529584}

@@ -12,6 +12,7 @@ public class RuntimeConsole : MonoBehaviour
 
     private void OnEnable()
     {
+        logText.text = string.Empty;
         Application.logMessageReceived += HandleLog;
     }
 

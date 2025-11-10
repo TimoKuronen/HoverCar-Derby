@@ -72,9 +72,51 @@ public class TouchInputService : IInputService
     private void HandleTouchInput()
     {
         var touchscreen = Touchscreen.current;
-        if (touchscreen == null) 
+        
+        // If touchscreen is null but we have an active touch, reset it
+        // This can happen during scene transitions or when input system is temporarily unavailable
+        if (touchscreen == null)
+        {
+            if (activeTouchId != -1)
+            {
+                ResetTouchState();
+            }
             return;
+        }
 
+        // Check if active touch still exists in current touches
+        bool activeTouchExists = false;
+        bool activeTouchEnded = false;
+        
+        // First, check all touches (including ended ones) to detect if our active touch ended
+        foreach (var touch in touchscreen.touches)
+        {
+            var phase = touch.phase.ReadValue();
+            var id = touch.touchId.ReadValue();
+
+            // Check if this is our active touch
+            if (id == activeTouchId)
+            {
+                activeTouchExists = true;
+                
+                // If our active touch has ended or been canceled, reset immediately
+                if (phase == UnityEngine.InputSystem.TouchPhase.Ended ||
+                    phase == UnityEngine.InputSystem.TouchPhase.Canceled)
+                {
+                    activeTouchEnded = true;
+                    break; // Exit loop early
+                }
+            }
+        }
+
+        // If active touch ended, reset and return
+        if (activeTouchEnded)
+        {
+            ResetTouchState();
+            return;
+        }
+
+        // Now process active touches for steering input
         foreach (var touch in touchscreen.touches)
         {
             if (!touch.press.isPressed) 
@@ -103,21 +145,29 @@ public class TouchInputService : IInputService
                     float deltaX = pos.x - startPos.x;
                     targetSteer = Mathf.Clamp(deltaX * sensitivity, -1f, 1f);
                 }
-                else if (phase == UnityEngine.InputSystem.TouchPhase.Ended ||
-                         phase == UnityEngine.InputSystem.TouchPhase.Canceled)
-                {
-                    activeTouchId = -1;
-                    targetSteer = 0f;
-                }
             }
         }
 
-        // If all touches ended
+        // If active touch no longer exists in the touches list, reset it
+        // This handles cases where touch was lost during scene transitions or system events
+        if (activeTouchId != -1 && !activeTouchExists)
+        {
+            ResetTouchState();
+        }
+
+        // If all touches ended, reset
         if (touchscreen.touches.Count == 0 && activeTouchId != -1)
         {
-            activeTouchId = -1;
-            targetSteer = 0f;
+            ResetTouchState();
         }
+    }
+
+    /// <summary>Resets touch input state. Called when touch is lost or scene transitions occur.</summary>
+    private void ResetTouchState()
+    {
+        activeTouchId = -1;
+        targetSteer = 0f;
+        startPos = Vector2.zero;
     }
 
     private void SmoothSteering()
@@ -125,3 +175,4 @@ public class TouchInputService : IInputService
         currentSteer = Mathf.Lerp(currentSteer, targetSteer, Time.deltaTime * smoothing);
     }
 }
+
