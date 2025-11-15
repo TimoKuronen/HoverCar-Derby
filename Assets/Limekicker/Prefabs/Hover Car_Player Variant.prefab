@@ -3675,6 +3675,14 @@ PrefabInstance:
       propertyPath: m_LocalPosition.x
       value: 0.849
       objectReference: {fileID: 0}
+    - target: {fileID: 5400000, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
+      propertyPath: m_Interpolate
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5400000, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
+      propertyPath: m_IsKinematic
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6500000, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       propertyPath: m_Size.x
       value: 2.1
@@ -3822,7 +3830,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 1794067039
+  GlobalObjectIdHash: 729521266
   InScenePlacedSourceGlobalObjectIdHash: 729521266
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1

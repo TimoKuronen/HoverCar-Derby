@@ -66,6 +66,10 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
         {
             HandleUserJoined(existing);
         }
+
+        yield return new WaitForSeconds(1);
+
+        GameSignals.MarkSessionLoaded();
     }
 
     private INetworkServer ResolveNetworkServer()

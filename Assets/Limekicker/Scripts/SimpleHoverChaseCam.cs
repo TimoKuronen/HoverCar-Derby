@@ -1,17 +1,17 @@
 using System;
 using Unity.Netcode;
-using Unity.VisualScripting;
 using UnityEngine;
 using VContainer;
 
 [RequireComponent(typeof(Camera))]
 public class SimpleHoverChaseCam : MonoBehaviour
 {
-    [Header("Offsets & Settings")]
-    public Vector3 localOffset = new Vector3(0f, 3.5f, -7f);
-    [Range(0f, 40f)] public float fixedPitchDegrees = 12f;
-    public float positionSmoothTime = 0.15f;
-    public float yawLerpSpeed = 8f;
+    [Header("Settings")]
+    public float distance = 8;
+    public float height = 3;
+    public float rotationSpeed = 5;
+    public float minTiltAngle = 5, maxTiltAngle = 15, maxSpeedForTilt = 45;
+    public Vector3 velocity;
 
     private Vector3 posVel;
     private float currentYawDeg;
@@ -36,50 +36,13 @@ public class SimpleHoverChaseCam : MonoBehaviour
         }
 
     }
+
     void LateUpdate()
     {
-        //Version1();
-        Version2();
+        MoveCamera();
     }
 
-    private void Version1()
-    {
-        if (target == null)
-        {
-            return;
-        }
-
-        Vector3 heading;
-        if (targetRigidbody && targetRigidbody.velocity.sqrMagnitude > 0.01f)
-        {
-            heading = Vector3.ProjectOnPlane(targetRigidbody.velocity, Vector3.up).normalized;
-            if (heading.sqrMagnitude < 0.0001f)
-                heading = Vector3.ProjectOnPlane(target.forward, Vector3.up).normalized;
-        }
-        else
-        {
-            heading = Vector3.ProjectOnPlane(target.forward, Vector3.up).normalized;
-        }
-
-        float targetYawDeg = Mathf.Atan2(heading.x, heading.z) * Mathf.Rad2Deg;
-
-        if (!initialized)
-        {
-            currentYawDeg = targetYawDeg;
-            initialized = true;
-        }
-        else
-        {
-            currentYawDeg = Mathf.LerpAngle(currentYawDeg, targetYawDeg, Time.deltaTime * yawLerpSpeed);
-        }
-
-        Quaternion yawOnly = Quaternion.Euler(0f, currentYawDeg, 0f);
-        Vector3 desiredPos = target.position + yawOnly * localOffset;
-        transform.position = Vector3.SmoothDamp(transform.position, desiredPos, ref posVel, positionSmoothTime);
-        transform.rotation = Quaternion.Euler(fixedPitchDegrees, currentYawDeg, 0f);
-    }
-
-    void Version2()
+    void MoveCamera()
     {
         if (!target)
             return;
@@ -94,7 +57,7 @@ public class SimpleHoverChaseCam : MonoBehaviour
         // Apply look-ahead effect if moving fast
         if (speed > 2f)
         {
-            targetPosition += target.forward * (speed * lookAheadMultiplier * 0.1f);
+            targetPosition += target.forward * (speed * 0.1f);
         }
 
         // Smoothly move the camera to the target position
@@ -105,10 +68,49 @@ public class SimpleHoverChaseCam : MonoBehaviour
         float currentTiltAngle = Mathf.Lerp(minTiltAngle, maxTiltAngle, speedFactor);
 
         // Create rotation that looks at the car but adjusts tilt
-        Quaternion targetRotation = Quaternion.LookRotation(target.position - transform.position);
+        Vector3 lookDir = Vector3.ProjectOnPlane(target.position - transform.position, Vector3.up);
+        Quaternion targetRotation = Quaternion.LookRotation(lookDir.normalized);
         Quaternion tiltRotation = Quaternion.Euler(currentTiltAngle, targetRotation.eulerAngles.y, 0);
 
         // Smoothly rotate the camera towards this new rotation
         transform.rotation = Quaternion.Slerp(transform.rotation, tiltRotation, rotationSpeed * Time.deltaTime);
     }
+
+    /// Old version
+    //private void Version1()
+    //{
+    //    if (target == null)
+    //    {
+    //        return;
+    //    }
+
+    //    Vector3 heading;
+    //    if (targetRigidbody && targetRigidbody.velocity.sqrMagnitude > 0.01f)
+    //    {
+    //        heading = Vector3.ProjectOnPlane(targetRigidbody.velocity, Vector3.up).normalized;
+    //        if (heading.sqrMagnitude < 0.0001f)
+    //            heading = Vector3.ProjectOnPlane(target.forward, Vector3.up).normalized;
+    //    }
+    //    else
+    //    {
+    //        heading = Vector3.ProjectOnPlane(target.forward, Vector3.up).normalized;
+    //    }
+
+    //    float targetYawDeg = Mathf.Atan2(heading.x, heading.z) * Mathf.Rad2Deg;
+
+    //    if (!initialized)
+    //    {
+    //        currentYawDeg = targetYawDeg;
+    //        initialized = true;
+    //    }
+    //    else
+    //    {
+    //        currentYawDeg = Mathf.LerpAngle(currentYawDeg, targetYawDeg, Time.deltaTime * yawLerpSpeed);
+    //    }
+
+    //    Quaternion yawOnly = Quaternion.Euler(0f, currentYawDeg, 0f);
+    //    Vector3 desiredPos = target.position + yawOnly * localOffset;
+    //    transform.position = Vector3.SmoothDamp(transform.position, desiredPos, ref posVel, positionSmoothTime);
+    //    transform.rotation = Quaternion.Euler(fixedPitchDegrees, currentYawDeg, 0f);
+    //}
 }

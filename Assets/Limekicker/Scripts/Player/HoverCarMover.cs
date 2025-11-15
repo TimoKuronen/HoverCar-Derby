@@ -1,3 +1,4 @@
+using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -19,6 +20,7 @@ public class HoverCarMover : NetworkBehaviour
     private float originalMaxSpeed;
 
     private IInputService inputService;
+    private bool isReady = false;
 
     public void Construct(IInputService inputService)
     {
@@ -32,15 +34,20 @@ public class HoverCarMover : NetworkBehaviour
             enabled = false;
     }
 
-    void Start()
+    private IEnumerator Start()
     {
         originalAccelerationValue = forwardAcceleration;
         originalMaxSpeed = maxSpeed;
+
+        yield return new WaitUntil(() => GameSignals.IsSessionLoaded);
+
+        rig.isKinematic = false;
+        isReady = true;
     }
 
     private void FixedUpdate()
     {
-        if (!IsOwner)
+        if (!IsOwner || !isReady)
             return;
 
         rig.maxAngularVelocity = maxAngularVelocity;
