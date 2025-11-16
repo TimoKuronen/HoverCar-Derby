@@ -1,6 +1,7 @@
 using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
+using VContainer;
 
 public class HoverCarMover : NetworkBehaviour
 {
@@ -24,14 +25,69 @@ public class HoverCarMover : NetworkBehaviour
 
     public void Construct(IInputService inputService)
     {
-        Debug.Log("[HoverCarMover] Constructed");
+        if (inputService == null)
+        {
+            Debug.LogError("[HoverCarMover] Cannot construct with null inputService!");
+            return;
+        }
+
+        // Prevent double construction
+        if (this.inputService != null)
+        {
+            Debug.LogWarning("[HoverCarMover] Already constructed, skipping duplicate construction.");
+            return;
+        }
+
+        Debug.Log("[HoverCarMover] Constructed with input service: " + inputService.GetType().Name);
         this.inputService = inputService;
     }
 
     public override void OnNetworkSpawn()
     {
         if (!IsOwner)
+        {
             enabled = false;
+            return;
+        }
+
+        // On pure clients (not server/host), construct using VContainer when player spawns
+        // Server-side construction happens in PlayerSpawnManager.HandleUserJoined()
+        // Hosts will also get constructed server-side, so we check if already constructed
+        if (!IsServer && inputService == null)
+        {
+            TryConstructFromContainer();
+        }
+        else if (IsServer && inputService == null)
+        {
+            // On server/host, if Construct wasn't called yet, it will be called in HandleUserJoined
+            // But just in case, log a warning
+            Debug.LogWarning("[HoverCarMover] On server but inputService is null. Will be constructed in PlayerSpawnManager.");
+        }
+    }
+
+    /// <summary>Attempts to resolve IInputService from VContainer and construct this component.</summary>
+    private void TryConstructFromContainer()
+    {
+        // Try to find BootstrapLifetimeScope which has IInputService registered
+        var bootstrapScope = FindFirstObjectByType<BootstrapLifetimeScope>();
+        if (bootstrapScope != null)
+        {
+            try
+            {
+                var container = bootstrapScope.Container;
+                var inputService = container.Resolve<IInputService>();
+                Construct(inputService);
+                Debug.Log("[HoverCarMover] Successfully constructed on client via VContainer.");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[HoverCarMover] Failed to resolve IInputService from container: {ex.Message}");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("[HoverCarMover] BootstrapLifetimeScope not found. Cannot construct on client.");
+        }
     }
 
     private IEnumerator Start()

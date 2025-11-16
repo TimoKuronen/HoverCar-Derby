@@ -32,6 +32,7 @@ public class CarColorPainter : MonoBehaviour
 
     public void AssignColor(int index)
     {
+        Debug.Log("assigning color " + index);
         for (int i = 0; i < carBody.Length; i++)
         {
             carBody[i].SetActive(i == index);

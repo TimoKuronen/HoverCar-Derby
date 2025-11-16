@@ -24,17 +24,58 @@ public class SimpleHoverChaseCam : MonoBehaviour
     [Inject]
     public void Construct(IPlayerSpawnManager spawnManager)
     {
-        spawnManager.OnPlayerSpawned += OnPlayerSpawned;
+        spawnManager.OnPlayerSpawned += OnPlayerSpawnedFromManager;
+        
+        // Also listen to PlayerController static event which fires on all clients
+        PlayerController.OnPlayerSpawned += OnPlayerControllerSpawned;
+        
+        // Check if local player already exists (in case we registered after spawn)
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsConnectedClient)
+        {
+            var localPlayer = NetworkManager.Singleton.SpawnManager?.GetLocalPlayerObject();
+            if (localPlayer != null)
+            {
+                OnPlayerSpawnedFromManager(null, localPlayer);
+            }
+            
+            // Also check via PlayerController
+            var playerController = localPlayer?.GetComponent<PlayerController>();
+            if (playerController != null && playerController.IsOwner)
+            {
+                OnPlayerControllerSpawned(playerController);
+            }
+        }
     }
 
-    private void OnPlayerSpawned(UserData data, NetworkObject netObj)
+    private void OnPlayerSpawnedFromManager(UserData data, NetworkObject netObj)
     {
-        if (netObj.IsOwner)
+        if (netObj != null && netObj.IsOwner)
         {
-            target = netObj.transform;
-            targetRigidbody = netObj.GetComponent<Rigidbody>();
+            AssignTarget(netObj.transform, netObj.GetComponent<Rigidbody>());
+            Debug.Log($"[SimpleHoverChaseCam] Assigned target from PlayerSpawnManager: {netObj.name}");
         }
+    }
 
+    private void OnPlayerControllerSpawned(PlayerController controller)
+    {
+        if (controller != null && controller.IsOwner)
+        {
+            AssignTarget(controller.transform, controller.GetComponent<Rigidbody>());
+            Debug.Log($"[SimpleHoverChaseCam] Assigned target from PlayerController event: {controller.name}");
+        }
+    }
+
+    private void AssignTarget(Transform newTarget, Rigidbody newRigidbody)
+    {
+        if (newTarget == null) return;
+        
+        target = newTarget;
+        targetRigidbody = newRigidbody ?? newTarget.GetComponent<Rigidbody>();
+    }
+
+    private void OnDestroy()
+    {
+        PlayerController.OnPlayerSpawned -= OnPlayerControllerSpawned;
     }
 
     void LateUpdate()

@@ -19,6 +19,8 @@ public class MainMenu : MonoBehaviour
 
     float timeInQueue = 0;
 
+    private const string LastJoinCodeKey = "LastJoinCode";
+
     private void Start()
     {
         if (ClientSingleton.Instance == null)
@@ -28,6 +30,13 @@ public class MainMenu : MonoBehaviour
 
         queueStatusText.text = string.Empty;
         queueTimerText.text = string.Empty;
+
+        // Auto-fill last used join code for easier testing
+        string lastJoinCode = PlayerPrefs.GetString(LastJoinCodeKey, "");
+        if (!string.IsNullOrEmpty(lastJoinCode) && joinCodeField != null)
+        {
+            joinCodeField.text = lastJoinCode;
+        }
     }
 
     private void Update()
@@ -117,14 +126,75 @@ public class MainMenu : MonoBehaviour
 
         isBusy = true;
 
-        string joinCode = joinCodeField.text.ToUpper();
+        string joinCode = joinCodeField.text.Trim().ToUpper();
 
-        await ClientSingleton.Instance.GameManager.StartClientAsync(joinCode);
+        // If join code is empty, try to quick join the first available lobby
+        if (string.IsNullOrEmpty(joinCode))
+        {
+            await QuickJoinFirstLobby();
+        }
+        else
+        {
+            // Save join code for next time
+            PlayerPrefs.SetString(LastJoinCodeKey, joinCode);
+            PlayerPrefs.Save();
+
+            await ClientSingleton.Instance.GameManager.StartClientAsync(joinCode);
+        }
 
         isBusy = false;
     }
 
+    /// <summary>Quick joins the first available lobby without needing a join code.</summary>
+    public async System.Threading.Tasks.Task QuickJoinFirstLobby()
+    {
+        try
+        {
+            QueryLobbiesOptions options = new QueryLobbiesOptions();
+            options.Count = 1; // Only need the first one
+
+            options.Filters = new List<QueryFilter>()
+            {
+                new QueryFilter
+                (
+                  field: QueryFilter.FieldOptions.AvailableSlots,
+                  op: QueryFilter.OpOptions.GT,
+                  value: "0"
+                ),
+                new QueryFilter
+                (
+                  field: QueryFilter.FieldOptions.IsLocked,
+                  op: QueryFilter.OpOptions.EQ,
+                  value: "0"
+                )
+            };
+
+            QueryResponse lobbies = await Lobbies.Instance.QueryLobbiesAsync(options);
+
+            if (lobbies.Results != null && lobbies.Results.Count > 0)
+            {
+                Lobby firstLobby = lobbies.Results[0];
+                Debug.Log($"Quick joining lobby: {firstLobby.Name}");
+                await JoinLobbyAsync(firstLobby);
+            }
+            else
+            {
+                Debug.LogWarning("No available lobbies found for quick join. Please enter a join code or wait for a lobby to be created.");
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Failed to quick join lobby: {e.Message}");
+        }
+    }
+
     public async void JoinASync(Lobby lobby)
+    {
+        await JoinLobbyAsync(lobby);
+    }
+
+    /// <summary>Internal method to join a lobby (returns Task for awaitable operations).</summary>
+    private async System.Threading.Tasks.Task JoinLobbyAsync(Lobby lobby)
     {
         if (isBusy)
             return;
@@ -136,6 +206,16 @@ public class MainMenu : MonoBehaviour
             Lobby joiningLobby = await Lobbies.Instance.JoinLobbyByIdAsync(lobby.Id);
 
             string joinCode = joiningLobby.Data["JoinCode"].Value;
+
+            // Save join code for next time
+            PlayerPrefs.SetString(LastJoinCodeKey, joinCode);
+            PlayerPrefs.Save();
+
+            // Update the input field with the join code
+            if (joinCodeField != null)
+            {
+                joinCodeField.text = joinCode;
+            }
 
             await ClientSingleton.Instance.GameManager.StartClientAsync(joinCode);
         }

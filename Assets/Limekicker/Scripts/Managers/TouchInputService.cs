@@ -84,36 +84,47 @@ public class TouchInputService : IInputService
             return;
         }
 
-        // Check if active touch still exists in current touches
+        // Only check for ended touches if we already have an active touch
         bool activeTouchExists = false;
         bool activeTouchEnded = false;
         
         // First, check all touches (including ended ones) to detect if our active touch ended
-        foreach (var touch in touchscreen.touches)
+        // Only do this check if we already have an active touch
+        if (activeTouchId != -1)
         {
-            var phase = touch.phase.ReadValue();
-            var id = touch.touchId.ReadValue();
-
-            // Check if this is our active touch
-            if (id == activeTouchId)
+            foreach (var touch in touchscreen.touches)
             {
-                activeTouchExists = true;
-                
-                // If our active touch has ended or been canceled, reset immediately
-                if (phase == UnityEngine.InputSystem.TouchPhase.Ended ||
-                    phase == UnityEngine.InputSystem.TouchPhase.Canceled)
+                var phase = touch.phase.ReadValue();
+                var id = touch.touchId.ReadValue();
+
+                // Check if this is our active touch
+                if (id == activeTouchId)
                 {
-                    activeTouchEnded = true;
-                    break; // Exit loop early
+                    activeTouchExists = true;
+                    
+                    // If our active touch has ended or been canceled, reset immediately
+                    if (phase == UnityEngine.InputSystem.TouchPhase.Ended ||
+                        phase == UnityEngine.InputSystem.TouchPhase.Canceled)
+                    {
+                        activeTouchEnded = true;
+                        break; // Exit loop early
+                    }
                 }
             }
-        }
 
-        // If active touch ended, reset and return
-        if (activeTouchEnded)
-        {
-            ResetTouchState();
-            return;
+            // If active touch ended, reset and return
+            if (activeTouchEnded)
+            {
+                ResetTouchState();
+                return;
+            }
+
+            // If active touch no longer exists in the touches list, reset it
+            // This handles cases where touch was lost during scene transitions or system events
+            if (!activeTouchExists)
+            {
+                ResetTouchState();
+            }
         }
 
         // Now process active touches for steering input
@@ -126,33 +137,28 @@ public class TouchInputService : IInputService
             var pos = touch.position.ReadValue();
             var id = touch.touchId.ReadValue();
 
-            // Start a new steering touch only if in steering region
-            if (phase == UnityEngine.InputSystem.TouchPhase.Began &&
-                activeTouchId == -1 &&
-                pos.x < Screen.width * steeringScreenRegion)
+            // If this is our active touch, update it
+            if (id == activeTouchId)
+            {
+                if (phase == UnityEngine.InputSystem.TouchPhase.Moved ||
+                    phase == UnityEngine.InputSystem.TouchPhase.Stationary ||
+                    phase == UnityEngine.InputSystem.TouchPhase.Began)
+                {
+                    float deltaX = pos.x - startPos.x;
+                    targetSteer = Mathf.Clamp(deltaX * sensitivity, -1f, 1f);
+                    activeTouchExists = true; // Touch is still active
+                }
+            }
+            // Start a new steering touch only if in steering region and we don't have one
+            else if (phase == UnityEngine.InputSystem.TouchPhase.Began &&
+                     activeTouchId == -1 &&
+                     pos.x < Screen.width * steeringScreenRegion)
             {
                 activeTouchId = id;
                 startPos = pos;
                 targetSteer = 0f;
+                activeTouchExists = true; // Mark as existing since we just assigned it
             }
-
-            // Update active steering touch
-            if (id == activeTouchId)
-            {
-                if (phase == UnityEngine.InputSystem.TouchPhase.Moved ||
-                    phase == UnityEngine.InputSystem.TouchPhase.Stationary)
-                {
-                    float deltaX = pos.x - startPos.x;
-                    targetSteer = Mathf.Clamp(deltaX * sensitivity, -1f, 1f);
-                }
-            }
-        }
-
-        // If active touch no longer exists in the touches list, reset it
-        // This handles cases where touch was lost during scene transitions or system events
-        if (activeTouchId != -1 && !activeTouchExists)
-        {
-            ResetTouchState();
         }
 
         // If all touches ended, reset

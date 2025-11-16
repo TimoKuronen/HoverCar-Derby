@@ -41,7 +41,7 @@ using UnityEngine.SceneManagement;
 /// </summary>
 public class HostGameManager : IDisposable
 {
-    private string joinCode;
+    public string joinCode { get; private set; }
     private string lobbyID;
     private Allocation allocation;
     private NetworkObject playerPrefab;
@@ -69,8 +69,7 @@ public class HostGameManager : IDisposable
 
         try
         {
-            //joinCode = await Relay.Instance.GetJoinCodeAsync(allocation.AllocationId);
-            joinCode = "666"; // TEMPORARY HARDCODED JOIN CODE FOR TESTING WITHOUT RELAY
+            joinCode = await Relay.Instance.GetJoinCodeAsync(allocation.AllocationId);
             Debug.Log($"Join code: {joinCode}");
         }
         catch (Exception e)

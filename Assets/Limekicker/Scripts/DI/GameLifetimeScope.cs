@@ -10,11 +10,12 @@ public class GameLifetimeScope : LifetimeScope
 
         builder.Register<IPlayerSpawnManager, PlayerSpawnManager>(Lifetime.Scoped);
         builder.RegisterComponentInHierarchy<GasButton>();
+        builder.RegisterComponentInHierarchy<SimpleHoverChaseCam>();
 
         builder.RegisterBuildCallback(container =>
         {
             container.Resolve<IPlayerSpawnManager>();
-
+            // SimpleHoverChaseCam will be auto-injected when found in hierarchy
         });
     }
 }

@@ -54,22 +54,55 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
     {
         yield return new WaitUntil(() => NetworkManager.Singleton != null);
 
-        yield return new WaitUntil(() => ResolveNetworkServer() != null);
-
-        networkServer = ResolveNetworkServer();
-        networkServer.OnUserJoined += HandleUserJoined;
-        networkServer.OnUserLeft += HandleUserLeft;
-
-        Debug.Log("[PlayerSpawnManager] Initialized and listening for joins.");
-
-        foreach (var existing in networkServer.GetConnectedUsers())
+        // Server/host path: Initialize server-side spawn management
+        if (NetworkManager.Singleton.IsServer || NetworkManager.Singleton.IsHost)
         {
-            HandleUserJoined(existing);
+            yield return new WaitUntil(() => ResolveNetworkServer() != null);
+
+            networkServer = ResolveNetworkServer();
+            networkServer.OnUserJoined += HandleUserJoined;
+            networkServer.OnUserLeft += HandleUserLeft;
+
+            Debug.Log("[PlayerSpawnManager] Initialized and listening for joins.");
+
+            foreach (var existing in networkServer.GetConnectedUsers())
+            {
+                HandleUserJoined(existing);
+            }
+
+            yield return new WaitForSeconds(1);
+
+            GameSignals.MarkSessionLoaded();
         }
+        else
+        {
+            // Client path: Wait for local player object to spawn, then mark session loaded
+            Debug.Log("[PlayerSpawnManager] Client mode - waiting for local player to spawn...");
 
-        yield return new WaitForSeconds(1);
+            yield return new WaitUntil(() => NetworkManager.Singleton != null && NetworkManager.Singleton.IsConnectedClient);
 
-        GameSignals.MarkSessionLoaded();
+            // Wait for local player object to be spawned
+            NetworkObject localPlayer = null;
+            yield return new WaitUntil(() => 
+            {
+                if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsConnectedClient)
+                    return false;
+
+                localPlayer = NetworkManager.Singleton.SpawnManager?.GetLocalPlayerObject();
+                return localPlayer != null;
+            });
+
+            Debug.Log("[PlayerSpawnManager] Local player spawned on client - firing OnPlayerSpawned event and marking session loaded.");
+            
+            // Fire OnPlayerSpawned event for clients so SimpleHoverChaseCam can attach
+            // UserData is null on clients, but netObj is what we need
+            if (localPlayer != null)
+            {
+                OnPlayerSpawned?.Invoke(null, localPlayer);
+            }
+            
+            GameSignals.MarkSessionLoaded();
+        }
     }
 
     private INetworkServer ResolveNetworkServer()
