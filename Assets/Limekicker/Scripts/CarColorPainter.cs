@@ -55,23 +55,58 @@ public class CarColorPainter : NetworkBehaviour
 
     private void ApplyColor(int index)
     {
-        for (int i = 0; i < carBody.Length; i++)
-            carBody[i].SetActive(i == index);
+        // Validate index and carBody array
+        if (carBody != null && carBody.Length > 0)
+        {
+            // Clamp index to valid range
+            int clampedIndex = Mathf.Clamp(index, 0, carBody.Length - 1);
+            for (int i = 0; i < carBody.Length; i++)
+            {
+                if (carBody[i] != null)
+                    carBody[i].SetActive(i == clampedIndex);
+            }
+        }
 
         if (carColorPalette == null)
             carColorPalette = Resources.Load<CarColorPalette>("CarColorPalette");
 
-        CarColors selectedColors = carColorPalette.GetCarColors(index);
+        if (carColorPalette == null)
+        {
+            Debug.LogWarning("[CarColorPainter] CarColorPalette not found in Resources!");
+            return;
+        }
 
-        // Apply all material colors
+        // Clamp index to valid palette range (assuming max 8 colors, adjust if needed)
+        int paletteIndex = Mathf.Clamp(index, 0, 7);
+        CarColors selectedColors = carColorPalette.GetCarColors(paletteIndex);
+
+        if (selectedColors == null)
+        {
+            Debug.LogWarning($"[CarColorPainter] Selected colors is null for index {paletteIndex}");
+            return;
+        }
+
+        // Apply all material colors (with null checks)
         foreach (var r in primaryPartRenderers)
-            r.material.color = selectedColors.primaryColor;
+        {
+            if (r != null && r.material != null)
+                r.material.color = selectedColors.primaryColor;
+        }
         foreach (var r in secondaryPartRenderers)
-            r.material.color = selectedColors.secondaryColor;
+        {
+            if (r != null && r.material != null)
+                r.material.color = selectedColors.secondaryColor;
+        }
         foreach (var r in decorationPartRenderers)
-            r.material.color = selectedColors.decorationColor;
+        {
+            if (r != null && r.material != null)
+                r.material.color = selectedColors.decorationColor;
+        }
         foreach (var r in bumperPartRenderers)
-            r.material.color = selectedColors.bumperColor;
+        {
+            if (r != null && r.material != null)
+                r.material.color = selectedColors.bumperColor;
+        }
     }
 
     public void AddCarPart(ColorType colorType, MeshRenderer renderer)

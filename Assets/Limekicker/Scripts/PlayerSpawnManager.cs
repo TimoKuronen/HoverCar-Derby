@@ -71,6 +71,13 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
             }
 
             yield return new WaitForSeconds(1);
+            
+            // Spawn bot for testing if enabled
+            if (MainMenu.IsSpawnBotEnabled())
+            {
+                yield return new WaitForSeconds(0.5f); // Small delay to ensure everything is initialized
+                SpawnBotPlayer();
+            }
 
             GameSignals.MarkSessionLoaded();
         }
@@ -154,8 +161,11 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
         var instance = UnityEngine.Object.Instantiate(server.PlayerPrefab, spawnPos, spawnRot);
         instance.SpawnAsPlayerObject(clientId);
         int playerIndex = instance.NetworkManager.ConnectedClients.Count - 1;
-        instance.transform.SetPositionAndRotation(spawnPoints[playerIndex].transform.position, spawnPoints[playerIndex].transform.rotation);
-
+        
+        // Clamp playerIndex to valid spawn point range
+        int clampedIndex = Mathf.Clamp(playerIndex, 0, spawnPoints.Length - 1);
+        instance.transform.SetPositionAndRotation(spawnPoints[clampedIndex].transform.position, spawnPoints[clampedIndex].transform.rotation);
+        Debug.Log($"[PlayerSpawnManager] setting player position based on index {playerIndex} (clamped to {clampedIndex})");
         if (instance.TryGetComponent<HoverCarMover>(out HoverCarMover mover) && inputService != null)
         {
             mover.Construct(inputService);
@@ -184,6 +194,61 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
         // Optional: cleanup or respawn logic
     }
 
+    /// <summary>Spawns a bot player for testing collisions.</summary>
+    private void SpawnBotPlayer()
+    {
+        if (!NetworkManager.Singleton.IsServer)
+            return;
+        
+        var server = ResolveNetworkServer();
+        if (server == null || server.PlayerPrefab == null)
+        {
+            Debug.LogWarning("[PlayerSpawnManager] Cannot spawn bot: NetworkServer or PlayerPrefab is null.");
+            return;
+        }
+        
+        // Find an available spawn point - use the last spawn point to avoid conflicts
+        int spawnIndex = spawnPoints.Length > 0 ? spawnPoints.Length - 1 : 0;
+        Vector3 spawnPos = spawnPoints[spawnIndex].transform.position;
+        Quaternion spawnRot = spawnPoints[spawnIndex].transform.rotation;
+        
+        // Instantiate bot player
+        var botInstance = UnityEngine.Object.Instantiate(server.PlayerPrefab, spawnPos, spawnRot);
+        
+        // Add BotPlayerController component BEFORE spawning (so it's recognized as a bot)
+        if (!botInstance.TryGetComponent<BotPlayerController>(out BotPlayerController botController))
+        {
+            botController = botInstance.gameObject.AddComponent<BotPlayerController>();
+        }
+        
+        // Spawn as a network object (not as a player object, since bots don't have a client)
+        botInstance.SpawnWithOwnership(NetworkManager.ServerClientId);
+        
+        // Initialize PlayerController for the bot AFTER spawning
+        if (botInstance.TryGetComponent<PlayerController>(out PlayerController controller))
+        {
+            // Use index 0 for bot (will be overridden by color assignment, but safe)
+            // The bot won't trigger camera changes because it's not owned by a client
+            int botIndex = 0; // Use 0, but bot won't interfere since it's not a real player
+            controller.Initialize(botIndex);
+            
+            // Set bot name
+            controller.PlayerName.Value = new Unity.Collections.FixedString32Bytes("Bot Player");
+            
+            // IMPORTANT: Prevent bot from triggering camera/control events
+            // The bot's PlayerController should not fire OnPlayerSpawned events that affect camera
+        }
+        
+        // Set up CarColorPainter for bot - use a valid color index (0-7)
+        if (botInstance.TryGetComponent<CarColorPainter>(out CarColorPainter colorPainter))
+        {
+            // Use a valid color index (assuming you have at least 1 color)
+            colorPainter.AssignColor(0);
+        }
+        
+        Debug.Log($"[PlayerSpawnManager] Spawned bot player at {spawnPos} (spawn index: {spawnIndex})");
+    }
+    
     public void Dispose()
     {
         networkServer.OnUserJoined -= HandleUserJoined;

@@ -44,7 +44,10 @@ public class HoverCarMover : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        if (!IsOwner)
+        // Allow bots to be enabled (they're server-controlled)
+        bool isBot = GetComponent<BotPlayerController>() != null;
+        
+        if (!IsOwner && !isBot)
         {
             enabled = false;
             return;
@@ -57,10 +60,10 @@ public class HoverCarMover : NetworkBehaviour
         {
             TryConstructFromContainer();
         }
-        else if (IsServer && inputService == null)
+        else if (IsServer && inputService == null && !isBot)
         {
             // On server/host, if Construct wasn't called yet, it will be called in HandleUserJoined
-            // But just in case, log a warning
+            // But just in case, log a warning (bots are handled separately)
             Debug.LogWarning("[HoverCarMover] On server but inputService is null. Will be constructed in PlayerSpawnManager.");
         }
     }
@@ -103,7 +106,10 @@ public class HoverCarMover : NetworkBehaviour
 
     private void FixedUpdate()
     {
-        if (!IsOwner || !isReady)
+        // Allow bots to move (they have BotPlayerController and are server-controlled)
+        bool isBot = GetComponent<BotPlayerController>() != null;
+        
+        if ((!IsOwner && !isBot) || !isReady)
             return;
 
         rig.maxAngularVelocity = maxAngularVelocity;

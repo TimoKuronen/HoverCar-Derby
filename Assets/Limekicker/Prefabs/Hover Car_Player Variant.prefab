@@ -3611,6 +3611,18 @@ PrefabInstance:
       propertyPath: carData
       value: 
       objectReference: {fileID: 11400000, guid: 08421187555d2804ab715aa4a7f2b1c4, type: 2}
+    - target: {fileID: -7979957801431921888, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
+      propertyPath: nitroBoost
+      value: 
+      objectReference: {fileID: 5302667209806529584}
+    - target: {fileID: -7979957801431921888, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
+      propertyPath: DamageManager
+      value: 
+      objectReference: {fileID: 3628167237232739701}
+    - target: {fileID: -7979957801431921888, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
+      propertyPath: carColorPainter
+      value: 
+      objectReference: {fileID: 6176741447133205457}
     - target: {fileID: -6952180818947552022, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       propertyPath: m_PlayOnAwake
       value: 0
@@ -3790,10 +3802,7 @@ PrefabInstance:
       insertIndex: 2
       addedObject: {fileID: -6519573424936700606}
     - targetCorrespondingSourceObject: {fileID: 100026, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: -4325294149483036752}
-    - targetCorrespondingSourceObject: {fileID: 100026, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
-      insertIndex: -1
+      insertIndex: 8
       addedObject: {fileID: -4096777372617006432}
     - targetCorrespondingSourceObject: {fileID: 100026, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       insertIndex: -1
@@ -3870,58 +3879,6 @@ MonoBehaviour:
   InLocalSpace: 0
   Interpolate: 1
   SlerpPosition: 0
---- !u!114 &-4325294149483036752
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3339160355484193627}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2469b9251279e1f4b9bf43c25546059a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  playerCamera: {fileID: 0}
-  carColorPainter: {fileID: 6176741447133205457}
-  DamageManager: {fileID: 3628167237232739701}
-  nitroBoost: {fileID: 5302667209806529584}
-  cameraPriority: 10
-  PlayerName:
-    m_InternalValue:
-      utf8LengthInBytes: 6
-      bytes:
-        offset0000:
-          byte0000: 80
-          byte0001: 108
-          byte0002: 97
-          byte0003: 121
-          byte0004: 101
-          byte0005: 114
-          byte0006: 0
-          byte0007: 0
-          byte0008: 0
-          byte0009: 0
-          byte0010: 0
-          byte0011: 0
-          byte0012: 0
-          byte0013: 0
-          byte0014: 0
-          byte0015: 0
-        byte0016: 0
-        byte0017: 0
-        byte0018: 0
-        byte0019: 0
-        byte0020: 0
-        byte0021: 0
-        byte0022: 0
-        byte0023: 0
-        byte0024: 0
-        byte0025: 0
-        byte0026: 0
-        byte0027: 0
-        byte0028: 0
-        byte0029: 0
 --- !u!114 &-4096777372617006432
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4009,7 +3966,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93d35bdb1a3bf5149a35026d644d4be9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerController: {fileID: -4325294149483036752}
+  playerController: {fileID: 0}
   playerNameText: {fileID: 7915923825919914999}
 --- !u!114 &7915923825919914999 stripped
 MonoBehaviour:

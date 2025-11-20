@@ -80,8 +80,8 @@ GameObject:
   - component: {fileID: 11400000}
   - component: {fileID: -8266341070008308358}
   - component: {fileID: 2021766897032597652}
-  - component: {fileID: 6513018189437385495}
-  - component: {fileID: -1746887455403732527}
+  - component: {fileID: -7979957801431921888}
+  - component: {fileID: 2510350370778634378}
   m_Layer: 3
   m_Name: Hover Car
   m_TagString: Vehicle
@@ -364,7 +364,7 @@ MonoBehaviour:
   damageImpactEffect: {fileID: 2346089136234920625}
   normalDamageSmokeColor: {r: 0.6226415, g: 0.6020826, b: 0.6020826, a: 0}
   heavyDamageSmokeColor: {r: 0.21698111, g: 0.21698111, b: 0.21698111, a: 0}
---- !u!114 &6513018189437385495
+--- !u!114 &-7979957801431921888
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -373,10 +373,49 @@ MonoBehaviour:
   m_GameObject: {fileID: 100026}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e27e51b1258570a4f86fc32e7e7afb20, type: 3}
+  m_Script: {fileID: 11500000, guid: 2469b9251279e1f4b9bf43c25546059a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &-1746887455403732527
+  playerCamera: {fileID: 0}
+  carColorPainter: {fileID: 0}
+  DamageManager: {fileID: 0}
+  cameraPriority: 10
+  PlayerName:
+    m_InternalValue:
+      utf8LengthInBytes: 6
+      bytes:
+        offset0000:
+          byte0000: 80
+          byte0001: 108
+          byte0002: 97
+          byte0003: 121
+          byte0004: 101
+          byte0005: 114
+          byte0006: 0
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        byte0016: 0
+        byte0017: 0
+        byte0018: 0
+        byte0019: 0
+        byte0020: 0
+        byte0021: 0
+        byte0022: 0
+        byte0023: 0
+        byte0024: 0
+        byte0025: 0
+        byte0026: 0
+        byte0027: 0
+        byte0028: 0
+        byte0029: 0
+--- !u!114 &2510350370778634378
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -385,16 +424,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 100026}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 04fb63a47988ec746af1c938bf02de42, type: 3}
+  m_Script: {fileID: 11500000, guid: f7555c197abeace499827c8e6969346f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxNitroAmount: 100
-  nitroBurnRate: 20
-  minimumNitroRequiredToBurn: 20
-  regenerationRate: 5
-  cooldownDuration: 3
-  accelerationMultiplierValue: 2
-  maxSpeedMultiplier: 1.5
+  minImpactForce: 5
+  explosiveForceMultiplier: 500
+  explosiveRadius: 5
+  upwardModifier: 0.5
+  damageMultiplier: 1
+  minDamageThreshold: 5
+  collisionCooldown: 0.5
 --- !u!1 &100030
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,5 +1,6 @@
 using Cinemachine;
 using System;
+using System.Collections;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -10,7 +11,6 @@ public class PlayerController : NetworkBehaviour
     [SerializeField] private CinemachineVirtualCamera playerCamera;
     [SerializeField] private CarColorPainter carColorPainter;
     [SerializeField] private CarDamageManager DamageManager;
-    [SerializeField] private NitroBoost nitroBoost;
 
     [Header("Settings")]
     [SerializeField] private int cameraPriority = 10;
@@ -27,7 +27,10 @@ public class PlayerController : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        if (IsServer)
+        // Check if this is a bot - bots should not trigger player spawn events
+        bool isBot = GetComponent<BotPlayerController>() != null;
+        
+        if (IsServer && !isBot)
         {
             UserData userdata = null;
 
@@ -42,15 +45,24 @@ public class PlayerController : NetworkBehaviour
 
             Debug.Log($"Player spawned: {userdata}");
 
-            PlayerName.Value = userdata.userName;
+            if (userdata != null)
+            {
+                PlayerName.Value = userdata.userName;
+            }
 
             OnPlayerSpawned?.Invoke(this);
         }
-        else if (IsOwner)
+        else if (IsOwner && !isBot)
         {
             // Client-side: Invoke OnPlayerSpawned for local client so camera can attach
+            // But NOT for bots
             OnPlayerSpawned?.Invoke(this);
             Debug.Log($"[PlayerController] Client-side OnPlayerSpawned fired for local player (ClientId: {OwnerClientId})");
+        }
+        else if (isBot)
+        {
+            // Bot: Just set name, don't trigger events
+            Debug.Log($"[PlayerController] Bot spawned (will not trigger camera/control events)");
         }
 
         if (IsOwner)
@@ -79,7 +91,7 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
-    private System.Collections.IEnumerator InitializeClientCoroutine()
+    private IEnumerator InitializeClientCoroutine()
     {
         // Wait a frame to ensure ConnectedClientsIds is populated
         yield return null;

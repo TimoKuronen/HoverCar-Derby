@@ -12,6 +12,7 @@ public class MainMenu : MonoBehaviour
     [SerializeField] private TMP_Text queueTimerText;
     [SerializeField] private TMP_Text findMatchButtonText;
     [SerializeField] private TMP_InputField joinCodeField;
+    [SerializeField] private UnityEngine.UI.Toggle spawnBotToggle;
 
     private bool isMatchmaking;
     private bool isCanceling;
@@ -20,6 +21,7 @@ public class MainMenu : MonoBehaviour
     float timeInQueue = 0;
 
     private const string LastJoinCodeKey = "LastJoinCode";
+    private const string SpawnBotKey = "SpawnBotForTesting";
 
     private void Start()
     {
@@ -36,6 +38,14 @@ public class MainMenu : MonoBehaviour
         if (!string.IsNullOrEmpty(lastJoinCode) && joinCodeField != null)
         {
             joinCodeField.text = lastJoinCode;
+        }
+        
+        // Load bot spawn toggle state
+        if (spawnBotToggle != null)
+        {
+            bool spawnBot = PlayerPrefs.GetInt(SpawnBotKey, 0) == 1;
+            spawnBotToggle.isOn = spawnBot;
+            spawnBotToggle.onValueChanged.AddListener(OnSpawnBotToggleChanged);
         }
     }
 
@@ -225,5 +235,18 @@ public class MainMenu : MonoBehaviour
         }
 
         isBusy = false;
+    }
+    
+    private void OnSpawnBotToggleChanged(bool value)
+    {
+        PlayerPrefs.SetInt(SpawnBotKey, value ? 1 : 0);
+        PlayerPrefs.Save();
+        Debug.Log($"[MainMenu] Spawn bot toggle changed to: {value}");
+    }
+    
+    /// <summary>Gets whether bot spawning is enabled for testing.</summary>
+    public static bool IsSpawnBotEnabled()
+    {
+        return PlayerPrefs.GetInt(SpawnBotKey, 0) == 1;
     }
 }
