@@ -10,21 +10,17 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
 {
     private INetworkServer networkServer;
     private IInputService inputService;
+    private ISpawnPointService spawnPointService;
 
     public event Action<UserData, NetworkObject> OnPlayerSpawned;
     public event Action<UserData, NetworkObject> OnPlayerDespawned;
 
-    private SpawnPoint[] spawnPoints;
-
     [Inject]
-    public void Construct(IInputService inputService)
+    public void Construct(IInputService inputService, ISpawnPointService spawnPointService)
     {
         this.inputService = inputService;
+        this.spawnPointService = spawnPointService;
         Debug.Log("[PlayerSpawnManager] Constructed, starting initialization with input service " + inputService);
-
-        spawnPoints = GameObject.FindObjectsOfType<SpawnPoint>()
-           .OrderBy(sp => sp.transform.position.x)
-           .ToArray();
 
         CoroutineMonoBehavior.Instance.StartCoroutine(Initialize());
     }
@@ -134,14 +130,28 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
             return;
         }
 
-        var instance = UnityEngine.Object.Instantiate(server.PlayerPrefab, spawnPoints[0].transform.position, Quaternion.identity);
+        // Get a random unused spawn point first (we'll assign the network object after spawn)
+        // Create instance first to get a reference for assignment
+        var instance = UnityEngine.Object.Instantiate(server.PlayerPrefab);
+        
+        // Get a random unused spawn point and assign it to the network object
+        var spawnData = spawnPointService.GetRandomUnusedSpawnPoint(instance);
+        if (spawnData == null)
+        {
+            Debug.LogError("[PlayerSpawnManager] No spawn points available!");
+            UnityEngine.Object.Destroy(instance);
+            return;
+        }
+
+        // Set position and rotation before spawning
+        instance.transform.position = spawnData.Position;
+        instance.transform.rotation = spawnData.Rotation;
+        
+        // Now spawn the network object
         instance.SpawnAsPlayerObject(clientId);
+        
         int playerIndex = instance.NetworkManager.ConnectedClients.Count - 1;
 
-        // Clamp playerIndex to valid spawn point range
-        int clampedIndex = Mathf.Clamp(playerIndex, 0, spawnPoints.Length - 1);
-        instance.transform.SetPositionAndRotation(spawnPoints[clampedIndex].transform.position, spawnPoints[clampedIndex].transform.rotation);
-        Debug.Log($"[PlayerSpawnManager] setting player position based on index {playerIndex} (clamped to {clampedIndex})");
         if (instance.TryGetComponent<HoverCarMover>(out HoverCarMover mover) && inputService != null)
         {
             mover.Construct(inputService);
@@ -161,13 +171,25 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
 
         OnPlayerSpawned?.Invoke(userData, instance);
 
-        Debug.Log($"[PlayerSpawnManager] Spawned player object for {userData.userName}");
+        Debug.Log($"[PlayerSpawnManager] Spawned player object for {userData.userName} at {spawnData.Position}");
     }
 
     private void HandleUserLeft(UserData userData)
     {
         Debug.Log($"[PlayerSpawnManager] Player {userData.userName} left.");
-        // Optional: cleanup or respawn logic
+        
+        // Release the spawn point if we can find the player's network object
+        var server = ResolveNetworkServer();
+        if (server != null && server.TryGetClientIdForUser(userData, out var clientId))
+        {
+            if (NetworkManager.Singleton != null && 
+                NetworkManager.Singleton.SpawnManager != null &&
+                NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(clientId) != null)
+            {
+                var playerObject = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(clientId);
+                spawnPointService.ReleaseSpawnPoint(playerObject);
+            }
+        }
     }
 
     /// <summary>Spawns a bot player for testing collisions.</summary>
@@ -183,19 +205,27 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
             return;
         }
 
-        // Find an available spawn point - use the last spawn point to avoid conflicts
-        int spawnIndex = NetworkManager.Singleton.ConnectedClients.Count;
-        Vector3 spawnPos = spawnPoints[spawnIndex].transform.position;
-        Quaternion spawnRot = spawnPoints[spawnIndex].transform.rotation;
-
         // Instantiate bot player
-        var botInstance = UnityEngine.Object.Instantiate(server.PlayerPrefab, spawnPos, spawnRot);
+        var botInstance = UnityEngine.Object.Instantiate(server.PlayerPrefab);
 
         // Add BotPlayerController component BEFORE spawning (so it's recognized as a bot)
         if (!botInstance.TryGetComponent<BotPlayerController>(out BotPlayerController botController))
         {
             botController = botInstance.gameObject.AddComponent<BotPlayerController>();
         }
+
+        // Get a random unused spawn point and assign it to the bot network object
+        var spawnData = spawnPointService.GetRandomUnusedSpawnPoint(botInstance);
+        if (spawnData == null)
+        {
+            Debug.LogError("[PlayerSpawnManager] No spawn points available for bot!");
+            UnityEngine.Object.Destroy(botInstance);
+            return;
+        }
+
+        // Set position and rotation before spawning
+        botInstance.transform.position = spawnData.Position;
+        botInstance.transform.rotation = spawnData.Rotation;
 
         // Spawn as a network object (not as a player object, since bots don't have a client)
         botInstance.SpawnWithOwnership(NetworkManager.ServerClientId);
@@ -209,10 +239,11 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
             controller.Initialize(botIndex);
 
             // Set bot name
+            int spawnIndex = NetworkManager.Singleton.ConnectedClients.Count;
             controller.PlayerName.Value = new Unity.Collections.FixedString32Bytes("Bot Player" + spawnIndex);
         }
 
-        Debug.Log($"[PlayerSpawnManager] Spawned bot player at {spawnPos} (spawn index: {spawnIndex})");
+        Debug.Log($"[PlayerSpawnManager] Spawned bot player at {spawnData.Position}");
     }
 
     public void Dispose()

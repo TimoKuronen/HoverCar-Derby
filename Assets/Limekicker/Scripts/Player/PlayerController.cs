@@ -4,6 +4,7 @@ using System.Collections;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
+using VContainer;
 
 public class PlayerController : NetworkBehaviour
 {
@@ -14,12 +15,18 @@ public class PlayerController : NetworkBehaviour
 
     [Header("Settings")]
     [SerializeField] private int cameraPriority = 10;
-        
-    public int Cash { get; private set; } // sync this with leaderbaord
-    public int PlayerIndex { get; private set; }
-    public PlayerData PlayerData { get; private set; }
+    [SerializeField] private float spawnRotationDelay = 0.5f; // Delay to account for server overrides
+
+    public bool IsBot { get; private set; }
+    
+    private ISpawnPointService spawnPointService;
 
     public NetworkVariable<FixedString32Bytes> PlayerName = new NetworkVariable<FixedString32Bytes>(new FixedString32Bytes("Player"));
+    public NetworkVariable<int> PlayerIndex = new NetworkVariable<int>(
+        0,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
 
     public static event Action<PlayerController> OnPlayerSpawned;
     public static event Action<PlayerController> OnPlayerDespawned;
@@ -28,9 +35,9 @@ public class PlayerController : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         // Check if this is a bot - bots should not trigger player spawn events
-        bool isBot = GetComponent<BotPlayerController>() != null;
+        IsBot = GetComponent<BotPlayerController>() != null;
         
-        if (IsServer && !isBot)
+        if (IsServer && !IsBot)
         {
             UserData userdata = null;
 
@@ -50,14 +57,14 @@ public class PlayerController : NetworkBehaviour
 
             OnPlayerSpawned?.Invoke(this);
         }
-        else if (IsOwner && !isBot)
+        else if (IsOwner && !IsBot)
         {
             // Client-side: Invoke OnPlayerSpawned for local client so camera can attach
             // But NOT for bots
             OnPlayerSpawned?.Invoke(this);
             Debug.Log($"[PlayerController] Client-side OnPlayerSpawned fired for local player (ClientId: {OwnerClientId})");
         }
-        else if (isBot)
+        else if (IsBot)
         {
             // Bot: Just set name, don't trigger events
             Debug.Log($"[PlayerController] Bot spawned (will not trigger camera/control events)");
@@ -78,55 +85,103 @@ public class PlayerController : NetworkBehaviour
             playerCamera.enabled = false;
         }
 
-        // Initialize must be called on all clients for car colors/styles to work
-        // Server calls Initialize with proper playerIndex, but clients need it too
-        if (IsOwner && !IsServer)
+        // Subscribe to PlayerIndex changes to apply colors when it's set by server
+        PlayerIndex.OnValueChanged += OnPlayerIndexChanged;
+        
+        // Apply initial value if already set (for late joiners)
+        if (PlayerIndex.Value > 0)
         {
-            // On clients, calculate player index to match server's logic
-            // Server uses: ConnectedClients.Count - 1 (when spawning)
-            // We'll use the same logic but may need to wait a frame for count to update
-            StartCoroutine(InitializeClientCoroutine());
+            OnPlayerIndexChanged(0, PlayerIndex.Value);
+        }
+        
+        // Initialize damage manager subscription (this is player-specific, not index-specific)
+        if (DamageManager != null)
+        {
+            DamageManager.OnCarDamaged += () => OnPlayerCarDamaged?.Invoke();
+        }
+        
+        // Apply spawn point rotation after a delay (to account for server overrides)
+        StartCoroutine(ApplySpawnPointRotation());
+    }
+    
+    /// <summary>
+    /// Attempts to resolve ISpawnPointService from VContainer and apply spawn point rotation.
+    /// </summary>
+    private IEnumerator ApplySpawnPointRotation()
+    {
+        // Wait for the delay to account for server overrides
+        yield return new WaitForSeconds(spawnRotationDelay);
+        
+        // Try to resolve the spawn point service
+        TryResolveSpawnPointService();
+        
+        if (spawnPointService != null)
+        {
+            var spawnData = spawnPointService.GetSpawnPointForObject(NetworkObject);
+            if (spawnData != null)
+            {
+                // Apply the spawn point rotation
+                transform.SetPositionAndRotation(spawnData.Position, spawnData.Rotation);
+                Debug.Log($"[PlayerController] Applied spawn point rotation: {spawnData.Rotation.eulerAngles}");
+            }
+            else
+            {
+                Debug.LogWarning($"[PlayerController] Could not find spawn point data for {gameObject.name}");
+            }
         }
     }
-
-    private IEnumerator InitializeClientCoroutine()
+    
+    /// <summary>Attempts to resolve ISpawnPointService from VContainer.</summary>
+    private void TryResolveSpawnPointService()
     {
-        // Wait a frame to ensure ConnectedClientsIds is populated
-        yield return null;
-        
-        if (PlayerIndex != 0) // Already initialized
-            yield break;
-            
-        int clientIndex = 0;
-        if (NetworkManager.Singleton != null && NetworkManager.Singleton.ConnectedClientsIds != null)
+        // Try to find GameLifetimeScope which has ISpawnPointService registered
+        var gameScope = FindFirstObjectByType<GameLifetimeScope>();
+        if (gameScope != null)
         {
-            // On clients, we can use ConnectedClientsIds which is available on all clients
-            // Match server's calculation by finding our position in the list
-            var clientIds = new System.Collections.Generic.List<ulong>(NetworkManager.Singleton.ConnectedClientsIds);
-            clientIndex = clientIds.IndexOf(OwnerClientId);
-            
-            // If we can't find ourselves, use count as fallback (server's approach)
-            if (clientIndex < 0)
+            try
             {
-                clientIndex = clientIds.Count - 1;
+                var container = gameScope.Container;
+                spawnPointService = container.Resolve<ISpawnPointService>();
+                Debug.Log("[PlayerController] Successfully resolved ISpawnPointService from container.");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[PlayerController] Failed to resolve ISpawnPointService from container: {ex.Message}");
             }
         }
         else
         {
-            // Fallback: use a default index (shouldn't happen but just in case)
-            clientIndex = 0;
+            Debug.LogWarning("[PlayerController] GameLifetimeScope not found. Cannot resolve spawn point service.");
         }
-        
-        Initialize(clientIndex);
-        Debug.Log($"[PlayerController] Client-side Initialize called with playerIndex: {clientIndex}");
+    }
+    
+    /// <summary>
+    /// Called when PlayerIndex NetworkVariable changes (set by server via Initialize method).
+    /// Applies car color based on the assigned index.
+    /// </summary>
+    private void OnPlayerIndexChanged(int oldIndex, int newIndex)
+    {
+        if (carColorPainter != null && newIndex >= 0)
+        {
+            carColorPainter.AssignColor(newIndex);
+            Debug.Log($"[PlayerController] PlayerIndex changed to {newIndex}, applied car color");
+        }
     }
 
+    /// <summary>
+    /// Called by PlayerSpawnManager on server to set the player's index.
+    /// This is the single source of truth - server sets it, clients receive it via NetworkVariable.
+    /// </summary>
     public void Initialize(int playerIndex)
     {
-        DamageManager.OnCarDamaged += () => OnPlayerCarDamaged?.Invoke();
-
-        PlayerIndex = playerIndex;
-        carColorPainter.AssignColor(playerIndex);
+        if (!IsServer)
+        {
+            Debug.LogWarning("[PlayerController] Initialize called on client - this should only be called on server!");
+            return;
+        }
+        
+        PlayerIndex.Value = playerIndex;
+        Debug.Log($"[PlayerController] Server initialized player with index: {playerIndex}");
     }
 
     private void OnDisable()
@@ -136,6 +191,8 @@ public class PlayerController : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
+        PlayerIndex.OnValueChanged -= OnPlayerIndexChanged;
+        
         if (IsServer)
         {
             OnPlayerDespawned?.Invoke(this);

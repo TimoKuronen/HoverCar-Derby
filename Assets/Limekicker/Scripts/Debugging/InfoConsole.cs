@@ -6,6 +6,7 @@ using VContainer;
 
 public class InfoConsole : MonoBehaviour
 {
+    public static InfoConsole Instance;
     [SerializeField] private TextMeshProUGUI logText;
     private IPlayerSpawnManager playerSpawnManager;
 
@@ -18,6 +19,7 @@ public class InfoConsole : MonoBehaviour
 
     private void Start()
     {
+        Instance = this;
         LogInfo(HostSingleton.Instance.GameManager.joinCode);
     }
 

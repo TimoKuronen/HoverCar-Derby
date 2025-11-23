@@ -18,7 +18,6 @@ public class NameplateManager : MonoBehaviour
     [Inject]
     public void Construct(IPlayerSpawnManager playerSpawnManager)
     {
-        Debug.Log("nameplatemanager constructed");
         this.playerSpawnManager = playerSpawnManager;
         this.playerSpawnManager.OnPlayerSpawned += RegisterPlayer;
         this.playerSpawnManager.OnPlayerDespawned += UnregisterPlayer;
@@ -26,10 +25,12 @@ public class NameplateManager : MonoBehaviour
 
     private void RegisterPlayer(UserData userData, NetworkObject playerObject)
     {
-        Debug.Log(userData.userName + " nameplate called");
         // Skip local player's own nameplate
         if (playerObject.NetworkManager.LocalClientId == NetworkManager.Singleton.LocalClientId)
+        {
+            Debug.Log("not showing own nameplate");
             return;
+        }
 
         var plate = Instantiate(nameplatePrefab, nameplateContainer).GetComponent<RectTransform>();
         plate.GetComponentInChildren<TMP_Text>().text = userData.userName;
