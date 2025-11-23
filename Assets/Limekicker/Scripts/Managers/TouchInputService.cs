@@ -34,6 +34,27 @@ public class TouchInputService : IInputService
     private void HandleMouseInput()
     {
         var mouse = Mouse.current;
+        var keyboard = Keyboard.current;
+
+        if (keyboard != null)
+        {
+            gasPressed = keyboard.wKey.isPressed;
+
+            float steer = 0f;
+            if (keyboard.aKey.isPressed) steer -= 1f;
+            if (keyboard.dKey.isPressed) steer += 1f;
+
+            if (steer != 0)
+            {
+                targetSteer = steer;     // overrides mouse drag while keys held
+            }
+            else if (!mouse?.leftButton.isPressed ?? true)
+            {
+                // only reset if mouse isn't dragging
+                targetSteer = 0f;
+            }
+        }
+
         if (mouse == null) 
             return;
 

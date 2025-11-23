@@ -36,7 +36,7 @@ public class NetworkServer : INetworkServer, IDisposable
         
 #if UNITY_SERVER
         var config = Unity.Services.Multiplay.MultiplayService.Instance.ServerConfig;
-        Debug.Log($"[NetworkServer] UNITY_SERVER binding to 0.0.0.0:{config.Port} (QPort: {config.QueryPort})");
+        //Debug.Log($"[NetworkServer] UNITY_SERVER binding to 0.0.0.0:{config.Port} (QPort: {config.QueryPort})");
         transport.SetConnectionData("0.0.0.0", (ushort)config.Port);
 #else
         transport.SetConnectionData(ip, (ushort)port);
@@ -53,7 +53,7 @@ public class NetworkServer : INetworkServer, IDisposable
         authIdToUserData[userData.userAuthId] = userData;
 
         OnUserJoined?.Invoke(userData);
-        Debug.Log($"[NetworkServer] Registered host user data for client {hostClientId} ({userData.userName})");
+        //Debug.Log($"[NetworkServer] Registered host user data for client {hostClientId} ({userData.userName})");
     }
 
     /// <summary>Approves client connections. Extracts UserData from payload and maps clientId to authId.</summary>
@@ -61,7 +61,7 @@ public class NetworkServer : INetworkServer, IDisposable
     {
         if (request.Payload == null || request.Payload.Length == 0)
         {
-            Debug.Log("[NetworkServer] Host approval with no payload � auto-approve self.");
+            //Debug.Log("[NetworkServer] Host approval with no payload - auto-approve self.");
             response.Approved = true;
             response.CreatePlayerObject = false;
             return;
@@ -72,7 +72,7 @@ public class NetworkServer : INetworkServer, IDisposable
 
         if (userData == null)
         {
-            Debug.LogWarning("[NetworkServer] Invalid userData payload � approving anyway.");
+            //Debug.LogWarning("[NetworkServer] Invalid userData payload - approving anyway.");
             response.Approved = true;
             response.CreatePlayerObject = false;
             return;
@@ -80,7 +80,7 @@ public class NetworkServer : INetworkServer, IDisposable
 
         clientIdToAuth[request.ClientNetworkId] = userData.userAuthId;
         authIdToUserData[userData.userAuthId] = userData;
-        Debug.Log($"[NetworkServer] Approved connection for {userData.userName} (Client ID: {request.ClientNetworkId})");
+        //Debug.Log($"[NetworkServer] Approved connection for {userData.userName} (Client ID: {request.ClientNetworkId})");
         response.Approved = true;
         response.CreatePlayerObject = false;
     }
@@ -98,7 +98,7 @@ public class NetworkServer : INetworkServer, IDisposable
         {
             if (authIdToUserData.TryGetValue(authId, out var userData))
             {
-                Debug.Log($"[NetworkServer] Client connected: {clientId} ({userData.userName}) — raising OnUserJoined");
+                //Debug.Log($"[NetworkServer] Client connected: {clientId} ({userData.userName}) — raising OnUserJoined");
                 OnUserJoined?.Invoke(userData);
             }
         }
@@ -107,7 +107,7 @@ public class NetworkServer : INetworkServer, IDisposable
     /// <summary>Retrieves UserData for a given clientId.</summary>
     public UserData GetUserData(ulong clientId)
     {
-        Debug.Log($"Getting user data for client ID: {clientId}");
+        //Debug.Log($"Getting user data for client ID: {clientId}");
         if (clientIdToAuth.TryGetValue(clientId, out string authId))
         {
             if (authIdToUserData.TryGetValue(authId, out UserData userData))
@@ -115,7 +115,7 @@ public class NetworkServer : INetworkServer, IDisposable
                 return userData;
             }
         }
-        Debug.Log($"User data not found for client ID: {clientId}");
+        //Debug.Log($"User data not found for client ID: {clientId}");
         return null;
     }
 

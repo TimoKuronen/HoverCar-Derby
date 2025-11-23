@@ -13,7 +13,7 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
 {
     [Header("Impact Settings")]
     [SerializeField] private float minImpactForce = 5f;
-    [SerializeField] private float explosiveForceMultiplier = 500f;
+    [SerializeField] private float explosiveForceMultiplier = 1f;
     [SerializeField] private float explosiveRadius = 5f;
     [SerializeField] private float upwardModifier = 0.5f;
     
@@ -45,12 +45,11 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
             enabled = false;
             return;
         }
-        
-        Debug.Log($"[ServerPhysicsCollisionHandler] Initialized on server for player {OwnerClientId}");
     }
     
     private void OnCollisionEnter(Collision collision)
     {
+        Debug.Log("collision event 1");
         // Only process on server
         if (!IsServer)
             return;
@@ -63,16 +62,31 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
         PlayerController otherPlayer = collision.gameObject.GetComponent<PlayerController>();
         if (otherPlayer == null)
             return;
+
+        Debug.Log("collision event 2");
+
+        // Check if either car is a bot
+        bool thisIsBot = GetComponent<BotPlayerController>() != null;
+        bool otherIsBot = otherPlayer.GetComponent<BotPlayerController>() != null;
         
-        // Prevent self-collision
-        if (otherPlayer.OwnerClientId == OwnerClientId)
+        // Prevent self-collision (but allow bot-to-bot and bot-to-player collisions)
+        // Bots are owned by server, so they share the same OwnerClientId - we need to check by GameObject instead
+        if (!thisIsBot && !otherIsBot && otherPlayer.OwnerClientId == OwnerClientId)
             return;
         
+        // Prevent bot from colliding with itself (shouldn't happen, but safety check)
+        if (thisIsBot && otherIsBot && gameObject == collision.gameObject)
+            return;
+
+        Debug.Log("collision event 3");
+
         // Prevent duplicate processing (both cars will detect the collision)
-        ulong otherId = otherPlayer.OwnerClientId;
-        ulong collisionKey = OwnerClientId < otherId 
-            ? (OwnerClientId << 32) | otherId 
-            : (otherId << 32) | OwnerClientId;
+        // For bots, use NetworkObjectId instead of OwnerClientId since bots share server's client ID
+        ulong thisId = thisIsBot ? GetComponent<NetworkObject>().NetworkObjectId : OwnerClientId;
+        ulong otherId = otherIsBot ? otherPlayer.GetComponent<NetworkObject>().NetworkObjectId : otherPlayer.OwnerClientId;
+        ulong collisionKey = thisId < otherId 
+            ? (thisId << 32) | otherId 
+            : (otherId << 32) | thisId;
         
         if (recentCollisions.Contains(collisionKey))
             return;
@@ -84,10 +98,11 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
         
         if (impactForce < minImpactForce)
         {
+            Debug.Log("collision event 4 didnt have enough force " + impactForce);
             recentCollisions.Remove(collisionKey);
             return;
         }
-        
+
         // Get collision point and direction
         Vector3 collisionPoint = collision.contacts[0].point;
         Vector3 collisionNormal = collision.contacts[0].normal;
@@ -100,7 +115,8 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
         
         // Update last collision time
         lastCollisionTime = Time.time;
-        lastCollisionTargetId = otherId;
+        // Store the collision key instead of just the ID for better tracking
+        lastCollisionTargetId = collisionKey;
         
         // Remove from recent collisions after cooldown
         StartCoroutine(RemoveFromRecentCollisions(collisionKey, collisionCooldown));
@@ -153,7 +169,9 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
         
         // Apply force to other car (push away from this car)
         ApplyExplosiveForce(otherRb, collisionPoint, forceDirection, explosiveForce);
-        
+
+        Debug.Log("final collision event with force of " + explosiveForce);
+
         // Sync physics forces to all clients via RPC
         NetworkObject thisNetworkObj = GetComponent<NetworkObject>();
         NetworkObject otherNetworkObj = otherPlayer.GetComponent<NetworkObject>();

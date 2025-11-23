@@ -38,7 +38,6 @@ public class HoverCarMover : NetworkBehaviour
             return;
         }
 
-        Debug.Log("[HoverCarMover] Constructed with input service: " + inputService.GetType().Name);
         this.inputService = inputService;
     }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 using VContainer;
@@ -20,34 +21,12 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
     {
         this.inputService = inputService;
         Debug.Log("[PlayerSpawnManager] Constructed, starting initialization with input service " + inputService);
-        spawnPoints = GameObject.FindObjectsOfType<SpawnPoint>();
 
-        ShuffleWaypoints();
+        spawnPoints = GameObject.FindObjectsOfType<SpawnPoint>()
+           .OrderBy(sp => sp.transform.position.x)
+           .ToArray();
 
         CoroutineMonoBehavior.Instance.StartCoroutine(Initialize());
-    }
-
-    private void ShuffleWaypoints()
-    {
-        Transform[] points = new Transform[spawnPoints.Length];
-        for (int i = 0; i < spawnPoints.Length; i++)
-        {
-            points[i] = spawnPoints[i].transform;
-        }
-
-        System.Random rng = new System.Random();
-        int n = points.Length;
-        while (n > 1)
-        {
-            int k = rng.Next(n--);
-            Transform temp = points[n];
-            points[n] = points[k];
-            points[k] = temp;
-        }
-        for (int i = 0; i < spawnPoints.Length; i++)
-        {
-            spawnPoints[i].transform.SetPositionAndRotation(points[i].position, points[i].rotation);
-        }
     }
 
     public IEnumerator Initialize()
@@ -71,7 +50,7 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
             }
 
             yield return new WaitForSeconds(1);
-            
+
             // Spawn bot for testing if enabled
             if (MainMenu.IsSpawnBotEnabled())
             {
@@ -90,7 +69,7 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
 
             // Wait for local player object to be spawned
             NetworkObject localPlayer = null;
-            yield return new WaitUntil(() => 
+            yield return new WaitUntil(() =>
             {
                 if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsConnectedClient)
                     return false;
@@ -100,14 +79,14 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
             });
 
             Debug.Log("[PlayerSpawnManager] Local player spawned on client - firing OnPlayerSpawned event and marking session loaded.");
-            
+
             // Fire OnPlayerSpawned event for clients so SimpleHoverChaseCam can attach
             // UserData is null on clients, but netObj is what we need
             if (localPlayer != null)
             {
                 OnPlayerSpawned?.Invoke(null, localPlayer);
             }
-            
+
             GameSignals.MarkSessionLoaded();
         }
     }
@@ -142,9 +121,6 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
         if (!NetworkManager.Singleton.IsServer)
             return;
 
-        Vector3 spawnPos = SpawnPoint.GetRandomSpawnPos().Item1;
-        Quaternion spawnRot = Quaternion.identity;
-
         var server = ResolveNetworkServer();
         if (server == null || server.PlayerPrefab == null)
         {
@@ -158,10 +134,10 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
             return;
         }
 
-        var instance = UnityEngine.Object.Instantiate(server.PlayerPrefab, spawnPos, spawnRot);
+        var instance = UnityEngine.Object.Instantiate(server.PlayerPrefab, spawnPoints[0].transform.position, Quaternion.identity);
         instance.SpawnAsPlayerObject(clientId);
         int playerIndex = instance.NetworkManager.ConnectedClients.Count - 1;
-        
+
         // Clamp playerIndex to valid spawn point range
         int clampedIndex = Mathf.Clamp(playerIndex, 0, spawnPoints.Length - 1);
         instance.transform.SetPositionAndRotation(spawnPoints[clampedIndex].transform.position, spawnPoints[clampedIndex].transform.rotation);
@@ -185,7 +161,7 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
 
         OnPlayerSpawned?.Invoke(userData, instance);
 
-        Debug.Log($"[PlayerSpawnManager] Spawned player object for {userData.userName} at {spawnPos}");
+        Debug.Log($"[PlayerSpawnManager] Spawned player object for {userData.userName}");
     }
 
     private void HandleUserLeft(UserData userData)
@@ -199,31 +175,31 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
     {
         if (!NetworkManager.Singleton.IsServer)
             return;
-        
+
         var server = ResolveNetworkServer();
         if (server == null || server.PlayerPrefab == null)
         {
             Debug.LogWarning("[PlayerSpawnManager] Cannot spawn bot: NetworkServer or PlayerPrefab is null.");
             return;
         }
-        
+
         // Find an available spawn point - use the last spawn point to avoid conflicts
-        int spawnIndex = spawnPoints.Length > 0 ? spawnPoints.Length - 1 : 0;
+        int spawnIndex = NetworkManager.Singleton.ConnectedClients.Count;
         Vector3 spawnPos = spawnPoints[spawnIndex].transform.position;
         Quaternion spawnRot = spawnPoints[spawnIndex].transform.rotation;
-        
+
         // Instantiate bot player
         var botInstance = UnityEngine.Object.Instantiate(server.PlayerPrefab, spawnPos, spawnRot);
-        
+
         // Add BotPlayerController component BEFORE spawning (so it's recognized as a bot)
         if (!botInstance.TryGetComponent<BotPlayerController>(out BotPlayerController botController))
         {
             botController = botInstance.gameObject.AddComponent<BotPlayerController>();
         }
-        
+
         // Spawn as a network object (not as a player object, since bots don't have a client)
         botInstance.SpawnWithOwnership(NetworkManager.ServerClientId);
-        
+
         // Initialize PlayerController for the bot AFTER spawning
         if (botInstance.TryGetComponent<PlayerController>(out PlayerController controller))
         {
@@ -231,24 +207,14 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
             // The bot won't trigger camera changes because it's not owned by a client
             int botIndex = 0; // Use 0, but bot won't interfere since it's not a real player
             controller.Initialize(botIndex);
-            
+
             // Set bot name
-            controller.PlayerName.Value = new Unity.Collections.FixedString32Bytes("Bot Player");
-            
-            // IMPORTANT: Prevent bot from triggering camera/control events
-            // The bot's PlayerController should not fire OnPlayerSpawned events that affect camera
+            controller.PlayerName.Value = new Unity.Collections.FixedString32Bytes("Bot Player" + spawnIndex);
         }
-        
-        // Set up CarColorPainter for bot - use a valid color index (0-7)
-        if (botInstance.TryGetComponent<CarColorPainter>(out CarColorPainter colorPainter))
-        {
-            // Use a valid color index (assuming you have at least 1 color)
-            colorPainter.AssignColor(0);
-        }
-        
+
         Debug.Log($"[PlayerSpawnManager] Spawned bot player at {spawnPos} (spawn index: {spawnIndex})");
     }
-    
+
     public void Dispose()
     {
         networkServer.OnUserJoined -= HandleUserJoined;

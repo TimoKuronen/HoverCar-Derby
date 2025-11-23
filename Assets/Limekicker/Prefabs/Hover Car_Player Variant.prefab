@@ -189,7 +189,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &545033882683497104
 Transform:
   m_ObjectHideFlags: 0
@@ -3612,10 +3612,6 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 11400000, guid: 08421187555d2804ab715aa4a7f2b1c4, type: 2}
     - target: {fileID: -7979957801431921888, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
-      propertyPath: nitroBoost
-      value: 
-      objectReference: {fileID: 5302667209806529584}
-    - target: {fileID: -7979957801431921888, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       propertyPath: DamageManager
       value: 
       objectReference: {fileID: 3628167237232739701}
@@ -3718,6 +3714,10 @@ PrefabInstance:
     - target: {fileID: 362609931744607790, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2510350370778634378, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
+      propertyPath: explosiveForceMultiplier
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 3205691220211033017, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       propertyPath: m_IsActive
@@ -3936,17 +3936,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: de30bb68325f3e14cafc5a7b00bcafbd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &5302667209806529584 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: -1746887455403732527, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
-  m_PrefabInstance: {fileID: 3339160355484095969}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3339160355484193627}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 04fb63a47988ec746af1c938bf02de42, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &6143274181295575897 stripped

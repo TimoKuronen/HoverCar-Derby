@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using VContainer;
 
 public class NameplateManager : MonoBehaviour
 {
@@ -14,14 +15,18 @@ public class NameplateManager : MonoBehaviour
     private Dictionary<ulong, RectTransform> plates = new();
     private IPlayerSpawnManager playerSpawnManager;
 
+    [Inject]
     public void Construct(IPlayerSpawnManager playerSpawnManager)
     {
+        Debug.Log("nameplatemanager constructed");
         this.playerSpawnManager = playerSpawnManager;
         this.playerSpawnManager.OnPlayerSpawned += RegisterPlayer;
         this.playerSpawnManager.OnPlayerDespawned += UnregisterPlayer;
     }
+
     private void RegisterPlayer(UserData userData, NetworkObject playerObject)
     {
+        Debug.Log(userData.userName + " nameplate called");
         // Skip local player's own nameplate
         if (playerObject.NetworkManager.LocalClientId == NetworkManager.Singleton.LocalClientId)
             return;
@@ -29,6 +34,8 @@ public class NameplateManager : MonoBehaviour
         var plate = Instantiate(nameplatePrefab, nameplateContainer).GetComponent<RectTransform>();
         plate.GetComponentInChildren<TMP_Text>().text = userData.userName;
         plates[playerObject.NetworkManager.LocalClientId] = plate;
+
+        Debug.Log(userData.userName + " nameplate instantiated ");
 
         StartCoroutine(UpdatePosition(plate, playerObject.transform));
     }
@@ -42,7 +49,6 @@ public class NameplateManager : MonoBehaviour
             yield return null;
         }
     }
-
 
     private void UnregisterPlayer(UserData data, NetworkObject @object)
     {
