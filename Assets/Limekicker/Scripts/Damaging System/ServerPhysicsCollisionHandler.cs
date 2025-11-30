@@ -49,7 +49,6 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
     
     private void OnCollisionEnter(Collision collision)
     {
-        Debug.Log("collision event 1");
         // Only process on server
         if (!IsServer)
             return;
@@ -63,8 +62,6 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
         if (otherPlayer == null)
             return;
 
-        Debug.Log("collision event 2");
-
         // Check if either car is a bot
         bool thisIsBot = GetComponent<BotPlayerController>() != null;
         bool otherIsBot = otherPlayer.GetComponent<BotPlayerController>() != null;
@@ -77,8 +74,6 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
         // Prevent bot from colliding with itself (shouldn't happen, but safety check)
         if (thisIsBot && otherIsBot && gameObject == collision.gameObject)
             return;
-
-        Debug.Log("collision event 3");
 
         // Prevent duplicate processing (both cars will detect the collision)
         // For bots, use NetworkObjectId instead of OwnerClientId since bots share server's client ID
@@ -144,16 +139,29 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
                   $"Impact Force: {impactForce:F2}, Damage: {damage:F2}");
         
         // Apply damage to this car
+        float damageToThisCar = 0f;
         if (damageManager != null && damage > minDamageThreshold)
         {
-            ApplyDamageToCar(collision, damage);
+            damageToThisCar = ApplyDamageToCar(collision, damage);
         }
         
         // Apply damage to other car
+        float damageToOtherCar = 0f;
         CarDamageManager otherDamageManager = otherPlayer.GetComponent<CarDamageManager>();
         if (otherDamageManager != null && damage > minDamageThreshold)
         {
-            ApplyDamageToOtherCar(otherPlayer, collision, damage);
+            damageToOtherCar = ApplyDamageToOtherCar(otherPlayer, collision, damage);
+        }
+
+        // Show damage numbers for both cars
+        if (damageToThisCar > 0f)
+        {
+            ShowDamageNumberForCar(gameObject, collisionPoint, damageToThisCar, otherPlayer.OwnerClientId, OwnerClientId);
+        }
+        
+        if (damageToOtherCar > 0f)
+        {
+            ShowDamageNumberForCar(otherPlayer.gameObject, collisionPoint, damageToOtherCar, OwnerClientId, otherPlayer.OwnerClientId);
         }
         
         // Calculate explosive force magnitude based on impact force
@@ -196,10 +204,10 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
         return impactForce * damageMultiplier;
     }
     
-    private void ApplyDamageToCar(Collision collision, float damage)
+    private float ApplyDamageToCar(Collision collision, float damage)
     {
         if (damageManager == null)
-            return;
+            return 0f;
         
         Vector3 hitDirection = collision.contacts[0].normal;
         float forwardDot = Vector3.Dot(hitDirection, transform.forward);
@@ -207,34 +215,39 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
         
         // Determine which part was hit based on collision direction
         CarPartType partType = CarPartType.FrontBumper; // default
+        float damageMultiplier = 1f;
         
         if (forwardDot > 0.8f)
         {
             partType = CarPartType.FrontBumper;
-            damageManager.ApplyDamageToPart(partType, damage * 2f);
+            damageMultiplier = 2f;
         }
         else if (rightDot > 0.5f)
         {
             partType = CarPartType.SidePanel_Right;
-            damageManager.ApplyDamageToPart(partType, damage * 1.2f);
+            damageMultiplier = 1.2f;
         }
         else if (rightDot < -0.5f)
         {
             partType = CarPartType.SidePanel_Left;
-            damageManager.ApplyDamageToPart(partType, damage * 1.2f);
+            damageMultiplier = 1.2f;
         }
         else
         {
             partType = CarPartType.RearBumper;
-            damageManager.ApplyDamageToPart(partType, damage * 0.8f);
+            damageMultiplier = 0.8f;
         }
+
+        float finalDamage = damage * damageMultiplier;
+        damageManager.ApplyDamageToPart(partType, finalDamage);
+        return finalDamage;
     }
     
-    private void ApplyDamageToOtherCar(PlayerController otherPlayer, Collision collision, float damage)
+    private float ApplyDamageToOtherCar(PlayerController otherPlayer, Collision collision, float damage)
     {
         CarDamageManager otherDamageManager = otherPlayer.GetComponent<CarDamageManager>();
         if (otherDamageManager == null)
-            return;
+            return 0f;
         
         Transform otherTransform = otherPlayer.transform;
         Vector3 hitDirection = collision.contacts[0].normal;
@@ -243,26 +256,52 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
         
         // Determine which part was hit based on collision direction (from other car's perspective)
         CarPartType partType = CarPartType.FrontBumper; // default
+        float damageMultiplier = 1f;
         
         if (forwardDot > 0.8f)
         {
             partType = CarPartType.FrontBumper;
-            otherDamageManager.ApplyDamageToPart(partType, damage * 2f);
+            damageMultiplier = 2f;
         }
         else if (rightDot > 0.5f)
         {
             partType = CarPartType.SidePanel_Right;
-            otherDamageManager.ApplyDamageToPart(partType, damage * 1.2f);
+            damageMultiplier = 1.2f;
         }
         else if (rightDot < -0.5f)
         {
             partType = CarPartType.SidePanel_Left;
-            otherDamageManager.ApplyDamageToPart(partType, damage * 1.2f);
+            damageMultiplier = 1.2f;
         }
         else
         {
             partType = CarPartType.RearBumper;
-            otherDamageManager.ApplyDamageToPart(partType, damage * 0.8f);
+            damageMultiplier = 0.8f;
+        }
+
+        float finalDamage = damage * damageMultiplier;
+        otherDamageManager.ApplyDamageToPart(partType, finalDamage);
+        return finalDamage;
+    }
+
+    /// <summary>
+    /// Shows damage number for a car by finding its DamageNumberSync component.
+    /// </summary>
+    private void ShowDamageNumberForCar(GameObject carObject, Vector3 worldPosition, float damageAmount, ulong attackerClientId, ulong victimClientId)
+    {
+        DamageNumberSync damageSync = carObject.GetComponent<DamageNumberSync>();
+        if (damageSync != null)
+        {
+            damageSync.ShowDamageNumberRpc(worldPosition, damageAmount, attackerClientId, victimClientId);
+        }
+        else
+        {
+            // Fallback: try to find DamageNumberPool directly (for non-networked scenarios)
+            DamageNumberPool pool = DamageNumberPool.Instance;
+            if (pool != null)
+            {
+                pool.ShowDamageNumber(worldPosition, damageAmount, attackerClientId, victimClientId);
+            }
         }
     }
     

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -15,15 +16,21 @@ public class CarDamageManager : MonoBehaviour
     private CarManager carManager;
     private float totalHealth;
     private ParticleSystem.EmissionModule emissionModule;
+    private NetworkObject networkObject;
+    private PlayerController playerController;
 
     public Dictionary<CarPartType, CarPart> CarParts { get; private set; } = new Dictionary<CarPartType, CarPart>();
 
     public event Action OnCarDestroyed;
-    public event Action OnCarDamaged;
+    public event Action OnCarDamaged; // Legacy event (no parameters)
+    public event Action<float, Vector3> OnCarDamagedWithDetails; // New event with damage amount and position
 
     private void Start()
     {
         carManager = GetComponent<CarManager>();
+        networkObject = GetComponent<NetworkObject>();
+        playerController = GetComponent<PlayerController>();
+        
         //CarParts.Add(CarPartType.FrontBumper, GetComponentInChildren<FrontBumper>());
         //CarParts.Add(CarPartType.SidePanel_Left, transform.Find("CarPart_SidePanel_Left").GetComponent<SidePanel>());
         //CarParts.Add(CarPartType.SidePanel_Right, transform.Find("CarPart_SidePanel_Right").GetComponent<SidePanel>());
@@ -56,20 +63,61 @@ public class CarDamageManager : MonoBehaviour
 #endif
     }
 
-    public void ApplyDamageToPart(CarPartType partType, float damage)
+    public void ApplyDamageToPart(CarPartType partType, float damage, Vector3? damagePosition = null, ulong? attackerClientId = null)
     {
-        OnCarDamaged?.Invoke();
-
         if (CarParts.TryGetValue(partType, out CarPart part) && part != null)
         {
             float damageDealt = damage * GetDamageReductionMultiplier(partType);
             part.TakeDamage(damageDealt);
             totalHealth -= damageDealt;
+
+            // Get damage position (use part transform if not provided)
+            Vector3 finalDamagePosition = damagePosition ?? (part.transform != null ? part.transform.position : transform.position);
+            
+            // Get attacker and victim client IDs
+            ulong attackerId = attackerClientId ?? ulong.MaxValue;
+            ulong victimId = ulong.MaxValue;
+            if (playerController != null && networkObject != null)
+            {
+                victimId = playerController.OwnerClientId;
+            }
+
+            // Show damage number if damage is significant
+            if (damageDealt > 0.1f)
+            {
+                ShowDamageNumber(finalDamagePosition, damageDealt, attackerId, victimId);
+            }
+
+            // Invoke both events for backward compatibility
+            OnCarDamaged?.Invoke();
+            OnCarDamagedWithDetails?.Invoke(damageDealt, finalDamagePosition);
         }
 
         if (totalHealth <= 0)
         {
             OnCarDestroyed?.Invoke();
+        }
+    }
+
+    /// <summary>
+    /// Shows a damage number for this car. Works with both networked and non-networked scenarios.
+    /// </summary>
+    private void ShowDamageNumber(Vector3 worldPosition, float damageAmount, ulong attackerClientId, ulong victimClientId)
+    {
+        // Try to use DamageNumberSync component first (for networked scenarios)
+        DamageNumberSync damageSync = GetComponent<DamageNumberSync>();
+        if (damageSync != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+        {
+            damageSync.ShowDamageNumberRpc(worldPosition, damageAmount, attackerClientId, victimClientId);
+        }
+        else
+        {
+            // Fallback: use DamageNumberPool directly (for non-networked or client-side scenarios)
+            DamageNumberPool pool = DamageNumberPool.Instance;
+            if (pool != null)
+            {
+                pool.ShowDamageNumber(worldPosition, damageAmount, attackerClientId, victimClientId);
+            }
         }
     }
 

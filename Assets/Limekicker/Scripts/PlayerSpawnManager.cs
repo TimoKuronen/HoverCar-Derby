@@ -205,6 +205,9 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
             return;
         }
 
+        // Count all existing players (including bots) to get unique index
+        int totalPlayerCount = CountAllPlayersIncludingBots();
+        
         // Instantiate bot player
         var botInstance = UnityEngine.Object.Instantiate(server.PlayerPrefab);
 
@@ -215,6 +218,7 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
         }
 
         // Get a random unused spawn point and assign it to the bot network object
+        // Do this BEFORE spawning to ensure the spawn point is marked as used
         var spawnData = spawnPointService.GetRandomUnusedSpawnPoint(botInstance);
         if (spawnData == null)
         {
@@ -233,17 +237,36 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
         // Initialize PlayerController for the bot AFTER spawning
         if (botInstance.TryGetComponent<PlayerController>(out PlayerController controller))
         {
-            // Use index 0 for bot (will be overridden by color assignment, but safe)
-            // The bot won't trigger camera changes because it's not owned by a client
-            int botIndex = 0; // Use 0, but bot won't interfere since it's not a real player
-            controller.Initialize(botIndex);
+            // Use the total player count as the bot's index to ensure unique colors
+            // This includes all real players and any previously spawned bots
+            controller.Initialize(totalPlayerCount);
 
             // Set bot name
-            int spawnIndex = NetworkManager.Singleton.ConnectedClients.Count;
-            controller.PlayerName.Value = new Unity.Collections.FixedString32Bytes("Bot Player" + spawnIndex);
+            controller.PlayerName.Value = new Unity.Collections.FixedString32Bytes("Bot Player " + (totalPlayerCount + 1));
         }
 
-        Debug.Log($"[PlayerSpawnManager] Spawned bot player at {spawnData.Position}");
+        Debug.Log($"[PlayerSpawnManager] Spawned bot player at {spawnData.Position} with index {totalPlayerCount}");
+    }
+
+    /// <summary>
+    /// Counts all players in the game, including both real players and bots.
+    /// This is used to assign unique color indices.
+    /// </summary>
+    private int CountAllPlayersIncludingBots()
+    {
+        if (NetworkManager.Singleton == null || NetworkManager.Singleton.SpawnManager == null)
+            return 0;
+
+        int count = 0;
+        foreach (var spawnedObject in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
+        {
+            if (spawnedObject != null && spawnedObject.TryGetComponent<PlayerController>(out _))
+            {
+                count++;
+            }
+        }
+
+        return count;
     }
 
     public void Dispose()

@@ -31,6 +31,13 @@ public class SpawnPointService : ISpawnPointService
             return null;
         }
 
+        // Check if this network object already has a spawn point assigned
+        if (networkObject != null && assignedSpawnPoints.ContainsKey(networkObject))
+        {
+            Debug.LogWarning($"[SpawnPointService] NetworkObject {networkObject.name} already has a spawn point assigned!");
+            return assignedSpawnPoints[networkObject];
+        }
+
         // Get all unused spawn points
         var unusedSpawnPoints = allSpawnPoints
             .Where(sp => !usedSpawnPoints.Contains(sp))
@@ -47,7 +54,7 @@ public class SpawnPointService : ISpawnPointService
         // Pick a random unused spawn point
         var selectedSpawnPoint = unusedSpawnPoints[Random.Range(0, unusedSpawnPoints.Length)];
         
-        // Mark as used
+        // Mark as used IMMEDIATELY to prevent race conditions
         usedSpawnPoints.Add(selectedSpawnPoint);
 
         var spawnData = new SpawnPointData
@@ -56,7 +63,7 @@ public class SpawnPointService : ISpawnPointService
             AssignedObject = networkObject
         };
 
-        // Store the assignment
+        // Store the assignment IMMEDIATELY
         if (networkObject != null)
         {
             assignedSpawnPoints[networkObject] = spawnData;
