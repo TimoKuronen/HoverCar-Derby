@@ -3,7 +3,7 @@ public enum Map
     Default
 }
 
-public enum  GameMode
+public enum GameMode
 {
     Default
 }
@@ -15,7 +15,7 @@ public enum GameQue
 }
 
 [System.Serializable]
-public class UserData 
+public class UserData
 {
     public string userName;
     public string userAuthId;

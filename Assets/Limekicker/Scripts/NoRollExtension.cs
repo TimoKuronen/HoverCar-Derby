@@ -1,5 +1,5 @@
-using UnityEngine;
 using Cinemachine;
+using UnityEngine;
 
 [ExecuteAlways]
 public class NoRollExtension : CinemachineExtension

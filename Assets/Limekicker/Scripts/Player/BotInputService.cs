@@ -10,7 +10,7 @@ public class BotInputService : IInputService
     private bool gasPressed = false;
     private float behaviorTimer = 0f;
     private float behaviorChangeInterval = 2f; // Change behavior every 2 seconds
-    
+
     // Simple state machine for bot behavior
     private enum BotState
     {
@@ -19,22 +19,22 @@ public class BotInputService : IInputService
         TurningRight,
         Braking
     }
-    
+
     private BotState currentState = BotState.DrivingForward;
-    
+
     public float Steering => steeringInput;
     public bool IsGasPressed => gasPressed;
     public bool IsBrakePressed => false; // Bots don't brake for now
-    
+
     public void SetGasPressed(bool value)
     {
         gasPressed = value;
     }
-    
+
     public void Tick()
     {
         behaviorTimer += Time.deltaTime;
-        
+
         if (behaviorTimer >= behaviorChangeInterval)
         {
             behaviorTimer = 0f;
@@ -50,11 +50,11 @@ public class BotInputService : IInputService
         // Randomly change behavior
         int random = Random.Range(0, 4);
         currentState = (BotState)random;
-        
+
         // Randomize behavior change interval for more natural movement
         behaviorChangeInterval = Random.Range(1.5f, 3f);
     }
-    
+
     private void UpdateInputs()
     {
         switch (currentState)
@@ -63,24 +63,24 @@ public class BotInputService : IInputService
                 steeringInput = 0f;
                 gasPressed = true;
                 break;
-                
+
             case BotState.TurningLeft:
                 steeringInput = -1f;
                 gasPressed = true;
                 break;
-                
+
             case BotState.TurningRight:
                 steeringInput = 1f;
                 gasPressed = true;
                 break;
-                
+
             case BotState.Braking:
                 steeringInput = 0f;
                 gasPressed = false;
                 break;
         }
     }
-    
+
     public void Reset()
     {
         behaviorTimer = 0f;

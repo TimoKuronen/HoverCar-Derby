@@ -6,7 +6,7 @@ public class PlayerNameDisplay : MonoBehaviour
 {
     [SerializeField] private PlayerController playerController;
     [SerializeField] private TextMeshProUGUI playerNameText;
-    
+
     private void Start()
     {
         HandlePlayerNameChange(string.Empty, playerController.PlayerName.Value);

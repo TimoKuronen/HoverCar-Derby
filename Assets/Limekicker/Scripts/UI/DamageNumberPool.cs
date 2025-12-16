@@ -119,7 +119,7 @@ public class DamageNumberPool : MonoBehaviour
         text.color = defaultColor;
 
         Vector3 screenPos = cam.WorldToScreenPoint(worldPosition + worldOffset);
-        
+
         // Check if position is behind camera
         if (screenPos.z < 0)
         {
@@ -173,13 +173,13 @@ public class DamageNumberPool : MonoBehaviour
             {
                 Vector3 currentWorldPos = worldPosition + worldOffset + Vector3.up * floatSpeed * p;
                 Vector3 currentScreenPos = cam.WorldToScreenPoint(currentWorldPos);
-                
+
                 // Stop animating if behind camera
                 if (currentScreenPos.z < 0)
                 {
                     break;
                 }
-                
+
                 text.transform.position = currentScreenPos;
             }
             else

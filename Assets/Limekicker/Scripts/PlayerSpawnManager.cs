@@ -1,7 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 using VContainer;
@@ -133,7 +131,7 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
         // Get a random unused spawn point first (we'll assign the network object after spawn)
         // Create instance first to get a reference for assignment
         var instance = UnityEngine.Object.Instantiate(server.PlayerPrefab);
-        
+
         // Get a random unused spawn point and assign it to the network object
         var spawnData = spawnPointService.GetRandomUnusedSpawnPoint(instance);
         if (spawnData == null)
@@ -146,10 +144,10 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
         // Set position and rotation before spawning
         instance.transform.position = spawnData.Position;
         instance.transform.rotation = spawnData.Rotation;
-        
+
         // Now spawn the network object
         instance.SpawnAsPlayerObject(clientId);
-        
+
         int playerIndex = instance.NetworkManager.ConnectedClients.Count - 1;
 
         if (instance.TryGetComponent<HoverCarMover>(out HoverCarMover mover) && inputService != null)
@@ -177,12 +175,12 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
     private void HandleUserLeft(UserData userData)
     {
         Debug.Log($"[PlayerSpawnManager] Player {userData.userName} left.");
-        
+
         // Release the spawn point if we can find the player's network object
         var server = ResolveNetworkServer();
         if (server != null && server.TryGetClientIdForUser(userData, out var clientId))
         {
-            if (NetworkManager.Singleton != null && 
+            if (NetworkManager.Singleton != null &&
                 NetworkManager.Singleton.SpawnManager != null &&
                 NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(clientId) != null)
             {
@@ -207,7 +205,7 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
 
         // Count all existing players (including bots) to get unique index
         int totalPlayerCount = CountAllPlayersIncludingBots();
-        
+
         // Instantiate bot player
         var botInstance = UnityEngine.Object.Instantiate(server.PlayerPrefab);
 

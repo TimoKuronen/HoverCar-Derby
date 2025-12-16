@@ -76,7 +76,7 @@ public class CarDamageManager : MonoBehaviour
 
             // Get damage position (use part transform if not provided)
             Vector3 finalDamagePosition = damagePosition ?? (part.transform != null ? part.transform.position : transform.position);
-            
+
             // Get attacker and victim client IDs
             ulong attackerId = attackerClientId ?? ulong.MaxValue;
             ulong victimId = ulong.MaxValue;

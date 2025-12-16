@@ -1,19 +1,8 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Unity.Netcode;
-using Unity.Netcode.Transports.UTP;
-using Unity.Networking.Transport.Relay;
-using Unity.Services.Authentication;
-using Unity.Services.Lobbies;
-using Unity.Services.Lobbies.Models;
 using Unity.Services.Matchmaker.Models;
-using Unity.Services.Relay;
-using Unity.Services.Relay.Models;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 /// <summary>
 /// DEDICATED SERVER: Game Manager
@@ -86,7 +75,7 @@ public class ServerGameManager : IDisposable
             {
                 // Start backfilling to fill remaining match slots
                 await StartBackfill(matchmakerPayload);
-                
+
                 // Subscribe to player events for backfill management
                 NetworkServer.OnUserJoined += UserJoined;
                 NetworkServer.OnUserLeft += UserLeft;

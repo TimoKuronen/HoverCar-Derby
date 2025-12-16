@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using Unity.Services.Lobbies;
@@ -39,7 +38,7 @@ public class MainMenu : MonoBehaviour
         {
             joinCodeField.text = lastJoinCode;
         }
-        
+
         // Load bot spawn toggle state
         if (spawnBotToggle != null)
         {
@@ -236,14 +235,14 @@ public class MainMenu : MonoBehaviour
 
         isBusy = false;
     }
-    
+
     private void OnSpawnBotToggleChanged(bool value)
     {
         PlayerPrefs.SetInt(SpawnBotKey, value ? 1 : 0);
         PlayerPrefs.Save();
         Debug.Log($"[MainMenu] Spawn bot toggle changed to: {value}");
     }
-    
+
     /// <summary>Gets whether bot spawning is enabled for testing.</summary>
     public static bool IsSpawnBotEnabled()
     {

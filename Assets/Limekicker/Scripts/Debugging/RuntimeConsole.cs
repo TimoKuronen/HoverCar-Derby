@@ -1,6 +1,6 @@
-using UnityEngine;
-using TMPro;
 using System.Text;
+using TMPro;
+using UnityEngine;
 
 public class RuntimeConsole : MonoBehaviour
 {

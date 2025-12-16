@@ -45,7 +45,7 @@ public class HoverCarMover : NetworkBehaviour
     {
         // Allow bots to be enabled (they're server-controlled)
         bool isBot = GetComponent<BotPlayerController>() != null;
-        
+
         if (!IsOwner && !isBot)
         {
             enabled = false;
@@ -107,8 +107,11 @@ public class HoverCarMover : NetworkBehaviour
     {
         // Allow bots to move (they have BotPlayerController and are server-controlled)
         bool isBot = GetComponent<BotPlayerController>() != null;
-        
-        if ((!IsOwner && !isBot) || !isReady)
+
+        // Only the owning client (for player cars) or the server (for bots)
+        // should drive physics. Also ensure inputService is present so we
+        // don't apply movement with a null input source.
+        if ((!IsOwner && !isBot) || !isReady || inputService == null)
             return;
 
         rig.maxAngularVelocity = maxAngularVelocity;

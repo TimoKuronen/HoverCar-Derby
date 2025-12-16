@@ -18,7 +18,7 @@ public class PlayerController : NetworkBehaviour
     [SerializeField] private float spawnRotationDelay = 0.5f; // Delay to account for server overrides
 
     public bool IsBot { get; private set; }
-    
+
     private ISpawnPointService spawnPointService;
 
     public NetworkVariable<FixedString32Bytes> PlayerName = new NetworkVariable<FixedString32Bytes>(new FixedString32Bytes("Player"));
@@ -36,7 +36,7 @@ public class PlayerController : NetworkBehaviour
     {
         // Check if this is a bot - bots should not trigger player spawn events
         IsBot = GetComponent<BotPlayerController>() != null;
-        
+
         if (IsServer && !IsBot)
         {
             UserData userdata = null;
@@ -87,23 +87,23 @@ public class PlayerController : NetworkBehaviour
 
         // Subscribe to PlayerIndex changes to apply colors when it's set by server
         PlayerIndex.OnValueChanged += OnPlayerIndexChanged;
-        
+
         // Apply initial value if already set (for late joiners)
         if (PlayerIndex.Value > 0)
         {
             OnPlayerIndexChanged(0, PlayerIndex.Value);
         }
-        
+
         // Initialize damage manager subscription (this is player-specific, not index-specific)
         if (DamageManager != null)
         {
             DamageManager.OnCarDamaged += () => OnPlayerCarDamaged?.Invoke();
         }
-        
+
         // Apply spawn point rotation after a delay (to account for server overrides)
         StartCoroutine(ApplySpawnPointRotation());
     }
-    
+
     /// <summary>
     /// Attempts to resolve ISpawnPointService from VContainer and apply spawn point rotation.
     /// </summary>
@@ -111,10 +111,10 @@ public class PlayerController : NetworkBehaviour
     {
         // Wait for the delay to account for server overrides
         yield return new WaitForSeconds(spawnRotationDelay);
-        
+
         // Try to resolve the spawn point service
         TryResolveSpawnPointService();
-        
+
         if (spawnPointService != null)
         {
             var spawnData = spawnPointService.GetSpawnPointForObject(NetworkObject);
@@ -130,7 +130,7 @@ public class PlayerController : NetworkBehaviour
             }
         }
     }
-    
+
     /// <summary>Attempts to resolve ISpawnPointService from VContainer.</summary>
     private void TryResolveSpawnPointService()
     {
@@ -154,7 +154,7 @@ public class PlayerController : NetworkBehaviour
             Debug.LogWarning("[PlayerController] GameLifetimeScope not found. Cannot resolve spawn point service.");
         }
     }
-    
+
     /// <summary>
     /// Called when PlayerIndex NetworkVariable changes (set by server via Initialize method).
     /// Applies car color based on the assigned index.
@@ -179,7 +179,7 @@ public class PlayerController : NetworkBehaviour
             Debug.LogWarning("[PlayerController] Initialize called on client - this should only be called on server!");
             return;
         }
-        
+
         PlayerIndex.Value = playerIndex;
         Debug.Log($"[PlayerController] Server initialized player with index: {playerIndex}");
     }
@@ -192,7 +192,7 @@ public class PlayerController : NetworkBehaviour
     public override void OnNetworkDespawn()
     {
         PlayerIndex.OnValueChanged -= OnPlayerIndexChanged;
-        
+
         if (IsServer)
         {
             OnPlayerDespawned?.Invoke(this);

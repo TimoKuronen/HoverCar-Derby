@@ -1,7 +1,5 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine;
@@ -33,7 +31,7 @@ public class NetworkServer : INetworkServer, IDisposable
     public bool OpenConnection(string ip, int port)
     {
         UnityTransport transport = networkManager.GetComponent<UnityTransport>();
-        
+
 #if UNITY_SERVER
         var config = Unity.Services.Multiplay.MultiplayService.Instance.ServerConfig;
         //Debug.Log($"[NetworkServer] UNITY_SERVER binding to 0.0.0.0:{config.Port} (QPort: {config.QueryPort})");

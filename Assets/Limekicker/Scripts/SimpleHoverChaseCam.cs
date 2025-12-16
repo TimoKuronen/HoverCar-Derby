@@ -38,9 +38,9 @@ public class SimpleHoverChaseCam : MonoBehaviour
 
     private void AssignTarget(Transform newTarget, Rigidbody newRigidbody)
     {
-        if (newTarget == null) 
+        if (newTarget == null)
             return;
-        
+
         target = newTarget;
         targetRigidbody = newRigidbody != null ? newRigidbody : newTarget.GetComponent<Rigidbody>();
     }

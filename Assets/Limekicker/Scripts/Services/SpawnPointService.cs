@@ -53,7 +53,7 @@ public class SpawnPointService : ISpawnPointService
 
         // Pick a random unused spawn point
         var selectedSpawnPoint = unusedSpawnPoints[Random.Range(0, unusedSpawnPoints.Length)];
-        
+
         // Mark as used IMMEDIATELY to prevent race conditions
         usedSpawnPoints.Add(selectedSpawnPoint);
 
@@ -70,7 +70,7 @@ public class SpawnPointService : ISpawnPointService
         }
 
         Debug.Log($"[SpawnPointService] Assigned spawn point at {selectedSpawnPoint.transform.position} to {networkObject?.name ?? "null"} ({usedSpawnPoints.Count}/{allSpawnPoints.Length} used)");
-        
+
         return spawnData;
     }
 

@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Unity.Netcode;
 using UnityEngine;
@@ -61,7 +60,7 @@ public class ApplicationController : MonoBehaviour
             // CLIENT/HOST PATH (Editor, Windows, Mobile builds)
             // Creates both host and client singletons for host mode
             // Authenticates user, then goes to MainMenu
-            
+
             // Ensure player name is set (fallback if Bootstrap was skipped)
             if (string.IsNullOrEmpty(PlayerPrefs.GetString(NameSelector.PlayerNameKey, string.Empty)))
             {
@@ -98,7 +97,7 @@ public class ApplicationController : MonoBehaviour
 
         // Initialize server (Unity Services, NetworkManager setup)
         Task createServerTask = serverSingleton.CreateServer(playerPrefab);
-        
+
         yield return new WaitUntil(() => createServerTask.IsCompleted);
 
         // Start server: wait for Multiplay allocation, get matchmaker payload, start backfilling

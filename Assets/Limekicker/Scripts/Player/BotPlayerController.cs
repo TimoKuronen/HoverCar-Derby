@@ -11,7 +11,7 @@ public class BotPlayerController : NetworkBehaviour
     private BotInputService botInputService;
     private HoverCarMover hoverCarMover;
     private bool isInitialized = false;
-    
+
     public override void OnNetworkSpawn()
     {
         if (!IsServer)
@@ -20,18 +20,18 @@ public class BotPlayerController : NetworkBehaviour
             enabled = false;
             return;
         }
-        
+
         InitializeBot();
     }
-    
+
     private void InitializeBot()
     {
         if (isInitialized)
             return;
-        
+
         botInputService = new BotInputService();
         hoverCarMover = GetComponent<HoverCarMover>();
-        
+
         if (hoverCarMover != null)
         {
             hoverCarMover.Construct(botInputService);
@@ -39,20 +39,20 @@ public class BotPlayerController : NetworkBehaviour
             // We'll override the owner check by ensuring the component stays enabled
             hoverCarMover.enabled = true;
         }
-        
+
         isInitialized = true;
         Debug.Log($"[BotPlayerController] Bot initialized: {gameObject.name}");
     }
-    
+
     private void Update()
     {
         if (!IsServer || botInputService == null)
             return;
-        
+
         // Update bot AI input service (Tick is called by VContainer, but we call it manually for bots)
         botInputService.Tick();
     }
-    
+
     public override void OnNetworkDespawn()
     {
         if (botInputService != null)

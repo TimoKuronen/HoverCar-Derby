@@ -55,7 +55,7 @@ public class TouchInputService : IInputService
             }
         }
 
-        if (mouse == null) 
+        if (mouse == null)
             return;
 
         if (mouse.leftButton.wasPressedThisFrame)
@@ -93,7 +93,7 @@ public class TouchInputService : IInputService
     private void HandleTouchInput()
     {
         var touchscreen = Touchscreen.current;
-        
+
         // If touchscreen is null but we have an active touch, reset it
         // This can happen during scene transitions or when input system is temporarily unavailable
         if (touchscreen == null)
@@ -108,7 +108,7 @@ public class TouchInputService : IInputService
         // Only check for ended touches if we already have an active touch
         bool activeTouchExists = false;
         bool activeTouchEnded = false;
-        
+
         // First, check all touches (including ended ones) to detect if our active touch ended
         // Only do this check if we already have an active touch
         if (activeTouchId != -1)
@@ -122,7 +122,7 @@ public class TouchInputService : IInputService
                 if (id == activeTouchId)
                 {
                     activeTouchExists = true;
-                    
+
                     // If our active touch has ended or been canceled, reset immediately
                     if (phase == UnityEngine.InputSystem.TouchPhase.Ended ||
                         phase == UnityEngine.InputSystem.TouchPhase.Canceled)
@@ -151,7 +151,7 @@ public class TouchInputService : IInputService
         // Now process active touches for steering input
         foreach (var touch in touchscreen.touches)
         {
-            if (!touch.press.isPressed) 
+            if (!touch.press.isPressed)
                 continue;
 
             var phase = touch.phase.ReadValue();
