@@ -69,7 +69,7 @@ public class MainMenu : MonoBehaviour
             queueStatusText.text = "Canceling...";
             isCanceling = true;
 
-            await ClientSingleton.Instance.GameManager.CancelMatchmaking();
+            await NetworkSession.CancelMatchmakingAsync();
 
             isCanceling = false;
             isMatchmaking = false;
@@ -85,7 +85,7 @@ public class MainMenu : MonoBehaviour
         if (isBusy)
             return;
 
-        ClientSingleton.Instance.GameManager.MatchmakeAsync(OnMatchMade);
+        NetworkSession.FindMatchAsync(OnMatchMade);
 
         findMatchButtonText.text = "Cancel";
         queueStatusText.text = "Searching...";
@@ -125,7 +125,7 @@ public class MainMenu : MonoBehaviour
 
         isBusy = true;
 
-        await HostSingleton.Instance.GameManager.StartHostAsync();
+        await NetworkSession.StartHostAsync();
 
         isBusy = false;
     }
@@ -149,7 +149,7 @@ public class MainMenu : MonoBehaviour
             PlayerPrefs.SetString(LastJoinCodeKey, joinCode);
             PlayerPrefs.Save();
 
-            await ClientSingleton.Instance.GameManager.StartClientAsync(joinCode);
+            await NetworkSession.StartClientViaJoinCodeAsync(joinCode);
         }
 
         isBusy = false;
@@ -227,7 +227,7 @@ public class MainMenu : MonoBehaviour
                 joinCodeField.text = joinCode;
             }
 
-            await ClientSingleton.Instance.GameManager.StartClientAsync(joinCode);
+            await NetworkSession.StartClientViaJoinCodeAsync(joinCode);
         }
         catch (LobbyServiceException e)
         {

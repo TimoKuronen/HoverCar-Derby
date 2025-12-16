@@ -1,6 +1,13 @@
 using Unity.Netcode;
 using UnityEngine;
 
+/// <summary>
+/// Legacy helper for directly starting a Netcode host/client from UI buttons.
+///
+/// This bypasses the newer flow that uses <see cref="ApplicationController"/>,
+/// Relay, Lobbies, authentication, etc. It is safe to keep around for quick
+/// local testing, but current menus (MainMenu) do not depend on it.
+/// </summary>
 public class ConnectionButtons : MonoBehaviour
 {
     private void Start()

@@ -30,11 +30,14 @@ public class CarDamageManager : MonoBehaviour
         carManager = GetComponent<CarManager>();
         networkObject = GetComponent<NetworkObject>();
         playerController = GetComponent<PlayerController>();
-        
-        //CarParts.Add(CarPartType.FrontBumper, GetComponentInChildren<FrontBumper>());
-        //CarParts.Add(CarPartType.SidePanel_Left, transform.Find("CarPart_SidePanel_Left").GetComponent<SidePanel>());
-        //CarParts.Add(CarPartType.SidePanel_Right, transform.Find("CarPart_SidePanel_Right").GetComponent<SidePanel>());
-        //CarParts.Add(CarPartType.RearBumper, GetComponentInChildren<RearBumper>());
+        // NOTE:
+        // CarParts used to be populated here with specific bumper/panel components.
+        // That wiring was commented out in a previous refactor and the dictionary
+        // is now expected to be filled either in the inspector or elsewhere.
+        //
+        // If CarParts is left empty, the damage system effectively becomes a no-op.
+        // This is intentional for now so the existing Host/Client flow keeps working
+        // even if damage is not fully configured.
 
         emissionModule = damageSmoke.emission;
 
