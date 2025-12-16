@@ -12,7 +12,6 @@ public class SimpleHoverChaseCam : MonoBehaviour
     public float minTiltAngle = 5, maxTiltAngle = 15, maxSpeedForTilt = 45;
     public Vector3 velocity;
 
-    private Vector3 posVel;
     private Transform target;
     private Rigidbody targetRigidbody;
 
@@ -22,26 +21,10 @@ public class SimpleHoverChaseCam : MonoBehaviour
     public void Construct(IPlayerSpawnManager spawnManager)
     {
         spawnManager.OnPlayerSpawned += OnPlayerSpawnedFromManager;
-        
-        // Also listen to PlayerController static event which fires on all clients
-        PlayerController.OnPlayerSpawned += OnPlayerControllerSpawned;
-        
-        // Check if local player already exists (in case we registered after spawn)
-        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsConnectedClient)
-        {
-            var localPlayer = NetworkManager.Singleton.SpawnManager?.GetLocalPlayerObject();
-            if (localPlayer != null)
-            {
-                OnPlayerSpawnedFromManager(null, localPlayer);
-            }
-            
-            // Also check via PlayerController
-            var playerController = localPlayer?.GetComponent<PlayerController>();
-            if (playerController != null && playerController.IsOwner)
-            {
-                OnPlayerControllerSpawned(playerController);
-            }
-        }
+
+        // In case the camera is created after the session is already loaded,
+        // try to attach to the existing local player once the session is ready.
+        GameSignals.OnSessionLoaded += HandleSessionLoaded;
     }
 
     private void OnPlayerSpawnedFromManager(UserData data, NetworkObject netObj)
@@ -50,15 +33,6 @@ public class SimpleHoverChaseCam : MonoBehaviour
         {
             AssignTarget(netObj.transform, netObj.GetComponent<Rigidbody>());
             //Debug.Log($"[SimpleHoverChaseCam] Assigned target from PlayerSpawnManager: {netObj.name}");
-        }
-    }
-
-    private void OnPlayerControllerSpawned(PlayerController controller)
-    {
-        if (controller != null && controller.IsOwner)
-        {
-            AssignTarget(controller.transform, controller.GetComponent<Rigidbody>());
-            //Debug.Log($"[SimpleHoverChaseCam] Assigned target from PlayerController event: {controller.name}");
         }
     }
 
@@ -73,7 +47,27 @@ public class SimpleHoverChaseCam : MonoBehaviour
 
     private void OnDestroy()
     {
-        PlayerController.OnPlayerSpawned -= OnPlayerControllerSpawned;
+        GameSignals.OnSessionLoaded -= HandleSessionLoaded;
+    }
+
+    /// <summary>
+    /// Called when the game session is marked as loaded. If the camera
+    /// doesn't yet have a target, try to resolve the local player's object
+    /// from the NetworkManager and attach to it.
+    /// </summary>
+    private void HandleSessionLoaded()
+    {
+        if (target != null)
+            return;
+
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsConnectedClient)
+            return;
+
+        var localPlayer = NetworkManager.Singleton.SpawnManager?.GetLocalPlayerObject();
+        if (localPlayer != null && localPlayer.IsOwner)
+        {
+            AssignTarget(localPlayer.transform, localPlayer.GetComponent<Rigidbody>());
+        }
     }
 
     void LateUpdate()
