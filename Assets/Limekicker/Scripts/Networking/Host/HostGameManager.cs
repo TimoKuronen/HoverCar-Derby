@@ -45,6 +45,7 @@ public class HostGameManager : IDisposable
     private Allocation allocation;
     private NetworkObject playerPrefab;
     public NetworkServer NetworkServer { get; private set; }
+    private Coroutine heartbeatCoroutine;
     private const int MaxConnections = 8;
     private const string GameSceneName = "PlayScene";
 
@@ -106,7 +107,7 @@ public class HostGameManager : IDisposable
 
             lobbyID = lobby.Id;
 
-            HostSingleton.Instance.StartCoroutine(HeartbeatLobby(15));
+            heartbeatCoroutine = HostSingleton.Instance.StartCoroutine(HeartbeatLobby(15));
         }
         catch (LobbyServiceException e)
         {
@@ -140,13 +141,30 @@ public class HostGameManager : IDisposable
     /// <summary>Removes player from lobby when they disconnect.</summary>
     private async void HandleClientLeft(string authId)
     {
+        // Don't try to remove players if we're already shutting down or lobby is gone
+        if (string.IsNullOrEmpty(lobbyID))
+            return;
+
         try
         {
             await LobbyService.Instance.RemovePlayerAsync(lobbyID, authId);
         }
         catch (LobbyServiceException e)
         {
-            Debug.LogError($"Failed to remove player from lobby: {e.Message}");
+            // "lobby not found" is expected during shutdown - don't log as error
+            if (e.Message.Contains("not found") || e.Message.Contains("lobby not found"))
+            {
+                Debug.Log($"[HostGameManager] Lobby already deleted when removing player (expected during shutdown)");
+            }
+            else
+            {
+                Debug.LogWarning($"[HostGameManager] Failed to remove player from lobby: {e.Message}");
+            }
+        }
+        catch (System.Exception e)
+        {
+            // Handle any other exceptions gracefully during shutdown
+            Debug.LogWarning($"[HostGameManager] Exception during player removal (expected during shutdown): {e.Message}");
         }
     }
 
@@ -155,9 +173,18 @@ public class HostGameManager : IDisposable
     {
         WaitForSecondsRealtime delay = new WaitForSecondsRealtime(waitTimeSeconds);
 
-        while (true)
+        while (HostSingleton.Instance != null && !string.IsNullOrEmpty(lobbyID))
         {
-            Lobbies.Instance.SendHeartbeatPingAsync(lobbyID);
+            try
+            {
+                Lobbies.Instance.SendHeartbeatPingAsync(lobbyID);
+            }
+            catch (System.Exception e)
+            {
+                // Lobby might be deleted or service unavailable during shutdown
+                Debug.LogWarning($"[HostGameManager] Heartbeat failed (expected during shutdown): {e.Message}");
+                yield break;
+            }
 
             yield return delay;
         }
@@ -175,20 +202,43 @@ public class HostGameManager : IDisposable
         if (string.IsNullOrEmpty(lobbyID))
             return;
 
-        HostSingleton.Instance.StopCoroutine(nameof(HeartbeatLobby));
+        // Stop heartbeat coroutine if it's running
+        if (heartbeatCoroutine != null && HostSingleton.Instance != null)
+        {
+            HostSingleton.Instance.StopCoroutine(heartbeatCoroutine);
+            heartbeatCoroutine = null;
+        }
 
+        // Try to delete lobby, but don't error if it's already gone (expected during shutdown)
         try
         {
             await Lobbies.Instance.DeleteLobbyAsync(lobbyID);
         }
         catch (LobbyServiceException e)
         {
-            Debug.LogError($"Failed to delete lobby: {e.Message}");
+            // "lobby not found" is expected during shutdown - don't log as error
+            if (e.Message.Contains("not found") || e.Message.Contains("lobby not found"))
+            {
+                Debug.Log($"[HostGameManager] Lobby already deleted (expected during shutdown)");
+            }
+            else
+            {
+                Debug.LogWarning($"[HostGameManager] Failed to delete lobby: {e.Message}");
+            }
         }
+        catch (System.Exception e)
+        {
+            // Handle any other exceptions gracefully during shutdown
+            Debug.LogWarning($"[HostGameManager] Exception during lobby deletion (expected during shutdown): {e.Message}");
+        }
+        
         lobbyID = string.Empty;
 
-        NetworkServer.OnClientLeft -= HandleClientLeft;
-
-        NetworkServer?.Dispose();
+        // Unsubscribe from events if NetworkServer still exists
+        if (NetworkServer != null)
+        {
+            NetworkServer.OnClientLeft -= HandleClientLeft;
+            NetworkServer.Dispose();
+        }
     }
 }

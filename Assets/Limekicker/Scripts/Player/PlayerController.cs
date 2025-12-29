@@ -191,11 +191,29 @@ public class PlayerController : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
-        PlayerIndex.OnValueChanged -= OnPlayerIndexChanged;
-
-        if (IsServer)
+        // Unsubscribe from NetworkVariable events
+        try
         {
-            OnPlayerDespawned?.Invoke(this);
+            PlayerIndex.OnValueChanged -= OnPlayerIndexChanged;
+        }
+        catch (System.Exception e)
+        {
+            // NetworkVariable might be destroyed during shutdown - this is expected
+            Debug.LogWarning($"[PlayerController] Failed to unsubscribe from PlayerIndex (expected during shutdown): {e.Message}");
+        }
+
+        // Invoke despawn event if we're server and there are subscribers
+        if (IsServer && OnPlayerDespawned != null)
+        {
+            try
+            {
+                OnPlayerDespawned.Invoke(this);
+            }
+            catch (System.Exception e)
+            {
+                // Subscribers might be destroyed during shutdown - this is expected
+                Debug.LogWarning($"[PlayerController] Exception during OnPlayerDespawned (expected during shutdown): {e.Message}");
+            }
         }
     }
 }

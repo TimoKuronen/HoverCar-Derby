@@ -21,6 +21,18 @@ public class PlayerNameDisplay : MonoBehaviour
 
     private void OnDestroy()
     {
-        playerController.PlayerName.OnValueChanged -= HandlePlayerNameChange;
+        // Unsubscribe from NetworkVariable events to prevent memory leaks
+        if (playerController != null && playerController.PlayerName != null)
+        {
+            try
+            {
+                playerController.PlayerName.OnValueChanged -= HandlePlayerNameChange;
+            }
+            catch (System.Exception e)
+            {
+                // NetworkVariable might be destroyed during shutdown - this is expected
+                Debug.LogWarning($"[PlayerNameDisplay] Failed to unsubscribe from PlayerName (expected during shutdown): {e.Message}");
+            }
+        }
     }
 }

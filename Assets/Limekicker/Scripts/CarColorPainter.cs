@@ -30,6 +30,20 @@ public class CarColorPainter : NetworkBehaviour
         OnColorChanged(0, colorIndex.Value);
     }
 
+    public override void OnNetworkDespawn()
+    {
+        // Unsubscribe from NetworkVariable events to prevent memory leaks
+        try
+        {
+            colorIndex.OnValueChanged -= OnColorChanged;
+        }
+        catch (System.Exception e)
+        {
+            // NetworkVariable might be destroyed during shutdown - this is expected
+            Debug.LogWarning($"[CarColorPainter] Failed to unsubscribe from colorIndex (expected during shutdown): {e.Message}");
+        }
+    }
+
     public void AssignColor(int index)
     {
         if (IsServer)
