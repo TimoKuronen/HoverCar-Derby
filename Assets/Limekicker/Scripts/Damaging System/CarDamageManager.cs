@@ -7,45 +7,32 @@ using UnityEngine.InputSystem;
 
 public class CarDamageManager : MonoBehaviour
 {
-    [Header("Damage Effects")]
-    [SerializeField] private ParticleSystem damageSmoke;
-    [SerializeField] private ParticleSystem damageImpactEffect;
-    [SerializeField] private Color normalDamageSmokeColor;
-    [SerializeField] private Color heavyDamageSmokeColor;
-
     private CarManager carManager;
-    private float totalHealth;
-    private ParticleSystem.EmissionModule emissionModule;
     private NetworkObject networkObject;
     private PlayerController playerController;
+    private float currentCarHealth;
+    private float maxCarHealth;
+    public float CarHealthPercentage => (currentCarHealth / maxCarHealth) * 100f;
 
+    // Currently not in use
     public Dictionary<CarPartType, CarPart> CarParts { get; private set; } = new Dictionary<CarPartType, CarPart>();
 
     public event Action OnCarDestroyed;
-    public event Action OnCarDamaged; // Legacy event (no parameters)
-    public event Action<float, Vector3> OnCarDamagedWithDetails; // New event with damage amount and position
+    public event Action<float, Vector3> OnCarDamaged;
 
     private void Start()
     {
         carManager = GetComponent<CarManager>();
         networkObject = GetComponent<NetworkObject>();
         playerController = GetComponent<PlayerController>();
-        // NOTE:
-        // CarParts used to be populated here with specific bumper/panel components.
-        // That wiring was commented out in a previous refactor and the dictionary
-        // is now expected to be filled either in the inspector or elsewhere.
-        //
-        // If CarParts is left empty, the damage system effectively becomes a no-op.
-        // This is intentional for now so the existing Host/Client flow keeps working
-        // even if damage is not fully configured.
 
-        emissionModule = damageSmoke.emission;
-
-        foreach (var part in CarParts)
+        if (TryGetComponent<CarVFX>(out var carVFX))
         {
-            part.Value.SetMaxHealth(carManager.CarData);
-            totalHealth += part.Value.CurrentHealth.Value;
+            carVFX.Init(this);
         }
+
+        currentCarHealth = 100f;
+        maxCarHealth = currentCarHealth;
     }
 
     private void Update()
@@ -72,7 +59,7 @@ public class CarDamageManager : MonoBehaviour
         {
             float damageDealt = damage * GetDamageReductionMultiplier(partType);
             part.TakeDamage(damageDealt);
-            totalHealth -= damageDealt;
+            currentCarHealth -= damageDealt;
 
             // Get damage position (use part transform if not provided)
             Vector3 finalDamagePosition = damagePosition ?? (part.transform != null ? part.transform.position : transform.position);
@@ -91,12 +78,10 @@ public class CarDamageManager : MonoBehaviour
                 ShowDamageNumber(finalDamagePosition, damageDealt, attackerId, victimId);
             }
 
-            // Invoke both events for backward compatibility
-            OnCarDamaged?.Invoke();
-            OnCarDamagedWithDetails?.Invoke(damageDealt, finalDamagePosition);
+            OnCarDamaged?.Invoke(damageDealt, finalDamagePosition);
         }
 
-        if (totalHealth <= 0)
+        if (currentCarHealth <= 0)
         {
             OnCarDestroyed?.Invoke();
         }
@@ -122,11 +107,6 @@ public class CarDamageManager : MonoBehaviour
                 pool.ShowDamageNumber(worldPosition, damageAmount, attackerClientId, victimClientId);
             }
         }
-    }
-
-    public void DealDamageByCar(Collision collision)
-    {
-
     }
 
     public void Repair(float amount)
