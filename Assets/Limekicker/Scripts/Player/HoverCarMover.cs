@@ -22,6 +22,7 @@ public class HoverCarMover : NetworkBehaviour
 
     private IInputService inputService;
     private bool isReady = false;
+    private bool isBot = false;
 
     public void Construct(IInputService inputService)
     {
@@ -44,7 +45,7 @@ public class HoverCarMover : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         // Allow bots to be enabled (they're server-controlled)
-        bool isBot = GetComponent<BotPlayerController>() != null;
+        isBot = GetComponent<BotPlayerController>() != null;
 
         if (!IsOwner && !isBot)
         {
@@ -105,9 +106,6 @@ public class HoverCarMover : NetworkBehaviour
 
     private void FixedUpdate()
     {
-        // Allow bots to move (they have BotPlayerController and are server-controlled)
-        bool isBot = GetComponent<BotPlayerController>() != null;
-
         // Only the owning client (for player cars) or the server (for bots)
         // should drive physics. Also ensure inputService is present so we
         // don't apply movement with a null input source.

@@ -1,7 +1,7 @@
 using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
-
+using System.Collections.Generic;
 /// <summary>
 /// Server-side physics collision handler for car-to-car impacts.
 /// Detects collisions, calculates impact forces, applies explosive forces to push cars apart,
@@ -27,11 +27,12 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
     private Rigidbody rb;
     private PlayerController playerController;
     private CarDamageManager damageManager;
+
     private float lastCollisionTime;
     private ulong lastCollisionTargetId;
 
     // Track collisions to prevent duplicate processing
-    private System.Collections.Generic.HashSet<ulong> recentCollisions = new System.Collections.Generic.HashSet<ulong>();
+    private HashSet<ulong> recentCollisions = new HashSet<ulong>();
 
     public override void OnNetworkSpawn()
     {
@@ -63,7 +64,8 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
             return;
 
         // Check if either car is a bot
-        bool thisIsBot = GetComponent<BotPlayerController>() != null;
+
+        bool thisIsBot = playerController.IsBot;
         bool otherIsBot = otherPlayer.GetComponent<BotPlayerController>() != null;
 
         // Prevent self-collision (but allow bot-to-bot and bot-to-player collisions)
@@ -77,8 +79,8 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
 
         // Prevent duplicate processing (both cars will detect the collision)
         // For bots, use NetworkObjectId instead of OwnerClientId since bots share server's client ID
-        ulong thisId = thisIsBot ? GetComponent<NetworkObject>().NetworkObjectId : OwnerClientId;
-        ulong otherId = otherIsBot ? otherPlayer.GetComponent<NetworkObject>().NetworkObjectId : otherPlayer.OwnerClientId;
+        ulong thisId = thisIsBot ? NetworkObjectId : OwnerClientId;
+        ulong otherId = otherIsBot ? otherPlayer.NetworkObjectId : otherPlayer.OwnerClientId;
         ulong collisionKey = thisId < otherId
             ? (thisId << 32) | otherId
             : (otherId << 32) | thisId;
@@ -135,15 +137,11 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
 
         // Log damage for both cars
         Debug.Log($"[ServerPhysicsCollisionHandler] Collision detected! " +
-                  $"Player {OwnerClientId} hit Player {otherPlayer.OwnerClientId}. " +
+                  $"Player {OwnerClientId} hit Player {otherPlayer.PlayerName}. " +
                   $"Impact Force: {impactForce:F2}, Damage: {damage:F2}");
 
         // Apply damage to this car
-        float damageToThisCar = 0f;
-        if (damageManager != null && damage > minDamageThreshold)
-        {
-            damageToThisCar = ApplyDamageToCar(collision, damage);
-        }
+        ApplyDamageToCar(collision, damage);
 
         // Apply damage to other car
         float damageToOtherCar = 0f;
@@ -151,12 +149,6 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
         if (otherDamageManager != null && damage > minDamageThreshold)
         {
             damageToOtherCar = ApplyDamageToOtherCar(otherPlayer, collision, damage);
-        }
-
-        // Show damage numbers for both cars
-        if (damageToThisCar > 0f)
-        {
-            ShowDamageNumberForCar(gameObject, collisionPoint, damageToThisCar, otherPlayer.OwnerClientId, OwnerClientId);
         }
 
         if (damageToOtherCar > 0f)
@@ -172,8 +164,8 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
         Vector3 forceDirection = direction.normalized;
         Vector3 oppositeDirection = -forceDirection;
 
-        // Apply force to this car (push away from other car)
-        ApplyExplosiveForce(rb, collisionPoint, oppositeDirection, explosiveForce);
+        // Apply force to this car (push away from other car) with half the force
+        ApplyExplosiveForce(rb, collisionPoint, oppositeDirection, explosiveForce / 2);
 
         // Apply force to other car (push away from this car)
         ApplyExplosiveForce(otherRb, collisionPoint, forceDirection, explosiveForce);
@@ -204,10 +196,10 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
         return impactForce * damageMultiplier;
     }
 
-    private float ApplyDamageToCar(Collision collision, float damage)
+    private void ApplyDamageToCar(Collision collision, float damage)
     {
         if (damageManager == null)
-            return 0f;
+            return;
 
         Vector3 hitDirection = collision.contacts[0].normal;
         float forwardDot = Vector3.Dot(hitDirection, transform.forward);
@@ -238,14 +230,17 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
             damageMultiplier = 0.8f;
         }
 
+        Debug.Log($"[ServerPhysicsCollisionHandler] Applying damage to part {partType} of player { playerController.PlayerName.Value }");
+
         float finalDamage = damage * damageMultiplier;
+
         damageManager.ApplyDamageToPart(partType, finalDamage);
-        return finalDamage;
     }
 
     private float ApplyDamageToOtherCar(PlayerController otherPlayer, Collision collision, float damage)
     {
-        CarDamageManager otherDamageManager = otherPlayer.GetComponent<CarDamageManager>();
+        CarDamageManager otherDamageManager = otherPlayer.DamageManager;
+
         if (otherDamageManager == null)
             return 0f;
 
@@ -281,6 +276,9 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
 
         float finalDamage = damage * damageMultiplier;
         otherDamageManager.ApplyDamageToPart(partType, finalDamage);
+
+        Debug.Log($"[ServerPhysicsCollisionHandler] Applying damage to part {partType} of player {playerController.PlayerName.Value}");
+
         return finalDamage;
     }
 
@@ -303,6 +301,7 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
                 pool.ShowDamageNumber(worldPosition, damageAmount, attackerClientId, victimClientId);
             }
         }
+        Debug.Log($"[ServerPhysicsCollisionHandler] Showing damage number: {damageAmount:F2} at {worldPosition} for attacker {attackerClientId} and victim {victimClientId}");
     }
 
     private void ApplyExplosiveForce(Rigidbody targetRb, Vector3 position, Vector3 direction, float force)
@@ -365,4 +364,3 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
         }
     }
 }
-

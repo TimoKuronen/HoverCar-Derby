@@ -11,15 +11,14 @@ public class PlayerController : NetworkBehaviour
     [Header("References")]
     [SerializeField] private CinemachineVirtualCamera playerCamera;
     [SerializeField] private CarColorPainter carColorPainter;
-    [SerializeField] private CarDamageManager DamageManager;
+    [SerializeField] private CarDamageManager damageManager;
 
     [Header("Settings")]
     [SerializeField] private int cameraPriority = 10;
     [SerializeField] private float spawnRotationDelay = 0.5f; // Delay to account for server overrides
 
+    public CarDamageManager DamageManager => damageManager;
     public bool IsBot { get; private set; }
-
-    private ISpawnPointService spawnPointService;
 
     public NetworkVariable<FixedString32Bytes> PlayerName = new NetworkVariable<FixedString32Bytes>(new FixedString32Bytes("Player"));
     public NetworkVariable<int> PlayerIndex = new NetworkVariable<int>(
@@ -30,7 +29,8 @@ public class PlayerController : NetworkBehaviour
 
     public static event Action<PlayerController> OnPlayerSpawned;
     public static event Action<PlayerController> OnPlayerDespawned;
-    public event Action OnPlayerCarDamaged;
+
+    private ISpawnPointService spawnPointService;
 
     public override void OnNetworkSpawn()
     {
@@ -59,17 +59,32 @@ public class PlayerController : NetworkBehaviour
         }
         else if (IsOwner && !IsBot)
         {
-            // Client-side: Invoke OnPlayerSpawned for local client so camera can attach
-            // But NOT for bots
+            // Client-side: Invoke OnPlayerSpawned for local client so camera can attach but NOT for bots
             OnPlayerSpawned?.Invoke(this);
-            Debug.Log($"[PlayerController] Client-side OnPlayerSpawned fired for local player (ClientId: {OwnerClientId})");
         }
         else if (IsBot)
         {
             // Bot: Just set name, don't trigger events
-            Debug.Log($"[PlayerController] Bot spawned (will not trigger camera/control events)");
+            PlayerName.Value = new FixedString32Bytes("Bot " + PlayerIndex);
         }
 
+        // Subscribe to PlayerIndex changes to apply colors when it's set by server
+        PlayerIndex.OnValueChanged += OnPlayerIndexChanged;
+
+        // Apply initial value if already set (for late joiners)
+        if (PlayerIndex.Value > 0)
+        {
+            OnPlayerIndexChanged(0, PlayerIndex.Value);
+        }
+
+        // Apply spawn point rotation after a delay (to account for server overrides)
+        StartCoroutine(ApplySpawnPointRotation());
+
+        SetPlayerCamera();
+    }
+
+    private void SetPlayerCamera()
+    {
         if (IsOwner)
         {
             if (playerCamera != null)
@@ -84,24 +99,6 @@ public class PlayerController : NetworkBehaviour
             playerCamera.Priority = 0;
             playerCamera.enabled = false;
         }
-
-        // Subscribe to PlayerIndex changes to apply colors when it's set by server
-        PlayerIndex.OnValueChanged += OnPlayerIndexChanged;
-
-        // Apply initial value if already set (for late joiners)
-        if (PlayerIndex.Value > 0)
-        {
-            OnPlayerIndexChanged(0, PlayerIndex.Value);
-        }
-
-        // Initialize damage manager subscription (this is player-specific, not index-specific)
-        if (DamageManager != null)
-        {
-            DamageManager.OnCarDamaged += () => OnPlayerCarDamaged?.Invoke();
-        }
-
-        // Apply spawn point rotation after a delay (to account for server overrides)
-        StartCoroutine(ApplySpawnPointRotation());
     }
 
     /// <summary>
