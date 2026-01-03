@@ -27,15 +27,12 @@ public class NameplateManager : MonoBehaviour
         // Skip local player's own nameplate
         if (playerObject.NetworkManager.LocalClientId == NetworkManager.Singleton.LocalClientId)
         {
-            Debug.Log("not showing own nameplate");
             return;
         }
 
         var plate = Instantiate(nameplatePrefab, nameplateContainer).GetComponent<RectTransform>();
         plate.GetComponentInChildren<TMP_Text>().text = userData.userName;
         plates[playerObject.NetworkManager.LocalClientId] = plate;
-
-        Debug.Log(userData.userName + " nameplate instantiated ");
 
         StartCoroutine(UpdatePosition(plate, playerObject.transform));
     }

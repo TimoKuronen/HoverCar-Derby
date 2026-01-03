@@ -234,7 +234,7 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
 
         float finalDamage = damage * damageMultiplier;
 
-        damageManager.ApplyDamageToPart(partType, finalDamage);
+        damageManager.ApplyDamageToPart(partType, finalDamage, collision.contacts[0].point);
     }
 
     private float ApplyDamageToOtherCar(PlayerController otherPlayer, Collision collision, float damage)
@@ -275,7 +275,7 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
         }
 
         float finalDamage = damage * damageMultiplier;
-        otherDamageManager.ApplyDamageToPart(partType, finalDamage);
+        otherDamageManager.ApplyDamageToPart(partType, finalDamage, collision.contacts[0].point);
 
         Debug.Log($"[ServerPhysicsCollisionHandler] Applying damage to part {partType} of player {playerController.PlayerName.Value}");
 

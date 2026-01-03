@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class CarDamageManager : MonoBehaviour
 {
     private CarManager carManager;
     private NetworkObject networkObject;
-    private PlayerController playerController;
     private float currentCarHealth;
     private float maxCarHealth;
+
+    public PlayerController PlayerController { get; private set; }
     public float CarHealthPercentage => (currentCarHealth / maxCarHealth) * 100f;
 
     // Currently not in use
@@ -24,7 +24,7 @@ public class CarDamageManager : MonoBehaviour
     {
         carManager = GetComponent<CarManager>();
         networkObject = GetComponent<NetworkObject>();
-        playerController = GetComponent<PlayerController>();
+        PlayerController = GetComponent<PlayerController>();
 
         if (TryGetComponent<CarVFX>(out var carVFX))
         {
@@ -35,51 +35,22 @@ public class CarDamageManager : MonoBehaviour
         maxCarHealth = currentCarHealth;
     }
 
-    private void Update()
+    public void ApplyDamageToPart(CarPartType partType, float damage, Vector3 damagePosition, ulong? attackerClientId = null)
     {
-#if UNITY_EDITOR
-        if (Keyboard.current.digit1Key.wasPressedThisFrame)
-        {
-            CarPartType[] parts = (CarPartType[])Enum.GetValues(typeof(CarPartType));
-            int index = UnityEngine.Random.Range(0, parts.Length);
+        ulong attackerId = attackerClientId ?? ulong.MaxValue;
+        ulong victimId = ulong.MaxValue;
 
-            ApplyDamageToPart(parts[index], 33);
+        if (PlayerController != null && networkObject != null)
+        {
+            victimId = PlayerController.OwnerClientId;
         }
 
-        if (Keyboard.current.digit2Key.wasPressedThisFrame)
-        {
-            Repair(30);
-        }
-#endif
-    }
+        float damageDealt = damage * GetDamageReductionMultiplier(partType);
+        currentCarHealth -= damageDealt;
 
-    public void ApplyDamageToPart(CarPartType partType, float damage, Vector3? damagePosition = null, ulong? attackerClientId = null)
-    {
-        if (CarParts.TryGetValue(partType, out CarPart part) && part != null)
-        {
-            float damageDealt = damage * GetDamageReductionMultiplier(partType);
-            part.TakeDamage(damageDealt);
-            currentCarHealth -= damageDealt;
+        OnCarDamaged.Invoke(damageDealt, damagePosition);
 
-            // Get damage position (use part transform if not provided)
-            Vector3 finalDamagePosition = damagePosition ?? (part.transform != null ? part.transform.position : transform.position);
-
-            // Get attacker and victim client IDs
-            ulong attackerId = attackerClientId ?? ulong.MaxValue;
-            ulong victimId = ulong.MaxValue;
-            if (playerController != null && networkObject != null)
-            {
-                victimId = playerController.OwnerClientId;
-            }
-
-            // Show damage number if damage is significant
-            if (damageDealt > 0.1f)
-            {
-                ShowDamageNumber(finalDamagePosition, damageDealt, attackerId, victimId);
-            }
-
-            OnCarDamaged?.Invoke(damageDealt, finalDamagePosition);
-        }
+        ShowDamageNumber(damagePosition, damageDealt, attackerId, victimId);
 
         if (currentCarHealth <= 0)
         {
@@ -88,25 +59,11 @@ public class CarDamageManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Shows a damage number for this car. Works with both networked and non-networked scenarios.
+    /// Shows a damage number for this car.
     /// </summary>
     private void ShowDamageNumber(Vector3 worldPosition, float damageAmount, ulong attackerClientId, ulong victimClientId)
     {
-        // Try to use DamageNumberSync component first (for networked scenarios)
-        DamageNumberSync damageSync = GetComponent<DamageNumberSync>();
-        if (damageSync != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
-        {
-            damageSync.ShowDamageNumberRpc(worldPosition, damageAmount, attackerClientId, victimClientId);
-        }
-        else
-        {
-            // Fallback: use DamageNumberPool directly (for non-networked or client-side scenarios)
-            DamageNumberPool pool = DamageNumberPool.Instance;
-            if (pool != null)
-            {
-                pool.ShowDamageNumber(worldPosition, damageAmount, attackerClientId, victimClientId);
-            }
-        }
+        DamageNumberPool.Instance.ShowDamageNumber(worldPosition, damageAmount, attackerClientId, victimClientId);
     }
 
     public void Repair(float amount)

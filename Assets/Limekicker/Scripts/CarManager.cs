@@ -26,7 +26,7 @@ public class CarManager : MonoBehaviour
                 CarPartType[] parts = (CarPartType[])Enum.GetValues(typeof(CarPartType));
                 int index = UnityEngine.Random.Range(0, parts.Length);
 
-                damageManager.ApplyDamageToPart(parts[index], damager.DamageAmount);
+                damageManager.ApplyDamageToPart(parts[index], damager.DamageAmount, collectible.transform.position);
                 break;
 
             default:

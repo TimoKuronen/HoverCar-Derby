@@ -65,7 +65,7 @@ public class PlayerController : NetworkBehaviour
         else if (IsBot)
         {
             // Bot: Just set name, don't trigger events
-            PlayerName.Value = new FixedString32Bytes("Bot " + PlayerIndex);
+            PlayerName.Value = new FixedString32Bytes("Bot " + PlayerIndex.Value);
         }
 
         // Subscribe to PlayerIndex changes to apply colors when it's set by server

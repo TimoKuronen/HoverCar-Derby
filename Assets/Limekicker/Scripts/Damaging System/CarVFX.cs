@@ -8,7 +8,7 @@ public class CarVFX : MonoBehaviour
     [Header("Damage Effects")]
     [SerializeField] private ParticleSystem[] damageSmokeVFXs;
     [SerializeField] private ParticleSystem damageImpactEffect;
-    [SerializeField] private ParticleSystem fireVFX;
+    [SerializeField] private GameObject fireVFX;
 
     [SerializeField] private Color normalDamageSmokeColor;
     [SerializeField] private Color heavyDamageSmokeColor;
@@ -24,6 +24,8 @@ public class CarVFX : MonoBehaviour
 
     private void HandleCarDamageVFX(float damageAmount, Vector3 damagePosition)
     {
+        Debug.Log($"CarVFX: Handling car damage VFX with {carDamageManager.CarHealthPercentage} percentage of health left on {carDamageManager.PlayerController.PlayerName}");
+
         damageImpactEffect.transform.position = damagePosition;
         damageImpactEffect.Play();
 
@@ -33,19 +35,17 @@ public class CarVFX : MonoBehaviour
                 var mainModuleHigh = damageSmokeVFXs[0].main;
                 mainModuleHigh.startColor = heavyDamageSmokeColor;
                 damageSmokeVFXs[0].Play();
-                fireVFX.Play();
+                fireVFX.SetActive(true);
                 break;
             case < 50f:
                 var mainModuleMedium = damageSmokeVFXs[1].main;
                 mainModuleMedium.startColor = Color.Lerp(normalDamageSmokeColor, heavyDamageSmokeColor, 0.5f);
                 damageSmokeVFXs[1].Play();
-                fireVFX.Stop();
                 break;
             case < 80f:
                 var mainModuleLow = damageSmokeVFXs[2].main;
                 mainModuleLow.startColor = normalDamageSmokeColor;
                 damageSmokeVFXs[2].Play();
-                fireVFX.Stop();
                 break;
         }
     }

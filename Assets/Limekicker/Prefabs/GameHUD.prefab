@@ -49,7 +49,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 4140514790
+  GlobalObjectIdHash: 1082018045
   InScenePlacedSourceGlobalObjectIdHash: 946475667
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 0
@@ -1303,7 +1303,7 @@ MonoBehaviour:
   lifetime: 1
   worldOffset: {x: 0, y: 0.6, z: 0}
   defaultColor: {r: 1, g: 0, b: 0, a: 1}
-  visibility: 2
+  visibility: 0
 --- !u!1 &8990484767191905579
 GameObject:
   m_ObjectHideFlags: 0

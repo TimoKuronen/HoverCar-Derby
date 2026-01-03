@@ -3607,6 +3607,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 613930270231526094}
     m_Modifications:
+    - target: {fileID: 114979979335704276, guid: e509867be4f82f246a95eca1ee5a2d61, type: 3}
+      propertyPath: clearBehavior
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8656522925563801548, guid: e509867be4f82f246a95eca1ee5a2d61, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.556
@@ -3725,7 +3729,7 @@ PrefabInstance:
     - target: {fileID: -1202630498088015474, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       propertyPath: fireVFX
       value: 
-      objectReference: {fileID: 7162346691966386540}
+      objectReference: {fileID: 7162346691966386530}
     - target: {fileID: -1202630498088015474, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       propertyPath: damageImpactEffect
       value: 
@@ -3917,6 +3921,10 @@ PrefabInstance:
     - target: {fileID: 7502589842768489757, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7914494266652993796, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
+      propertyPath: clearBehavior
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8171062744423987147, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       propertyPath: m_IsActive
@@ -4154,6 +4162,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 613930270231526094}
     m_Modifications:
+    - target: {fileID: 114979979335704276, guid: e509867be4f82f246a95eca1ee5a2d61, type: 3}
+      propertyPath: clearBehavior
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8656522925563801548, guid: e509867be4f82f246a95eca1ee5a2d61, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.802
@@ -4249,6 +4261,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 3169989450125078170}
     m_Modifications:
+    - target: {fileID: 3770819115314925417, guid: 043176b6a68be2b43b073aaaa4782c7d, type: 3}
+      propertyPath: clearBehavior
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4893118513826488098, guid: 043176b6a68be2b43b073aaaa4782c7d, type: 3}
       propertyPath: playOnAwake
       value: 0
@@ -4329,22 +4345,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: CFXR Fire
       objectReference: {fileID: 0}
+    - target: {fileID: 6294508013172393196, guid: 043176b6a68be2b43b073aaaa4782c7d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7539286505454239565, guid: 043176b6a68be2b43b073aaaa4782c7d, type: 3}
       propertyPath: m_Range
-      value: 8.60418
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 7539286505454239565, guid: 043176b6a68be2b43b073aaaa4782c7d, type: 3}
       propertyPath: m_Intensity
-      value: 3.3319614
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 043176b6a68be2b43b073aaaa4782c7d, type: 3}
---- !u!198 &7162346691966386540 stripped
-ParticleSystem:
-  m_CorrespondingSourceObject: {fileID: 6294508013172393186, guid: 043176b6a68be2b43b073aaaa4782c7d, type: 3}
+--- !u!1 &7162346691966386530 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6294508013172393196, guid: 043176b6a68be2b43b073aaaa4782c7d, type: 3}
   m_PrefabInstance: {fileID: 3764817897963406734}
   m_PrefabAsset: {fileID: 0}
 --- !u!4 &7162346691966386543 stripped
@@ -4360,6 +4380,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 613930270231526094}
     m_Modifications:
+    - target: {fileID: 114979979335704276, guid: e509867be4f82f246a95eca1ee5a2d61, type: 3}
+      propertyPath: clearBehavior
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8656522925563801548, guid: e509867be4f82f246a95eca1ee5a2d61, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.59
