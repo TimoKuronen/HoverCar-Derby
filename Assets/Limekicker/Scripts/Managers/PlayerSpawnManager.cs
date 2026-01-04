@@ -148,6 +148,9 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
         // Now spawn the network object
         instance.SpawnAsPlayerObject(clientId);
 
+        // Ensure position is set correctly after spawning (safeguard for NetworkTransform initialization)
+        instance.transform.SetPositionAndRotation(spawnData.Position, spawnData.Rotation);
+
         int playerIndex = instance.NetworkManager.ConnectedClients.Count - 1;
 
         if (instance.TryGetComponent<HoverCarMover>(out HoverCarMover mover) && inputService != null)
@@ -231,6 +234,9 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
 
         // Spawn as a network object (not as a player object, since bots don't have a client)
         botInstance.SpawnWithOwnership(NetworkManager.ServerClientId);
+
+        // Ensure position is set correctly after spawning (safeguard for NetworkTransform initialization)
+        botInstance.transform.SetPositionAndRotation(spawnData.Position, spawnData.Rotation);
 
         // Initialize PlayerController for the bot AFTER spawning
         if (botInstance.TryGetComponent<PlayerController>(out PlayerController controller))
