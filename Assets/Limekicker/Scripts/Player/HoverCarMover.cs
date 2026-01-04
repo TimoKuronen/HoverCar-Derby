@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -23,6 +24,8 @@ public class HoverCarMover : NetworkBehaviour
     private IInputService inputService;
     private bool isReady = false;
     private bool isBot = false;
+
+    private EventBinding<GameStateChangeEvent> gameStateChangeEvent;
 
     public void Construct(IInputService inputService)
     {
@@ -93,15 +96,28 @@ public class HoverCarMover : NetworkBehaviour
         }
     }
 
-    private IEnumerator Start()
+    private void Start()
     {
         originalAccelerationValue = forwardAcceleration;
         originalMaxSpeed = maxSpeed;
 
-        yield return new WaitUntil(() => GameSignals.IsSessionLoaded);
+        gameStateChangeEvent = new EventBinding<GameStateChangeEvent>(HandleGameStateChange);
+        EventBus<GameStateChangeEvent>.Register(gameStateChangeEvent);
+    }
 
-        rig.isKinematic = false;
-        isReady = true;
+    private void HandleGameStateChange(GameStateChangeEvent @event)
+    {
+        switch (@event.NewState)
+        {
+            case PlayState:
+                rig.isKinematic = false;
+                isReady = true;
+                break;
+            default:
+                rig.isKinematic = true;
+                isReady = false;
+                break;
+        }
     }
 
     private void FixedUpdate()
@@ -152,4 +168,10 @@ public class HoverCarMover : NetworkBehaviour
             maxSpeed = originalMaxSpeed;
         }
     }
+
+    public override void OnNetworkDespawn()
+    {
+        EventBus<GameStateChangeEvent>.Unregister(gameStateChangeEvent);
+        base.OnNetworkDespawn();
+    } 
 }

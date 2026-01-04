@@ -8,11 +8,6 @@ public class CollectibleSpawner : MonoBehaviour
 
     private float timer;
 
-    private IEnumerator Start()
-    {
-        yield return new WaitUntil(() => GameSignals.IsSessionLoaded);
-    }
-
     private void Update()
     {
         timer += Time.deltaTime;

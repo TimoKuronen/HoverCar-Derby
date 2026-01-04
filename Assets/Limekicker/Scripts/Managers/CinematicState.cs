@@ -27,7 +27,7 @@ public class CinematicState : IGameState
     {
         timer += Time.deltaTime;
 
-        if (timer > 5 && GameSignals.IsSessionLoaded)
+        if (timer > 3)
         {
             manager.ChangeState(new CountdownState(manager));
         }
@@ -37,5 +37,7 @@ public class CinematicState : IGameState
     {
         manager.Context.DollyCamera.ToggleMovement();
         mainCamera.cullingMask |= 1 << playerLayer;
+
+        timer = 0;
     }
 }

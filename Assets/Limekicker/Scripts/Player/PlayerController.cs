@@ -32,6 +32,8 @@ public class PlayerController : NetworkBehaviour
 
     private ISpawnPointService spawnPointService;
 
+    private EventBinding<GameStateChangeEvent> gameStateChangeEvent;
+
     public override void OnNetworkSpawn()
     {
         // Check if this is a bot - bots should not trigger player spawn events
@@ -84,7 +86,20 @@ public class PlayerController : NetworkBehaviour
             StartCoroutine(ApplySpawnPointRotation());
         }
 
-        SetPlayerCamera();
+        gameStateChangeEvent = new EventBinding<GameStateChangeEvent>(HandleGameStateChange);
+        EventBus<GameStateChangeEvent>.Register(gameStateChangeEvent);
+    }
+
+    private void HandleGameStateChange(GameStateChangeEvent @event)
+    {
+        switch (@event.NewState)
+        {
+            case CountdownState:
+                SetPlayerCamera();
+                break;
+            default:              
+                break;
+        }
     }
 
     private void SetPlayerCamera()
@@ -221,5 +236,7 @@ public class PlayerController : NetworkBehaviour
                 Debug.LogWarning($"[PlayerController] Exception during OnPlayerDespawned (expected during shutdown): {e.Message}");
             }
         }
+
+        EventBus<GameStateChangeEvent>.Unregister(gameStateChangeEvent);
     }
 }

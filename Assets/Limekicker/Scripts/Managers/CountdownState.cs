@@ -21,6 +21,8 @@ internal class CountdownState : IGameState
 
     private IEnumerator CountdownCoroutine()
     {
+        gameManager.Context.raceCamera.Priority = 20;
+
         var text = gameManager.Context.startCounterText;
         text.gameObject.SetActive(true);
 
@@ -29,7 +31,7 @@ internal class CountdownState : IGameState
         yield return AnimateText("1");
         yield return AnimateText("GO!");
 
-        gameManager.ChangeState(new PlayState(gameManager));
+        gameManager.ChangeState(new PlayState());
 
         yield return new WaitForSeconds(0.5f);
         text.gameObject.SetActive(false);
@@ -40,9 +42,9 @@ internal class CountdownState : IGameState
         var text = gameManager.Context.startCounterText;
         text.text = value;
 
-        float startSize = 100f;
-        float endSize = 256f;
-        float duration = 1f;
+        float startSize = 256f;
+        float endSize = 384f;
+        float duration = 0.75f;
         float t = 0f;
 
         text.fontSize = startSize;

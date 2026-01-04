@@ -1,21 +1,8 @@
 ﻿internal class PlayState : IGameState
 {
-    public PlayState(GameManager gameManager)
-    {
+    public void Enter() { }
 
-    }
-    public void Enter()
-    {
-        // call event to start
-    }
+    public void Exit() { }
 
-    public void Exit()
-    {
-
-    }
-
-    public void Update()
-    {
-
-    }
+    public void Update() { }
 }

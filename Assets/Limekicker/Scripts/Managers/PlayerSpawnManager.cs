@@ -51,8 +51,6 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
                 yield return new WaitForSeconds(0.5f); // Small delay to ensure everything is initialized
                 SpawnBotPlayer();
             }
-
-            GameSignals.MarkSessionLoaded();
         }
         else
         {
@@ -80,8 +78,6 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
             {
                 OnPlayerSpawned?.Invoke(null, localPlayer);
             }
-
-            GameSignals.MarkSessionLoaded();
         }
     }
 

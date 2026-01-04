@@ -1,8 +1,8 @@
+using System;
 using Unity.Netcode;
 using UnityEngine;
 using VContainer;
 
-[RequireComponent(typeof(Camera))]
 public class SimpleHoverChaseCam : MonoBehaviour
 {
     [Header("Settings")]
@@ -17,14 +17,33 @@ public class SimpleHoverChaseCam : MonoBehaviour
 
     public int TryAssignLocalPlayer { get; private set; }
 
+    private EventBinding<GameStateChangeEvent> gameStateChangeEvent;
+
     [Inject]
     public void Construct(IPlayerSpawnManager spawnManager)
     {
         spawnManager.OnPlayerSpawned += OnPlayerSpawnedFromManager;
 
-        // In case the camera is created after the session is already loaded,
-        // try to attach to the existing local player once the session is ready.
-        GameSignals.OnSessionLoaded += HandleSessionLoaded;
+        gameStateChangeEvent = new EventBinding<GameStateChangeEvent>(HandleGameStateChange);
+        EventBus<GameStateChangeEvent>.Register(gameStateChangeEvent);
+    }
+
+    private void HandleGameStateChange(GameStateChangeEvent @event)
+    {
+        if (@event.NewState is not PlayState)
+            return;
+
+        if (target != null)
+            return;
+
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsConnectedClient)
+            return;
+
+        var localPlayer = NetworkManager.Singleton.SpawnManager?.GetLocalPlayerObject();
+        if (localPlayer != null && localPlayer.IsOwner)
+        {
+            AssignTarget(localPlayer.transform, localPlayer.GetComponent<Rigidbody>());
+        }
     }
 
     private void OnPlayerSpawnedFromManager(UserData data, NetworkObject netObj)
@@ -45,37 +64,12 @@ public class SimpleHoverChaseCam : MonoBehaviour
         targetRigidbody = newRigidbody != null ? newRigidbody : newTarget.GetComponent<Rigidbody>();
     }
 
-    private void OnDestroy()
-    {
-        GameSignals.OnSessionLoaded -= HandleSessionLoaded;
-    }
-
-    /// <summary>
-    /// Called when the game session is marked as loaded. If the camera
-    /// doesn't yet have a target, try to resolve the local player's object
-    /// from the NetworkManager and attach to it.
-    /// </summary>
-    private void HandleSessionLoaded()
-    {
-        if (target != null)
-            return;
-
-        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsConnectedClient)
-            return;
-
-        var localPlayer = NetworkManager.Singleton.SpawnManager?.GetLocalPlayerObject();
-        if (localPlayer != null && localPlayer.IsOwner)
-        {
-            AssignTarget(localPlayer.transform, localPlayer.GetComponent<Rigidbody>());
-        }
-    }
-
     void LateUpdate()
     {
         MoveCamera();
     }
 
-    void MoveCamera()
+    private void MoveCamera()
     {
         if (!target)
             return;
@@ -108,5 +102,10 @@ public class SimpleHoverChaseCam : MonoBehaviour
         // Faster rotation follow
         float rotSpeed = rotationSpeed * (1f + turnBoost * 2f);  // boost when turning
         transform.rotation = Quaternion.Slerp(transform.rotation, tiltRotation, rotSpeed * Time.deltaTime);
+    }
+
+    private void OnDestroy()
+    {
+        EventBus<GameStateChangeEvent>.Unregister(gameStateChangeEvent);
     }
 }

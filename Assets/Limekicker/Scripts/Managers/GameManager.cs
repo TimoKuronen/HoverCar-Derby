@@ -15,6 +15,7 @@ public class GameManager : MonoBehaviour
     public RaceContext Context;
 
     private IGameState currentState;
+    private IGameState previousState;
 
     void Start()
     {
@@ -28,8 +29,18 @@ public class GameManager : MonoBehaviour
 
     public void ChangeState(IGameState newState)
     {
+        if (newState is not PauseState && previousState is not PauseState)
+            previousState = currentState;
+
         currentState?.Exit();
         currentState = newState;
         currentState.Enter();
+
+        EventBus<GameStateChangeEvent>.Raise(new GameStateChangeEvent { NewState = currentState });
+    }
+
+    public void ReturnToPreviousState()
+    {
+        ChangeState(previousState);
     }
 }
