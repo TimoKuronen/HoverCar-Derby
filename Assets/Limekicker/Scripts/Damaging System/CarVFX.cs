@@ -1,9 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
-public class CarVFX : MonoBehaviour
+[RequireComponent(typeof(NetworkObject))]
+public class CarVFX : NetworkBehaviour
 {
     [Header("Damage Effects")]
     [SerializeField] private ParticleSystem[] damageSmokeVFXs;
@@ -24,12 +26,36 @@ public class CarVFX : MonoBehaviour
 
     private void HandleCarDamageVFX(float damageAmount, Vector3 damagePosition)
     {
-        Debug.Log($"CarVFX: Handling car damage VFX with {carDamageManager.CarHealthPercentage} percentage of health left on {carDamageManager.PlayerController.PlayerName}");
+        float healthPercentage = carDamageManager.CarHealthPercentage;
+        Debug.Log($"CarVFX: Handling car damage VFX with {healthPercentage} percentage of health left on {carDamageManager.PlayerController.PlayerName}");
 
+        // Play effects locally on server
+        PlayDamageVFXLocal(damageAmount, damagePosition, healthPercentage);
+
+        // If we're on the server, sync to all clients
+        if (IsServer)
+        {
+            PlayDamageVFXClientRpc(damageAmount, damagePosition, healthPercentage);
+        }
+    }
+
+    [ClientRpc]
+    private void PlayDamageVFXClientRpc(float damageAmount, Vector3 damagePosition, float healthPercentage)
+    {
+        // Only play on clients (server already played locally)
+        if (!IsServer)
+        {
+            PlayDamageVFXLocal(damageAmount, damagePosition, healthPercentage);
+        }
+    }
+
+    private void PlayDamageVFXLocal(float damageAmount, Vector3 damagePosition, float healthPercentage)
+    {
+        damageImpactEffect.gameObject.SetActive(true);
         damageImpactEffect.transform.position = damagePosition;
         damageImpactEffect.Play();
 
-        switch (carDamageManager.CarHealthPercentage)
+        switch (healthPercentage)
         {
             case < 20f:
                 var mainModuleHigh = damageSmokeVFXs[0].main;
@@ -53,6 +79,6 @@ public class CarVFX : MonoBehaviour
     private void OnDestroy()
     {
         if (carDamageManager != null)
-            carDamageManager.OnCarDamaged += HandleCarDamageVFX;
+            carDamageManager.OnCarDamaged -= HandleCarDamageVFX;
     }
 }

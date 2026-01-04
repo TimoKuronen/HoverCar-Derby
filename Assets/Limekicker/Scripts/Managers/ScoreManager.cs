@@ -4,15 +4,28 @@ public class ScoreManager : IScoreManager
 {
     public Dictionary<PlayerData, int> PlayerScores { get; private set; } = new Dictionary<PlayerData, int>();
 
-    public void Initialize() { }
-
-    public void AddPlayer(PlayerData data)
+    public void Initialize() 
     {
-        PlayerScores.Add(data, 0);
+        PlayerController.OnPlayerSpawned += AddPlayer;
     }
 
-    public void IncreaseScore(PlayerData data, int scoreToAdd)
+    public void AddPlayer(PlayerController data)
     {
-        PlayerScores[data] += scoreToAdd;
+        PlayerData playerData = new PlayerData
+        {
+            PlayerName = data.PlayerName.Value.ToString(),
+            Points = 0
+        };     
     }
+
+    public void IncreaseScore(PlayerController data, int scoreToAdd)
+    {
+        
+    }
+}
+
+public struct PlayerData
+{
+    public string PlayerName { get; set; }
+    public int Points { get; set; }
 }

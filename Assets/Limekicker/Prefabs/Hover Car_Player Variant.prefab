@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3024187943265899411}
-  m_Layer: 3
+  m_Layer: 0
   m_Name: FollowTarget
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -45,7 +45,7 @@ GameObject:
   - component: {fileID: 1044891384741340466}
   - component: {fileID: 2833721185373939256}
   - component: {fileID: 2047756161947855130}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: CarPart_SidePanel_Left
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -259,7 +259,7 @@ GameObject:
   - component: {fileID: 6228435964824971616}
   - component: {fileID: 216531051001965429}
   - component: {fileID: 1800553442818969296}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: CarPart_SidePanel_Right
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -401,7 +401,7 @@ GameObject:
   - component: {fileID: 2903899002478452656}
   - component: {fileID: 8243828016514225246}
   - component: {fileID: 2205592936458414418}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: CarPart_SidePanel_Right
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -576,7 +576,7 @@ GameObject:
   - component: {fileID: 9053517304883424910}
   - component: {fileID: 3548734185982383392}
   - component: {fileID: 6682926220517017232}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: CarPart_Hull
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -718,7 +718,7 @@ GameObject:
   - component: {fileID: 784994633527507876}
   - component: {fileID: 1612292553373269352}
   - component: {fileID: 838673120177238063}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: CarPart_FrontBumber
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -858,7 +858,7 @@ GameObject:
   - component: {fileID: 4461093496828536396}
   - component: {fileID: 7562355018626273342}
   - component: {fileID: 5019106546582192619}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: HoverEngine
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -996,7 +996,7 @@ GameObject:
   - component: {fileID: 1554846468780254608}
   - component: {fileID: 1684531400967270792}
   - component: {fileID: 8381442950246266174}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1150,7 +1150,7 @@ GameObject:
   - component: {fileID: 1804629253150122162}
   - component: {fileID: 4075547633674106101}
   - component: {fileID: 5370872155317477834}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: CarPart_BackBumper
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1290,7 +1290,7 @@ GameObject:
   - component: {fileID: 1014379036922190246}
   - component: {fileID: 4758855672848901173}
   - component: {fileID: 6530128837776147281}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Sphere (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1387,7 +1387,7 @@ GameObject:
   - component: {fileID: 3393244050887459940}
   - component: {fileID: 8307427756987295668}
   - component: {fileID: 2209057903663900601}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Capsule (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1561,7 +1561,7 @@ GameObject:
   - component: {fileID: 5183890559414375920}
   - component: {fileID: 4711807327712137626}
   - component: {fileID: 6406765029218510395}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: HoverEngine
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1658,7 +1658,7 @@ GameObject:
   - component: {fileID: 5265920144172951833}
   - component: {fileID: 4314134086521504876}
   - component: {fileID: 7588621199508977630}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Capsule
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1755,7 +1755,7 @@ GameObject:
   - component: {fileID: 4322694643162152531}
   - component: {fileID: 2109415184411851665}
   - component: {fileID: 8598972397838417031}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Cube (4)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1852,7 +1852,7 @@ GameObject:
   - component: {fileID: 1962949575515197000}
   - component: {fileID: 4674328383840120699}
   - component: {fileID: 1849066571335924833}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Capsule (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1951,7 +1951,7 @@ GameObject:
   - component: {fileID: 3317379374023058839}
   - component: {fileID: 7513993273656522964}
   - component: {fileID: 5487182286634308140}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: CarPart_Hull
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2091,7 +2091,7 @@ GameObject:
   - component: {fileID: 2372558279554647616}
   - component: {fileID: 4982752740422425175}
   - component: {fileID: 13791928598403722}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: HoverEngine
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2188,7 +2188,7 @@ GameObject:
   - component: {fileID: 8427541256295014685}
   - component: {fileID: 8180702942672084223}
   - component: {fileID: 759008178753598154}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Cube (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2287,7 +2287,7 @@ GameObject:
   - component: {fileID: 8054344056409946398}
   - component: {fileID: 950769940649807269}
   - component: {fileID: 396337473299730910}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: CarPart_SidePanel_Left
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2427,7 +2427,7 @@ GameObject:
   - component: {fileID: 1133372186983295805}
   - component: {fileID: 9054178734055353982}
   - component: {fileID: 4971747276710717636}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2524,7 +2524,7 @@ GameObject:
   - component: {fileID: 8944768656062154150}
   - component: {fileID: 5340770172378920475}
   - component: {fileID: 4042117467331364264}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: HoverEngine
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2709,7 +2709,7 @@ GameObject:
   - component: {fileID: 7634083147304721029}
   - component: {fileID: 8615738992277797790}
   - component: {fileID: 2423412847059430908}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Cube (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2842,7 +2842,7 @@ GameObject:
   - component: {fileID: 7535626351965197120}
   - component: {fileID: 8537624992198700944}
   - component: {fileID: 9041172209258385673}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: HoverEngine
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2939,7 +2939,7 @@ GameObject:
   - component: {fileID: 7610104482592601188}
   - component: {fileID: 834772862063868863}
   - component: {fileID: 8892254188602669141}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: HoverEngine
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3036,7 +3036,7 @@ GameObject:
   - component: {fileID: 6714078395773752711}
   - component: {fileID: 7959850375867414065}
   - component: {fileID: 6508066732409762233}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: HoverEngine
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3135,7 +3135,7 @@ GameObject:
   - component: {fileID: 4453267578821562570}
   - component: {fileID: 3560769304711891394}
   - component: {fileID: 2300818041766067140}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: CarPart_FrontBumber
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3277,7 +3277,7 @@ GameObject:
   - component: {fileID: 804988896387065377}
   - component: {fileID: 6108651032450164981}
   - component: {fileID: 9024420440279498067}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: CarPart_BackBumper
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3417,7 +3417,7 @@ GameObject:
   - component: {fileID: 4201312408194350228}
   - component: {fileID: 6436214345088101077}
   - component: {fileID: 6742708085822790640}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: HoverEngine
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3514,7 +3514,7 @@ GameObject:
   - component: {fileID: 2166897222919015975}
   - component: {fileID: 8149977711510249941}
   - component: {fileID: 1605638291211100622}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Cube (3)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3778,6 +3778,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Hover Car_Player Variant
       objectReference: {fileID: 0}
+    - target: {fileID: 100026, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 400008, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.849
@@ -3866,9 +3870,17 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 2346089136248644561, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2510350370778634378, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       propertyPath: explosiveForceMultiplier
       value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2578141831251250405, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3205691220211033017, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       propertyPath: m_IsActive
@@ -3881,6 +3893,10 @@ PrefabInstance:
     - target: {fileID: 3630975735051762523, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       propertyPath: m_LocalPosition.z
       value: -10
+      objectReference: {fileID: 0}
+    - target: {fileID: 4690168985384039391, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5419934743143684181, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       propertyPath: m_IsActive
@@ -3897,6 +3913,10 @@ PrefabInstance:
     - target: {fileID: 6615326771874660832, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       propertyPath: m_Name
       value: PlayerNamePlate
+      objectReference: {fileID: 0}
+    - target: {fileID: 6615326771874660832, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6734188310964582651, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       propertyPath: m_LocalPosition.x
@@ -3928,6 +3948,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8171062744423987147, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8869382030903854776, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
+      propertyPath: m_Layer
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8869382030903854776, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}

@@ -78,7 +78,11 @@ public class PlayerController : NetworkBehaviour
         }
 
         // Apply spawn point rotation after a delay (to account for server overrides)
-        StartCoroutine(ApplySpawnPointRotation());
+        // Only run on server where spawn point service data exists
+        if (IsServer)
+        {
+            StartCoroutine(ApplySpawnPointRotation());
+        }
 
         SetPlayerCamera();
     }
@@ -103,9 +107,14 @@ public class PlayerController : NetworkBehaviour
 
     /// <summary>
     /// Attempts to resolve ISpawnPointService from VContainer and apply spawn point rotation.
+    /// Only runs on server where spawn point service data exists.
     /// </summary>
     private IEnumerator ApplySpawnPointRotation()
     {
+        // Only run on server
+        if (!IsServer)
+            yield break;
+
         // Wait for the delay to account for server overrides
         yield return new WaitForSeconds(spawnRotationDelay);
 
@@ -117,13 +126,13 @@ public class PlayerController : NetworkBehaviour
             var spawnData = spawnPointService.GetSpawnPointForObject(NetworkObject);
             if (spawnData != null)
             {
-                // Apply the spawn point rotation
+                // Apply the spawn point position and rotation (ensures correct spawn position after NetworkTransform sync)
                 transform.SetPositionAndRotation(spawnData.Position, spawnData.Rotation);
-                Debug.Log($"[PlayerController] Applied spawn point rotation: {spawnData.Rotation.eulerAngles}");
+                Debug.Log($"[PlayerController] Applied spawn point position and rotation: {spawnData.Position}, {spawnData.Rotation.eulerAngles}");
             }
             else
             {
-                Debug.LogWarning($"[PlayerController] Could not find spawn point data for {gameObject.name}");
+                Debug.LogWarning($"[PlayerController] Could not find spawn point data for {gameObject.name} - player may spawn at incorrect position!");
             }
         }
     }
