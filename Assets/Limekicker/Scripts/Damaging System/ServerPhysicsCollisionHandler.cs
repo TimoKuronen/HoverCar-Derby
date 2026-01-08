@@ -2,19 +2,13 @@ using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 using System.Collections.Generic;
-/// <summary>
-/// Server-side physics collision handler for car-to-car impacts.
-/// Detects collisions, calculates impact forces, applies explosive forces to push cars apart,
-/// and logs damage for health system integration.
-/// </summary>
-[RequireComponent(typeof(Rigidbody))]
-[RequireComponent(typeof(PlayerController))]
+
+[RequireComponent(typeof(Rigidbody), typeof(PlayerController))]
 public class ServerPhysicsCollisionHandler : NetworkBehaviour
 {
     [Header("Impact Settings")]
     [SerializeField] private float minImpactForce = 5f;
     [SerializeField] private float explosiveForceMultiplier = 1f;
-    [SerializeField] private float explosiveRadius = 5f;
     [SerializeField] private float upwardModifier = 0.5f;
 
     [Header("Damage Settings")]
@@ -27,12 +21,8 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
     private Rigidbody rb;
     private PlayerController playerController;
     private CarDamageManager damageManager;
-
     private float lastCollisionTime;
-    private ulong lastCollisionTargetId;
-
-    // Track collisions to prevent duplicate processing
-    private HashSet<ulong> recentCollisions = new HashSet<ulong>();
+    private static HashSet<ulong> globalRecentCollisions = new HashSet<ulong>();
 
     public override void OnNetworkSpawn()
     {
@@ -40,327 +30,177 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
         playerController = GetComponent<PlayerController>();
         damageManager = GetComponent<CarDamageManager>();
 
-        // Only enable collision detection on server
-        if (!IsServer)
-        {
+        if (!IsServer) 
             enabled = false;
-            return;
-        }
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        // Only process on server
-        if (!IsServer)
+        if (!IsServer || Time.time - lastCollisionTime < collisionCooldown) 
             return;
 
-        // Check if enough time has passed since last collision
-        if (Time.time - lastCollisionTime < collisionCooldown)
-            return;
-
-        // Check if collision is with another player car
         PlayerController otherPlayer = collision.gameObject.GetComponent<PlayerController>();
-        if (otherPlayer == null)
+        if (otherPlayer == null) 
             return;
-
-        // Check if either car is a bot
 
         bool thisIsBot = playerController.IsBot;
-        bool otherIsBot = otherPlayer.GetComponent<BotPlayerController>() != null;
+        bool otherIsBot = otherPlayer.IsBot;
 
-        // Prevent self-collision (but allow bot-to-bot and bot-to-player collisions)
-        // Bots are owned by server, so they share the same OwnerClientId - we need to check by GameObject instead
-        if (!thisIsBot && !otherIsBot && otherPlayer.OwnerClientId == OwnerClientId)
-            return;
-
-        // Prevent bot from colliding with itself (shouldn't happen, but safety check)
-        if (thisIsBot && otherIsBot && gameObject == collision.gameObject)
-            return;
-
-        // Prevent duplicate processing (both cars will detect the collision)
-        // For bots, use NetworkObjectId instead of OwnerClientId since bots share server's client ID
         ulong thisId = thisIsBot ? NetworkObjectId : OwnerClientId;
         ulong otherId = otherIsBot ? otherPlayer.NetworkObjectId : otherPlayer.OwnerClientId;
-        ulong collisionKey = thisId < otherId
-            ? (thisId << 32) | otherId
-            : (otherId << 32) | thisId;
 
-        if (recentCollisions.Contains(collisionKey))
+        // Ensure same ID regardless of who detects first
+        ulong collisionKey = thisId < otherId ? (thisId << 32) | otherId : (otherId << 32) | thisId;
+
+        if (globalRecentCollisions.Contains(collisionKey)) return;
+
+        // Process only on the instance with the lower ID
+        if (thisId > otherId) 
             return;
 
-        recentCollisions.Add(collisionKey);
+        globalRecentCollisions.Add(collisionKey);
 
-        // Calculate impact force
         float impactForce = collision.relativeVelocity.magnitude;
-
         if (impactForce < minImpactForce)
         {
-            Debug.Log("collision event 4 didnt have enough force " + impactForce);
-            recentCollisions.Remove(collisionKey);
+            globalRecentCollisions.Remove(collisionKey);
             return;
         }
 
-        // Get collision point and direction
-        Vector3 collisionPoint = collision.contacts[0].point;
-        Vector3 collisionNormal = collision.contacts[0].normal;
+        ProcessCarCollision(otherPlayer, collision.contacts[0].point, (otherPlayer.transform.position - transform.position).normalized, impactForce, collision);
 
-        // Calculate direction from this car to other car
-        Vector3 directionToOther = (collision.gameObject.transform.position - transform.position).normalized;
-
-        // Process collision for both cars
-        ProcessCarCollision(otherPlayer, collisionPoint, directionToOther, impactForce, collision);
-
-        // Update last collision time
         lastCollisionTime = Time.time;
-        // Store the collision key instead of just the ID for better tracking
-        lastCollisionTargetId = collisionKey;
-
-        // Remove from recent collisions after cooldown
         StartCoroutine(RemoveFromRecentCollisions(collisionKey, collisionCooldown));
     }
 
     private IEnumerator RemoveFromRecentCollisions(ulong collisionKey, float delay)
     {
         yield return new WaitForSeconds(delay);
-        recentCollisions.Remove(collisionKey);
+        globalRecentCollisions.Remove(collisionKey);
     }
 
     private void ProcessCarCollision(PlayerController otherPlayer, Vector3 collisionPoint, Vector3 direction, float impactForce, Collision collision)
     {
-        // Get other car's rigidbody
         Rigidbody otherRb = otherPlayer.GetComponent<Rigidbody>();
-        if (otherRb == null)
+        if (otherRb == null) 
             return;
 
-        // Calculate damage based on impact force
-        float damage = CalculateDamage(impactForce);
+        Vector3 hitNormal = collision.contacts[0].normal;
 
-        // Log damage for both cars
-        Debug.Log($"[ServerPhysicsCollisionHandler] Collision detected! " +
-                  $"Player {OwnerClientId} hit Player {otherPlayer.PlayerName}. " +
-                  $"Impact Force: {impactForce:F2}, Damage: {damage:F2}");
+        // Use Dot product to check if the front of the car is facing the collision normal
+        // 0.7f is roughly a 45-degree cone
+        bool thisIsFrontBumper = Vector3.Dot(transform.forward, -hitNormal) > 0.7f;
+        bool otherIsFrontBumper = Vector3.Dot(otherPlayer.transform.forward, hitNormal) > 0.7f;
 
-        // Apply damage to this car
-        ApplyDamageToCar(collision, damage);
+        bool isHeadOn = thisIsFrontBumper && otherIsFrontBumper;
+        float baseDamage = impactForce * damageMultiplier;
 
-        // Apply damage to other car
-        float damageToOtherCar = 0f;
-        CarDamageManager otherDamageManager = otherPlayer.GetComponent<CarDamageManager>();
-        if (otherDamageManager != null && damage > minDamageThreshold)
+        float damageToThis = 0f;
+        float damageToOther = 0f;
+
+        if (isHeadOn)
         {
-            damageToOtherCar = ApplyDamageToOtherCar(otherPlayer, collision, damage);
-        }
+            // Head-on: Reduce total damage to 50%, then split 60/40 based on speed
+            float totalDamage = baseDamage * 0.5f;
+            float thisSpeed = rb.velocity.magnitude;
+            float otherSpeed = otherRb.velocity.magnitude;
 
-        if (damageToOtherCar > 0f)
-        {
-            ShowDamageNumberForCar(otherPlayer.gameObject, collisionPoint, damageToOtherCar, OwnerClientId, otherPlayer.OwnerClientId);
-        }
-
-        // Calculate explosive force magnitude based on impact force
-        float explosiveForce = impactForce * explosiveForceMultiplier;
-
-        // Apply explosive force to push cars apart
-        // Force is applied in opposite directions for each car
-        Vector3 forceDirection = direction.normalized;
-        Vector3 oppositeDirection = -forceDirection;
-
-        // Apply force to this car (push away from other car) with half the force
-        ApplyExplosiveForce(rb, collisionPoint, oppositeDirection, explosiveForce / 2);
-
-        // Apply force to other car (push away from this car)
-        ApplyExplosiveForce(otherRb, collisionPoint, forceDirection, explosiveForce);
-
-        Debug.Log("final collision event with force of " + explosiveForce);
-
-        // Sync physics forces to all clients via RPC
-        NetworkObject thisNetworkObj = GetComponent<NetworkObject>();
-        NetworkObject otherNetworkObj = otherPlayer.GetComponent<NetworkObject>();
-
-        if (thisNetworkObj != null && otherNetworkObj != null)
-        {
-            SyncPhysicsForceClientRpc(
-                thisNetworkObj.NetworkObjectId,
-                otherNetworkObj.NetworkObjectId,
-                collisionPoint,
-                oppositeDirection,
-                forceDirection,
-                explosiveForce
-            );
-        }
-    }
-
-    private float CalculateDamage(float impactForce)
-    {
-        // Damage calculation: scale impact force by damage multiplier
-        // You can adjust this formula based on your game's needs
-        return impactForce * damageMultiplier;
-    }
-
-    private void ApplyDamageToCar(Collision collision, float damage)
-    {
-        if (damageManager == null)
-            return;
-
-        Vector3 hitDirection = collision.contacts[0].normal;
-        float forwardDot = Vector3.Dot(hitDirection, transform.forward);
-        float rightDot = Vector3.Dot(hitDirection, transform.right);
-
-        // Determine which part was hit based on collision direction
-        CarPartType partType = CarPartType.FrontBumper; // default
-        float damageMultiplier = 1f;
-
-        if (forwardDot > 0.8f)
-        {
-            partType = CarPartType.FrontBumper;
-            damageMultiplier = 2f;
-        }
-        else if (rightDot > 0.5f)
-        {
-            partType = CarPartType.SidePanel_Right;
-            damageMultiplier = 1.2f;
-        }
-        else if (rightDot < -0.5f)
-        {
-            partType = CarPartType.SidePanel_Left;
-            damageMultiplier = 1.2f;
-        }
-        else
-        {
-            partType = CarPartType.RearBumper;
-            damageMultiplier = 0.8f;
-        }
-
-        Debug.Log($"[ServerPhysicsCollisionHandler] Applying damage to part {partType} of player { playerController.PlayerName.Value }");
-
-        float finalDamage = damage * damageMultiplier;
-
-        damageManager.ApplyDamageToPart(partType, finalDamage, collision.contacts[0].point);
-    }
-
-    private float ApplyDamageToOtherCar(PlayerController otherPlayer, Collision collision, float damage)
-    {
-        CarDamageManager otherDamageManager = otherPlayer.DamageManager;
-
-        if (otherDamageManager == null)
-            return 0f;
-
-        Transform otherTransform = otherPlayer.transform;
-        Vector3 hitDirection = collision.contacts[0].normal;
-        float forwardDot = Vector3.Dot(hitDirection, otherTransform.forward);
-        float rightDot = Vector3.Dot(hitDirection, otherTransform.right);
-
-        // Determine which part was hit based on collision direction (from other car's perspective)
-        CarPartType partType = CarPartType.FrontBumper; // default
-        float damageMultiplier = 1f;
-
-        if (forwardDot > 0.8f)
-        {
-            partType = CarPartType.FrontBumper;
-            damageMultiplier = 2f;
-        }
-        else if (rightDot > 0.5f)
-        {
-            partType = CarPartType.SidePanel_Right;
-            damageMultiplier = 1.2f;
-        }
-        else if (rightDot < -0.5f)
-        {
-            partType = CarPartType.SidePanel_Left;
-            damageMultiplier = 1.2f;
-        }
-        else
-        {
-            partType = CarPartType.RearBumper;
-            damageMultiplier = 0.8f;
-        }
-
-        float finalDamage = damage * damageMultiplier;
-        otherDamageManager.ApplyDamageToPart(partType, finalDamage, collision.contacts[0].point);
-
-        Debug.Log($"[ServerPhysicsCollisionHandler] Applying damage to part {partType} of player {playerController.PlayerName.Value}");
-
-        return finalDamage;
-    }
-
-    /// <summary>
-    /// Shows damage number for a car by finding its DamageNumberSync component.
-    /// </summary>
-    private void ShowDamageNumberForCar(GameObject carObject, Vector3 worldPosition, float damageAmount, ulong attackerClientId, ulong victimClientId)
-    {
-        DamageNumberSync damageSync = carObject.GetComponent<DamageNumberSync>();
-        if (damageSync != null)
-        {
-            damageSync.ShowDamageNumberRpc(worldPosition, damageAmount, attackerClientId, victimClientId);
-        }
-        else
-        {
-            // Fallback: try to find DamageNumberPool directly (for non-networked scenarios)
-            DamageNumberPool pool = DamageNumberPool.Instance;
-            if (pool != null)
+            if (thisSpeed >= otherSpeed)
             {
-                pool.ShowDamageNumber(worldPosition, damageAmount, attackerClientId, victimClientId);
+                damageToOther = totalDamage * 0.6f;
+                damageToThis = totalDamage * 0.4f;
+            }
+            else
+            {
+                damageToOther = totalDamage * 0.4f;
+                damageToThis = totalDamage * 0.6f;
             }
         }
-        Debug.Log($"[ServerPhysicsCollisionHandler] Showing damage number: {damageAmount:F2} at {worldPosition} for attacker {attackerClientId} and victim {victimClientId}");
+        else
+        {
+            // If I hit with bumper and they didn't, I am the attacker (No damage to me)
+            if (thisIsFrontBumper)
+            {
+                damageToThis = 0f;
+                damageToOther = baseDamage;
+            }
+            // If they hit me with their bumper and I didn't hit with mine
+            else if (otherIsFrontBumper)
+            {
+                damageToThis = baseDamage;
+                damageToOther = 0f;
+            }
+            // Side-swipes or rear-ends where neither used bumper effectively
+            else
+            {
+                damageToThis = baseDamage * 0.5f;
+                damageToOther = baseDamage * 0.5f;
+            }
+        }
+
+        // Apply Results
+        if (damageToThis > 0) 
+            ApplyDamageToCar(otherPlayer, collision, damageToThis);
+
+        if (damageToOther > minDamageThreshold)
+        {
+            ApplyDamageToOtherCar(otherPlayer, collision, damageToOther);
+        }
+
+        ApplyPhysicsForces(otherPlayer, collisionPoint, direction, impactForce);
     }
 
-    private void ApplyExplosiveForce(Rigidbody targetRb, Vector3 position, Vector3 direction, float force)
+    private void ApplyDamageToCar(PlayerController otherPlayer, Collision collision, float damage)
     {
-        if (targetRb == null)
+        if (damageManager == null) 
             return;
 
-        // Apply force in the specified direction
-        // Using AddForceAtPosition for more realistic physics
-        targetRb.AddForceAtPosition(direction * force, position, ForceMode.Impulse);
+        // When we take damage, the attacker is the other player
+        // Pass their ID as attackerClientId - DamageNumberPool in AttackerOnly mode will filter this out
+        // (we won't see it because we're not the attacker)
+        ulong? attackerId = otherPlayer.IsBot ? otherPlayer.NetworkObjectId : otherPlayer.OwnerClientId;
 
-        // Also add some upward force for more dramatic effect
-        targetRb.AddForceAtPosition(Vector3.up * force * upwardModifier, position, ForceMode.Impulse);
+        damageManager.ApplyDamageToPart(CarPartType.FrontBumper, damage, collision.contacts[0].point, attackerId);
+        Debug.Log($"[ServerPhysicsCollisionHandler] Applied {damage} damage to {playerController.PlayerName.Value} from collision.");
     }
 
-    /// <summary>
-    /// ClientRpc to sync physics forces to all clients.
-    /// This ensures both players see the collision effects.
-    /// Note: Server applies forces immediately, this RPC syncs to clients.
-    /// </summary>
+    private void ApplyDamageToOtherCar(PlayerController otherPlayer, Collision collision, float damage)
+    {
+        CarDamageManager otherDM = otherPlayer.DamageManager;
+        if (otherDM != null)
+        {
+            // When we deal damage to others, pass our client ID as the attacker
+            // DamageNumberPool in AttackerOnly mode will show this to us (the attacker)
+            ulong attackerId = playerController.IsBot ? NetworkObjectId : OwnerClientId;
+            otherDM.ApplyDamageToPart(CarPartType.FrontBumper, damage, collision.contacts[0].point, attackerId);
+            Debug.Log($"[ServerPhysicsCollisionHandler] Applied {damage} damage to {otherPlayer.PlayerName.Value} from collision with {playerController.PlayerName.Value}.");
+        }
+    }
+
+    private void ApplyPhysicsForces(PlayerController otherPlayer, Vector3 collisionPoint, Vector3 direction, float impactForce)
+    {
+        float force = impactForce * explosiveForceMultiplier;
+        Rigidbody otherRb = otherPlayer.GetComponent<Rigidbody>();
+
+        rb.AddForceAtPosition(-direction * (force * 0.5f), collisionPoint, ForceMode.Impulse);
+        rb.AddForce(Vector3.up * force * upwardModifier, ForceMode.Impulse);
+
+        otherRb.AddForceAtPosition(direction * force, collisionPoint, ForceMode.Impulse);
+        otherRb.AddForce(Vector3.up * force * upwardModifier, ForceMode.Impulse);
+
+        SyncPhysicsForceClientRpc(NetworkObjectId, otherPlayer.NetworkObjectId, collisionPoint, -direction, direction, force);
+    }
+
     [ClientRpc]
-    private void SyncPhysicsForceClientRpc(
-        ulong thisCarNetworkId,
-        ulong otherCarNetworkId,
-        Vector3 collisionPoint,
-        Vector3 thisCarDirection,
-        Vector3 otherCarDirection,
-        float force)
+    private void SyncPhysicsForceClientRpc(ulong id1, ulong id2, Vector3 point, Vector3 dir1, Vector3 dir2, float force)
     {
-        // Server already applied forces in ProcessCarCollision, so skip here
-        // This RPC is only for pure clients to apply the forces
-        if (IsServer)
+        if (IsServer) 
             return;
 
-        // Find the network objects
-        if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(thisCarNetworkId, out NetworkObject thisCarObj))
-        {
-            Debug.LogWarning($"[ServerPhysicsCollisionHandler] Could not find network object {thisCarNetworkId} for force sync");
-            return;
-        }
+        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(id1, out var obj1))
+            obj1.GetComponent<Rigidbody>()?.AddForceAtPosition(dir1 * (force * 0.5f), point, ForceMode.Impulse);
 
-        if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(otherCarNetworkId, out NetworkObject otherCarObj))
-        {
-            Debug.LogWarning($"[ServerPhysicsCollisionHandler] Could not find network object {otherCarNetworkId} for force sync");
-            return;
-        }
-
-        // Get rigidbodies
-        Rigidbody thisRb = thisCarObj.GetComponent<Rigidbody>();
-        Rigidbody otherRb = otherCarObj.GetComponent<Rigidbody>();
-
-        if (thisRb != null)
-        {
-            ApplyExplosiveForce(thisRb, collisionPoint, thisCarDirection, force);
-        }
-
-        if (otherRb != null)
-        {
-            ApplyExplosiveForce(otherRb, collisionPoint, otherCarDirection, force);
-        }
+        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(id2, out var obj2))
+            obj2.GetComponent<Rigidbody>()?.AddForceAtPosition(dir2 * force, point, ForceMode.Impulse);
     }
 }

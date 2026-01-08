@@ -17,9 +17,15 @@ public class GameManager : MonoBehaviour
     private IGameState currentState;
     private IGameState previousState;
 
-    void Start()
+    IEnumerator Start()
     {
-        ChangeState(new CinematicState(this));
+        // Start in Cinematic State
+        // ChangeState(new CinematicState(this));
+
+        yield return new WaitForSeconds(1);
+        // For now, start directly in Play State
+        Context.raceCamera.Priority = 20;
+        ChangeState(new PlayState());
     }
 
     void Update()

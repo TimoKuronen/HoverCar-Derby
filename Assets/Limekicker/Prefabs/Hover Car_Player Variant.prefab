@@ -3729,7 +3729,7 @@ PrefabInstance:
     - target: {fileID: -1202630498088015474, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       propertyPath: fireVFX
       value: 
-      objectReference: {fileID: 7162346691966386530}
+      objectReference: {fileID: 7162346691966386540}
     - target: {fileID: -1202630498088015474, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       propertyPath: damageImpactEffect
       value: 
@@ -4386,9 +4386,9 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 043176b6a68be2b43b073aaaa4782c7d, type: 3}
---- !u!1 &7162346691966386530 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 6294508013172393196, guid: 043176b6a68be2b43b073aaaa4782c7d, type: 3}
+--- !u!198 &7162346691966386540 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 6294508013172393186, guid: 043176b6a68be2b43b073aaaa4782c7d, type: 3}
   m_PrefabInstance: {fileID: 3764817897963406734}
   m_PrefabAsset: {fileID: 0}
 --- !u!4 &7162346691966386543 stripped

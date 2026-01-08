@@ -26,7 +26,7 @@ public class DamageNumberPool : MonoBehaviour
     [SerializeField] private float lifetime = 1.0f;
     [SerializeField] private Vector3 worldOffset = new Vector3(0, 0.6f, 0);
     [SerializeField] private Color defaultColor = Color.red;
-    [SerializeField] private ShowMode visibility = ShowMode.Both;
+    [SerializeField] private ShowMode visibility = ShowMode.AttackerOnly;
 
     private readonly Queue<TextMeshProUGUI> pool = new();
     private Camera cam;
@@ -56,31 +56,26 @@ public class DamageNumberPool : MonoBehaviour
             return;
         }
 
+        Init();
+    }
+
+    private void Init()
+    {
         cam = Camera.main;
         if (targetCanvas == null)
         {
             Debug.LogError("DamageNumberPool: No Canvas assigned.");
             enabled = false;
-            return;
         }
 
         if (damageNumberPrefab == null)
         {
             Debug.LogError("DamageNumberPool: No damageNumberPrefab assigned.");
             enabled = false;
-            return;
         }
 
         for (int i = 0; i < poolSize; i++)
             CreateInstance();
-    }
-
-    void OnDestroy()
-    {
-        if (instance == this)
-        {
-            instance = null;
-        }
     }
 
     private TextMeshProUGUI CreateInstance()
@@ -88,6 +83,7 @@ public class DamageNumberPool : MonoBehaviour
         var inst = Instantiate(damageNumberPrefab, targetCanvas.transform);
         inst.gameObject.SetActive(false);
         pool.Enqueue(inst);
+
         return inst;
     }
 
@@ -100,16 +96,6 @@ public class DamageNumberPool : MonoBehaviour
     /// <param name="victimClientId">Client ID of the player who received damage (ulong.MaxValue for non-player sources)</param>
     public void ShowDamageNumber(Vector3 worldPosition, float amount, ulong attackerClientId = ulong.MaxValue, ulong victimClientId = ulong.MaxValue)
     {
-        if (cam == null)
-        {
-            cam = Camera.main;
-            if (cam == null)
-            {
-                Debug.LogWarning("DamageNumberPool: No camera found.");
-                return;
-            }
-        }
-
         // Check if we should show this damage number based on visibility mode
         if (!ShouldShowDamage(attackerClientId, victimClientId))
             return;
@@ -198,5 +184,12 @@ public class DamageNumberPool : MonoBehaviour
 
         text.gameObject.SetActive(false);
         pool.Enqueue(text);
+    }
+    void OnDestroy()
+    {
+        if (instance == this)
+        {
+            instance = null;
+        }
     }
 }
