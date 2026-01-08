@@ -8,16 +8,16 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
 {
     private INetworkServer networkServer;
     private IInputService inputService;
-    private ISpawnPointService spawnPointService;
 
     public event Action<UserData, NetworkObject> OnPlayerSpawned;
     public event Action<UserData, NetworkObject> OnPlayerDespawned;
 
+    private SpawnPointService spawnPointService = new SpawnPointService();
+
     [Inject]
-    public void Construct(IInputService inputService, ISpawnPointService spawnPointService)
+    public void Construct(IInputService inputService)
     {
         this.inputService = inputService;
-        this.spawnPointService = spawnPointService;
         Debug.Log("[PlayerSpawnManager] Constructed, starting initialization with input service " + inputService);
 
         CoroutineMonoBehavior.Instance.StartCoroutine(Initialize());
@@ -127,6 +127,7 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
         // Get a random unused spawn point first (we'll assign the network object after spawn)
         // Create instance first to get a reference for assignment
         var instance = UnityEngine.Object.Instantiate(server.PlayerPrefab);
+        instance.gameObject.SetActive(false);
 
         // Get a random unused spawn point and assign it to the network object
         var spawnData = spawnPointService.GetRandomUnusedSpawnPoint(instance);
@@ -138,14 +139,15 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
         }
 
         // Set position and rotation before spawning
-        instance.transform.position = spawnData.Position;
-        instance.transform.rotation = spawnData.Rotation;
+        instance.transform.SetPositionAndRotation(spawnData.Position, spawnData.Rotation);
 
         // Now spawn the network object
+        instance.gameObject.SetActive(true);
         instance.SpawnAsPlayerObject(clientId);
 
-        // Ensure position is set correctly after spawning (safeguard for NetworkTransform initialization)
-        instance.transform.SetPositionAndRotation(spawnData.Position, spawnData.Rotation);
+        // Use NetworkTransform Teleport to force position update (works for client-authoritative transforms)
+        // Wait a frame for NetworkTransform to fully initialize before teleporting
+        CoroutineMonoBehavior.Instance.StartCoroutine(TeleportAfterSpawn(instance, spawnData, clientId));
 
         int playerIndex = instance.NetworkManager.ConnectedClients.Count - 1;
 
@@ -225,14 +227,15 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
         }
 
         // Set position and rotation before spawning
-        botInstance.transform.position = spawnData.Position;
-        botInstance.transform.rotation = spawnData.Rotation;
+        botInstance.transform.SetPositionAndRotation(spawnData.Position, spawnData.Rotation);
 
         // Spawn as a network object (not as a player object, since bots don't have a client)
         botInstance.SpawnWithOwnership(NetworkManager.ServerClientId);
 
-        // Ensure position is set correctly after spawning (safeguard for NetworkTransform initialization)
-        botInstance.transform.SetPositionAndRotation(spawnData.Position, spawnData.Rotation);
+        // Use NetworkTransform Teleport to force position update (works for client-authoritative transforms)
+        // Wait a frame for NetworkTransform to fully initialize before teleporting
+        // Bots are server-controlled, so we don't need ClientRPC
+        CoroutineMonoBehavior.Instance.StartCoroutine(TeleportAfterSpawn(botInstance, spawnData, NetworkManager.ServerClientId));
 
         // Initialize PlayerController for the bot AFTER spawning
         if (botInstance.TryGetComponent<PlayerController>(out PlayerController controller))
@@ -267,6 +270,53 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
         }
 
         return count;
+    }
+
+    /// <summary>
+    /// Coroutine to teleport a NetworkObject after it has been spawned and NetworkTransform is initialized.
+    /// This ensures the spawn position is correctly applied for client-authoritative transforms.
+    /// For client-authoritative transforms, we also send a ClientRPC to have the client teleport itself.
+    /// </summary>
+    private IEnumerator TeleportAfterSpawn(NetworkObject networkObject, SpawnPointData spawnData, ulong clientId)
+    {
+        // Wait a frame for NetworkTransform to fully initialize
+        yield return null;
+
+        if (networkObject == null || spawnData == null)
+            yield break;
+
+        // First, teleport on the server side (this works for server-authoritative and helps with host)
+        if (networkObject.TryGetComponent<Unity.Netcode.Components.NetworkTransform>(out var networkTransform))
+        {
+            networkTransform.Teleport(spawnData.Position, spawnData.Rotation, Vector3.one);
+            Debug.Log($"[PlayerSpawnManager] Server teleported {networkObject.name} to spawn point: {spawnData.Position}");
+        }
+        else
+        {
+            // Fallback if NetworkTransform not found
+            networkObject.transform.SetPositionAndRotation(spawnData.Position, spawnData.Rotation);
+            Debug.LogWarning($"[PlayerSpawnManager] NetworkTransform not found on {networkObject.name}, using direct transform set");
+        }
+
+        // For client-authoritative transforms, we need the client to also teleport itself
+        // Check if this is a player (not a bot) with client-authoritative transform
+        if (networkObject.TryGetComponent<PlayerController>(out var controller) && 
+            !controller.IsBot &&
+            networkObject.OwnerClientId == clientId &&
+            clientId != NetworkManager.ServerClientId)
+        {
+            // Check if NetworkTransform is client-authoritative (ClientNetworkTransform)
+            if (networkObject.TryGetComponent<ClientNetworkTransform>(out _))
+            {
+                // Wait a bit more to ensure the client has received the spawn
+                yield return new WaitForSeconds(0.1f);
+                
+                // Send ClientRPC to have the client teleport itself
+                // The RPC will only execute on the owner client, so it's safe to send for both host and pure clients
+                controller.TeleportToSpawnPositionClientRpc(spawnData.Position, spawnData.Rotation);
+                Debug.Log($"[PlayerSpawnManager] Sent ClientRPC to teleport client {clientId} to spawn point: {spawnData.Position}");
+            }
+        }
     }
 
     public void Dispose()

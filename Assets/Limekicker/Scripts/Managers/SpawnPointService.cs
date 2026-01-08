@@ -3,7 +3,7 @@ using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 
-public class SpawnPointService : ISpawnPointService
+public class SpawnPointService
 {
     private SpawnPoint[] allSpawnPoints;
     private Dictionary<NetworkObject, SpawnPointData> assignedSpawnPoints = new Dictionary<NetworkObject, SpawnPointData>();
@@ -11,23 +11,25 @@ public class SpawnPointService : ISpawnPointService
 
     public SpawnPointService()
     {
-        Initialize();
-    }
-
-    private void Initialize()
-    {
-        allSpawnPoints = Object.FindObjectsOfType<SpawnPoint>()
+        allSpawnPoints = Object.FindObjectsOfType<SpawnPoint>(true)
             .OrderBy(sp => sp.transform.position.x)
             .ToArray();
 
-        Debug.Log($"[SpawnPointService] Initialized with {allSpawnPoints.Length} spawn points");
+        if (allSpawnPoints == null || allSpawnPoints.Length == 0)
+        {
+            Debug.LogError("[SpawnPointService] No spawn points found in the scene! Players will spawn at origin (0,0,0).");
+        }
+        else
+        {
+            Debug.Log($"[SpawnPointService] Initialized with {allSpawnPoints.Length} spawn points");
+        }
     }
 
     public SpawnPointData GetRandomUnusedSpawnPoint(NetworkObject networkObject)
     {
         if (allSpawnPoints == null || allSpawnPoints.Length == 0)
         {
-            Debug.LogWarning("[SpawnPointService] No spawn points available!");
+            Debug.LogError("[SpawnPointService] No spawn points available!");
             return null;
         }
 
@@ -107,3 +109,13 @@ public class SpawnPointService : ISpawnPointService
 
 }
 
+/// <summary>
+/// Data structure containing spawn point information.
+/// </summary>
+public class SpawnPointData
+{
+    public SpawnPoint SpawnPoint { get; set; }
+    public Vector3 Position => SpawnPoint.transform.position;
+    public Quaternion Rotation => SpawnPoint.transform.rotation;
+    public NetworkObject AssignedObject { get; set; }
+}

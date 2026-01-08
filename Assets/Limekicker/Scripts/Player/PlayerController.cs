@@ -15,7 +15,6 @@ public class PlayerController : NetworkBehaviour
 
     [Header("Settings")]
     [SerializeField] private int cameraPriority = 10;
-    [SerializeField] private float spawnRotationDelay = 0.5f; // Delay to account for server overrides
 
     public CarDamageManager DamageManager => damageManager;
     public bool IsBot { get; private set; }
@@ -29,8 +28,6 @@ public class PlayerController : NetworkBehaviour
 
     public static event Action<PlayerController> OnPlayerSpawned;
     public static event Action<PlayerController> OnPlayerDespawned;
-
-    private ISpawnPointService spawnPointService;
 
     private EventBinding<GameStateChangeEvent> gameStateChangeEvent;
 
@@ -79,13 +76,6 @@ public class PlayerController : NetworkBehaviour
             OnPlayerIndexChanged(0, PlayerIndex.Value);
         }
 
-        // Apply spawn point rotation after a delay (to account for server overrides)
-        // Only run on server where spawn point service data exists
-        if (IsServer)
-        {
-            StartCoroutine(ApplySpawnPointRotation());
-        }
-
         gameStateChangeEvent = new EventBinding<GameStateChangeEvent>(HandleGameStateChange);
         EventBus<GameStateChangeEvent>.Register(gameStateChangeEvent);
     }
@@ -121,59 +111,60 @@ public class PlayerController : NetworkBehaviour
     }
 
     /// <summary>
-    /// Attempts to resolve ISpawnPointService from VContainer and apply spawn point rotation.
-    /// Only runs on server where spawn point service data exists.
+    /// ClientRPC called by PlayerSpawnManager to teleport the player to spawn position.
+    /// This is needed for client-authoritative transforms where the client must set its own position.
+    /// PlayerSpawnManager maintains responsibility for spawn logic; this is just a simple teleport interface.
     /// </summary>
-    private IEnumerator ApplySpawnPointRotation()
+    [ClientRpc]
+    public void TeleportToSpawnPositionClientRpc(Vector3 position, Quaternion rotation)
     {
-        // Only run on server
-        if (!IsServer)
-            yield break;
+        if (!IsOwner)
+            return;
 
-        // Wait for the delay to account for server overrides
-        yield return new WaitForSeconds(spawnRotationDelay);
-
-        // Try to resolve the spawn point service
-        TryResolveSpawnPointService();
-
-        if (spawnPointService != null)
-        {
-            var spawnData = spawnPointService.GetSpawnPointForObject(NetworkObject);
-            if (spawnData != null)
-            {
-                // Apply the spawn point position and rotation (ensures correct spawn position after NetworkTransform sync)
-                transform.SetPositionAndRotation(spawnData.Position, spawnData.Rotation);
-                Debug.Log($"[PlayerController] Applied spawn point position and rotation: {spawnData.Position}, {spawnData.Rotation.eulerAngles}");
-            }
-            else
-            {
-                Debug.LogWarning($"[PlayerController] Could not find spawn point data for {gameObject.name} - player may spawn at incorrect position!");
-            }
-        }
+        StartCoroutine(TeleportToPositionCoroutine(position, rotation));
     }
 
-    /// <summary>Attempts to resolve ISpawnPointService from VContainer.</summary>
-    private void TryResolveSpawnPointService()
+    /// <summary>
+    /// Coroutine to teleport the player to a specific position. Called by ClientRPC.
+    /// </summary>
+    private IEnumerator TeleportToPositionCoroutine(Vector3 position, Quaternion rotation)
     {
-        // Try to find GameLifetimeScope which has ISpawnPointService registered
-        var gameScope = FindFirstObjectByType<GameLifetimeScope>();
-        if (gameScope != null)
+        // 1. Give the client a moment to finish its internal 'Spawn' handshake
+        // If you teleport too fast, the NetworkTransform might not be ready to 'Commit'
+        yield return new WaitForSeconds(0.05f);
+
+        if (!IsOwner) 
+            yield break;
+
+        // 2. Handle Rigidbody if it exists (Crucial for cars)
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb != null)
         {
-            try
-            {
-                var container = gameScope.Container;
-                spawnPointService = container.Resolve<ISpawnPointService>();
-                Debug.Log("[PlayerController] Successfully resolved ISpawnPointService from container.");
-            }
-            catch (System.Exception ex)
-            {
-                Debug.LogError($"[PlayerController] Failed to resolve ISpawnPointService from container: {ex.Message}");
-            }
+            rb.isKinematic = true; // Temporarily stop physics interference
+            rb.position = position;
+            rb.rotation = rotation;
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
         }
-        else
+
+        // 3. Apply to Transform
+        transform.SetPositionAndRotation(position, rotation);
+
+        // 4. Force the NetworkTransform to recognize the 'Teleport'
+        if (TryGetComponent<Unity.Netcode.Components.NetworkTransform>(out var networkTransform))
         {
-            Debug.LogWarning("[PlayerController] GameLifetimeScope not found. Cannot resolve spawn point service.");
+            networkTransform.Teleport(position, rotation, Vector3.one);
         }
+
+        // 5. Re-enable physics
+        if (rb != null)
+        {
+            rb.isKinematic = false;
+            // Force physics engine to sync with the new transform position immediately
+            Physics.SyncTransforms();
+        }
+
+        Debug.Log($"[PlayerController] Client successfully teleported and synced to: {position}");
     }
 
     /// <summary>
@@ -189,6 +180,7 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
+
     /// <summary>
     /// Called by PlayerSpawnManager on server to set the player's index.
     /// This is the single source of truth - server sets it, clients receive it via NetworkVariable.
@@ -203,11 +195,6 @@ public class PlayerController : NetworkBehaviour
 
         PlayerIndex.Value = playerIndex;
         Debug.Log($"[PlayerController] Server initialized player with index: {playerIndex}");
-    }
-
-    private void OnDisable()
-    {
-        //DamageManager.OnCarDamaged -= () => OnPlayerCarDamaged?.Invoke();
     }
 
     public override void OnNetworkDespawn()
