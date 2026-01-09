@@ -1,8 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using Unity.Netcode;
-using Unity.Netcode.Transports.UTP;
-using Unity.Networking.Transport.Relay;
 using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
 using UnityEngine;
@@ -103,34 +100,7 @@ public class RelayService
     /// <exception cref="InvalidOperationException">Thrown if NetworkManager or UnityTransport is missing</exception>
     public void ConfigureTransportForHost(Allocation allocation)
     {
-        if (allocation == null)
-        {
-            throw new ArgumentNullException(nameof(allocation));
-        }
-
-        NetworkManager networkManager = NetworkManager.Singleton;
-        if (networkManager == null)
-        {
-            throw new InvalidOperationException("NetworkManager.Singleton is null. Ensure NetworkManager exists in the scene.");
-        }
-
-        UnityTransport transport = networkManager.GetComponent<UnityTransport>();
-        if (transport == null)
-        {
-            throw new InvalidOperationException("NetworkManager is missing UnityTransport component. Add UnityTransport to the NetworkManager GameObject.");
-        }
-
-        try
-        {
-            RelayServerData relayServerData = new RelayServerData(allocation, RelayProtocol);
-            transport.SetRelayServerData(relayServerData);
-            Debug.Log($"[RelayService] Transport configured for host with protocol: {RelayProtocol}");
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"[RelayService] Failed to configure transport for host: {e.Message}");
-            throw;
-        }
+        ConnectionService.ConfigureRelayForHost(allocation);
     }
 
     /// <summary>
@@ -141,34 +111,7 @@ public class RelayService
     /// <exception cref="InvalidOperationException">Thrown if NetworkManager or UnityTransport is missing</exception>
     public void ConfigureTransportForClient(JoinAllocation allocation)
     {
-        if (allocation == null)
-        {
-            throw new ArgumentNullException(nameof(allocation));
-        }
-
-        NetworkManager networkManager = NetworkManager.Singleton;
-        if (networkManager == null)
-        {
-            throw new InvalidOperationException("NetworkManager.Singleton is null. Ensure NetworkManager exists in the scene.");
-        }
-
-        UnityTransport transport = networkManager.GetComponent<UnityTransport>();
-        if (transport == null)
-        {
-            throw new InvalidOperationException("NetworkManager is missing UnityTransport component. Add UnityTransport to the NetworkManager GameObject.");
-        }
-
-        try
-        {
-            RelayServerData relayServerData = new RelayServerData(allocation, RelayProtocol);
-            transport.SetRelayServerData(relayServerData);
-            Debug.Log($"[RelayService] Transport configured for client with protocol: {RelayProtocol}");
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"[RelayService] Failed to configure transport for client: {e.Message}");
-            throw;
-        }
+        ConnectionService.ConfigureRelayForClient(allocation);
     }
 
     /// <summary>

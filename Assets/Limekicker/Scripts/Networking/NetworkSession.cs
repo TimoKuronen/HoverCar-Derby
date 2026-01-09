@@ -1,18 +1,23 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Unity.Netcode;
+using Unity.Services.Lobbies.Models;
 using UnityEngine;
 
 /// <summary>
 /// Central entry point for high-level network session actions.
 ///
 /// UI and gameplay code should call into this class instead of talking
-/// directly to HostSingleton / ClientSingleton / Lobbies where possible.
+/// directly to HostSingleton / ClientSingleton / ServerSingleton / Lobbies.
 /// This keeps the overall flow in one place while still reusing the existing
 /// HostGameManager / ClientGameManager / ServerGameManager implementations.
+/// 
+/// This facade completely hides singleton access from the rest of the codebase.
 /// </summary>
 public static class NetworkSession
 {
+    // Connection Status Properties
     /// <summary>Returns true if a NetworkManager exists and is acting as host.</summary>
     public static bool IsHostActive =>
         NetworkManager.Singleton != null && NetworkManager.Singleton.IsHost;
@@ -20,6 +25,23 @@ public static class NetworkSession
     /// <summary>Returns true if a NetworkManager exists and is acting as a client.</summary>
     public static bool IsClientActive =>
         NetworkManager.Singleton != null && NetworkManager.Singleton.IsClient;
+
+    /// <summary>Returns true if a NetworkManager exists and is acting as a server (host or dedicated).</summary>
+    public static bool IsServerActive =>
+        NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer;
+
+    /// <summary>Returns true if currently connected to a network session.</summary>
+    public static bool IsConnected =>
+        NetworkManager.Singleton != null && 
+        (NetworkManager.Singleton.IsClient || NetworkManager.Singleton.IsServer);
+
+    /// <summary>Returns true if HostSingleton is initialized and ready.</summary>
+    public static bool IsHostInitialized =>
+        HostSingleton.Instance != null && HostSingleton.Instance.GameManager != null;
+
+    /// <summary>Returns true if ClientSingleton is initialized and ready.</summary>
+    public static bool IsClientInitialized =>
+        ClientSingleton.Instance != null && ClientSingleton.Instance.GameManager != null;
 
     /// <summary>
     /// Starts a host game using the existing HostGameManager.
@@ -85,17 +107,139 @@ public static class NetworkSession
     public static void LeaveGame()
     {
         // Host path: shut down lobby/host if present
-        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsHost &&
-            HostSingleton.Instance != null && HostSingleton.Instance.GameManager != null)
+        if (IsHostActive && IsHostInitialized)
         {
             HostSingleton.Instance.GameManager.Shutdown();
         }
 
         // Client path: disconnect from server
-        if (ClientSingleton.Instance != null && ClientSingleton.Instance.GameManager != null)
+        if (IsClientInitialized)
         {
             ClientSingleton.Instance.GameManager.Disconnect();
         }
+    }
+
+    // NetworkServer Access
+    /// <summary>
+    /// Gets the NetworkServer instance for the current session.
+    /// Returns null if not available (client-only mode or not initialized).
+    /// </summary>
+    public static INetworkServer GetNetworkServer()
+    {
+        if (NetworkManager.Singleton == null) return null;
+
+        // Host path
+        if (NetworkManager.Singleton.IsHost && IsHostInitialized)
+        {
+            return HostSingleton.Instance.GameManager.NetworkServer;
+        }
+
+        // Dedicated server path
+        if (NetworkManager.Singleton.IsServer && 
+            ServerSingleton.Instance != null && 
+            ServerSingleton.Instance.GameManager != null)
+        {
+            return ServerSingleton.Instance.GameManager.NetworkServer;
+        }
+
+        return null;
+    }
+
+    // Lobby Operations
+    /// <summary>
+    /// Queries available lobbies with default filters (has available slots, not locked).
+    /// </summary>
+    /// <param name="count">Maximum number of lobbies to return (default: 25)</param>
+    /// <returns>Query response with matching lobbies. Throws exception on error.</returns>
+    public static async Task<QueryResponse> QueryAvailableLobbiesAsync(int count = 25)
+    {
+        if (!IsClientInitialized)
+        {
+            throw new InvalidOperationException("Cannot query lobbies: ClientSingleton is not initialized.");
+        }
+
+        // Create a temporary LobbyService for querying (UI classes can also use this)
+        LobbyService lobbyService = new LobbyService();
+        return await lobbyService.QueryAvailableLobbiesAsync(count);
+    }
+
+    /// <summary>
+    /// Joins a lobby by its ID and then connects to the game via the lobby's join code.
+    /// </summary>
+    /// <param name="lobbyId">The ID of the lobby to join</param>
+    public static async Task JoinLobbyByIdAsync(string lobbyId)
+    {
+        if (!IsClientInitialized)
+        {
+            Debug.LogError("[NetworkSession] Cannot join lobby: ClientSingleton is not initialized.");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(lobbyId))
+        {
+            Debug.LogError("[NetworkSession] Cannot join lobby: lobby ID is null or empty.");
+            return;
+        }
+
+        try
+        {
+            LobbyService lobbyService = new LobbyService();
+            Lobby lobby = await lobbyService.JoinLobbyByIdAsync(lobbyId);
+
+            if (lobby.Data != null && lobby.Data.ContainsKey("JoinCode"))
+            {
+                string joinCode = lobby.Data["JoinCode"].Value;
+                await StartClientViaJoinCodeAsync(joinCode);
+            }
+            else
+            {
+                Debug.LogError("[NetworkSession] Lobby does not contain a join code.");
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[NetworkSession] Failed to join lobby: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Gets the current join code if hosting.
+    /// </summary>
+    /// <returns>The join code, or null if not hosting or not available</returns>
+    public static string GetHostJoinCode()
+    {
+        if (IsHostActive && IsHostInitialized)
+        {
+            return HostSingleton.Instance.GameManager.joinCode;
+        }
+        return null;
+    }
+
+    // Connection Info
+    /// <summary>
+    /// Gets the local client ID if connected as a client.
+    /// </summary>
+    /// <returns>The local client ID, or 0 if not connected</returns>
+    public static ulong GetLocalClientId()
+    {
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsClient)
+        {
+            return NetworkManager.Singleton.LocalClientId;
+        }
+        return 0;
+    }
+
+    /// <summary>
+    /// Gets the number of connected clients (including host if in host mode).
+    /// </summary>
+    /// <returns>The number of connected clients, or 0 if not a server</returns>
+    public static int GetConnectedClientCount()
+    {
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+        {
+            return NetworkManager.Singleton.ConnectedClientsIds.Count;
+        }
+        return 0;
     }
 }
 

@@ -4,17 +4,10 @@ using UnityEngine;
 
 public class LobbiesList : MonoBehaviour
 {
-    [SerializeField] private MainMenu mainMenu;
     [SerializeField] private Transform lobbyItemParent;
     [SerializeField] private LobbyItem lobbyItemPrefab;
 
     private bool isRefreshing = false;
-    private LobbyService lobbyService;
-
-    private void Start()
-    {
-        lobbyService = new LobbyService(this);
-    }
 
     private void OnEnable()
     {
@@ -30,7 +23,7 @@ public class LobbiesList : MonoBehaviour
 
         try
         {
-            QueryResponse lobbies = await lobbyService.QueryAvailableLobbiesAsync(count: 25);
+            QueryResponse lobbies = await NetworkSession.QueryAvailableLobbiesAsync(count: 25);
 
             foreach (Transform child in lobbyItemParent)
             {
@@ -51,8 +44,8 @@ public class LobbiesList : MonoBehaviour
         isRefreshing = false;
     }
 
-    public void JoinASync(Lobby lobby)
+    public async void JoinASync(Lobby lobby)
     {
-        mainMenu.JoinASync(lobby);
+        await NetworkSession.JoinLobbyByIdAsync(lobby.Id);
     }
 }

@@ -24,7 +24,7 @@ public class MainMenu : MonoBehaviour
 
     private void Start()
     {
-        if (ClientSingleton.Instance == null)
+        if (!NetworkSession.IsClientInitialized)
             return;
 
         lobbyService = new LobbyService(this);
@@ -161,13 +161,13 @@ public class MainMenu : MonoBehaviour
     {
         try
         {
-            QueryResponse lobbies = await lobbyService.QueryAvailableLobbiesAsync(count: 1);
+            QueryResponse lobbies = await NetworkSession.QueryAvailableLobbiesAsync(count: 1);
 
             if (lobbies.Results != null && lobbies.Results.Count > 0)
             {
                 Lobby firstLobby = lobbies.Results[0];
                 Debug.Log($"Quick joining lobby: {firstLobby.Name}");
-                await JoinLobbyAsync(firstLobby);
+                await NetworkSession.JoinLobbyByIdAsync(firstLobby.Id);
             }
             else
             {
@@ -195,9 +195,17 @@ public class MainMenu : MonoBehaviour
 
         try
         {
-            Lobby joiningLobby = await lobbyService.JoinLobbyByIdAsync(lobby.Id);
+            // Get join code from lobby before joining
+            string joinCode = lobby.Data != null && lobby.Data.ContainsKey("JoinCode") 
+                ? lobby.Data["JoinCode"].Value 
+                : null;
 
-            string joinCode = joiningLobby.Data["JoinCode"].Value;
+            if (string.IsNullOrEmpty(joinCode))
+            {
+                // If join code not in lobby data, join lobby first to get it
+                Lobby joiningLobby = await lobbyService.JoinLobbyByIdAsync(lobby.Id);
+                joinCode = joiningLobby.Data["JoinCode"].Value;
+            }
 
             // Save join code for next time
             PlayerPrefs.SetString(LastJoinCodeKey, joinCode);

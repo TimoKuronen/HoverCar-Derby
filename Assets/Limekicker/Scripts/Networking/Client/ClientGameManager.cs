@@ -2,7 +2,6 @@ using System;
 using System.Text;
 using System.Threading.Tasks;
 using Unity.Netcode;
-using Unity.Netcode.Transports.UTP;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
 using Unity.Services.Relay.Models;
@@ -56,9 +55,7 @@ public class ClientGameManager : IDisposable
     /// <summary>Connects client directly to server via IP/port (used for matchmaking).</summary>
     public void StartClient(string ip, int port)
     {
-        UnityTransport transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-        transport.SetConnectionData(ip, (ushort)port);
-
+        ConnectionService.ConfigureDirectConnection(ip, port);
         ConnectClient();
     }
 

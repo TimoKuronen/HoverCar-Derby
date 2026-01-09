@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Unity.Netcode;
-using Unity.Netcode.Transports.UTP;
 using UnityEngine;
 
 public class NetworkServer : INetworkServer, IDisposable
@@ -30,15 +29,7 @@ public class NetworkServer : INetworkServer, IDisposable
     /// <summary>Opens server connection. In UNITY_SERVER builds, binds to Multiplay allocated port.</summary>
     public bool OpenConnection(string ip, int port)
     {
-        UnityTransport transport = networkManager.GetComponent<UnityTransport>();
-
-#if UNITY_SERVER
-        var config = Unity.Services.Multiplay.MultiplayService.Instance.ServerConfig;
-        //Debug.Log($"[NetworkServer] UNITY_SERVER binding to 0.0.0.0:{config.Port} (QPort: {config.QueryPort})");
-        transport.SetConnectionData("0.0.0.0", (ushort)config.Port);
-#else
-        transport.SetConnectionData(ip, (ushort)port);
-#endif
+        ConnectionService.ConfigureServerBinding(ip, port);
         return networkManager.StartServer();
     }
 

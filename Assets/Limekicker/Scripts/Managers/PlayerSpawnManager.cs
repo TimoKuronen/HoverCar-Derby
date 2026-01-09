@@ -83,27 +83,7 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
 
     private INetworkServer ResolveNetworkServer()
     {
-        if (NetworkManager.Singleton == null) return null;
-
-        // Host path
-        if (NetworkManager.Singleton.IsHost &&
-            HostSingleton.Instance != null &&
-            HostSingleton.Instance.GameManager != null &&
-            HostSingleton.Instance.GameManager.NetworkServer != null)
-        {
-            return HostSingleton.Instance.GameManager.NetworkServer;
-        }
-
-        // Dedicated server path
-        if (NetworkManager.Singleton.IsServer &&
-            ServerSingleton.Instance != null &&
-            ServerSingleton.Instance.GameManager != null &&
-            ServerSingleton.Instance.GameManager.NetworkServer != null)
-        {
-            return ServerSingleton.Instance.GameManager.NetworkServer;
-        }
-
-        return null;
+        return NetworkSession.GetNetworkServer();
     }
 
     private void HandleUserJoined(UserData userData)
