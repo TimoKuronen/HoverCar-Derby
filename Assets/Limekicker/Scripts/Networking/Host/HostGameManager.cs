@@ -1,13 +1,10 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using Unity.Networking.Transport.Relay;
 using Unity.Services.Authentication;
 using Unity.Services.Lobbies;
-using Unity.Services.Lobbies.Models;
 using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
 using UnityEngine;
@@ -41,17 +38,17 @@ using UnityEngine.SceneManagement;
 public class HostGameManager : IDisposable
 {
     public string joinCode { get; private set; }
-    private string lobbyID;
     private Allocation allocation;
     private NetworkObject playerPrefab;
     public NetworkServer NetworkServer { get; private set; }
-    private Coroutine heartbeatCoroutine;
+    private LobbyService lobbyService;
     private const int MaxConnections = 8;
     private const string GameSceneName = "PlayScene";
 
-    public HostGameManager(NetworkObject playerPrefab)
+    public HostGameManager(NetworkObject playerPrefab, MonoBehaviour coroutineRunner = null)
     {
         this.playerPrefab = playerPrefab;
+        this.lobbyService = new LobbyService(coroutineRunner ?? HostSingleton.Instance);
     }
 
     /// <summary>Creates Relay allocation, lobby, starts host, and loads game scene.</summary>
@@ -86,28 +83,9 @@ public class HostGameManager : IDisposable
 
         try
         {
-            CreateLobbyOptions lobbyOptions = new CreateLobbyOptions
-            {
-                IsPrivate = false,
-                Data = new Dictionary<string, DataObject>()
-                {
-                    {
-                    "JoinCode", new DataObject(
-                        visibility: DataObject.VisibilityOptions.Member,
-                        value: joinCode
-                        )
-                    }
-                }
-            };
-
             string playerName = PlayerPrefs.GetString(NameSelector.PlayerNameKey, "Unknown");
-
-            Lobby lobby = await Lobbies.Instance.CreateLobbyAsync(
-               $"{playerName}'s Lobby", MaxConnections, lobbyOptions);
-
-            lobbyID = lobby.Id;
-
-            heartbeatCoroutine = HostSingleton.Instance.StartCoroutine(HeartbeatLobby(15));
+            await lobbyService.CreateLobbyAsync($"{playerName}'s Lobby", MaxConnections, joinCode, isPrivate: false);
+            lobbyService.StartHeartbeat(15);
         }
         catch (LobbyServiceException e)
         {
@@ -141,53 +119,7 @@ public class HostGameManager : IDisposable
     /// <summary>Removes player from lobby when they disconnect.</summary>
     private async void HandleClientLeft(string authId)
     {
-        // Don't try to remove players if we're already shutting down or lobby is gone
-        if (string.IsNullOrEmpty(lobbyID))
-            return;
-
-        try
-        {
-            await LobbyService.Instance.RemovePlayerAsync(lobbyID, authId);
-        }
-        catch (LobbyServiceException e)
-        {
-            // "lobby not found" is expected during shutdown - don't log as error
-            if (e.Message.Contains("not found") || e.Message.Contains("lobby not found"))
-            {
-                Debug.Log($"[HostGameManager] Lobby already deleted when removing player (expected during shutdown)");
-            }
-            else
-            {
-                Debug.LogWarning($"[HostGameManager] Failed to remove player from lobby: {e.Message}");
-            }
-        }
-        catch (System.Exception e)
-        {
-            // Handle any other exceptions gracefully during shutdown
-            Debug.LogWarning($"[HostGameManager] Exception during player removal (expected during shutdown): {e.Message}");
-        }
-    }
-
-    /// <summary>Keeps lobby alive by sending heartbeat pings at specified interval.</summary>
-    private IEnumerator HeartbeatLobby(float waitTimeSeconds)
-    {
-        WaitForSecondsRealtime delay = new WaitForSecondsRealtime(waitTimeSeconds);
-
-        while (HostSingleton.Instance != null && !string.IsNullOrEmpty(lobbyID))
-        {
-            try
-            {
-                Lobbies.Instance.SendHeartbeatPingAsync(lobbyID);
-            }
-            catch (System.Exception e)
-            {
-                // Lobby might be deleted or service unavailable during shutdown
-                Debug.LogWarning($"[HostGameManager] Heartbeat failed (expected during shutdown): {e.Message}");
-                yield break;
-            }
-
-            yield return delay;
-        }
+        await lobbyService.RemovePlayerAsync(authId);
     }
 
     /// <summary>Cleans up lobby and network resources.</summary>
@@ -199,40 +131,7 @@ public class HostGameManager : IDisposable
     /// <summary>Deletes lobby and shuts down network server.</summary>
     public async void Shutdown()
     {
-        if (string.IsNullOrEmpty(lobbyID))
-            return;
-
-        // Stop heartbeat coroutine if it's running
-        if (heartbeatCoroutine != null && HostSingleton.Instance != null)
-        {
-            HostSingleton.Instance.StopCoroutine(heartbeatCoroutine);
-            heartbeatCoroutine = null;
-        }
-
-        // Try to delete lobby, but don't error if it's already gone (expected during shutdown)
-        try
-        {
-            await Lobbies.Instance.DeleteLobbyAsync(lobbyID);
-        }
-        catch (LobbyServiceException e)
-        {
-            // "lobby not found" is expected during shutdown - don't log as error
-            if (e.Message.Contains("not found") || e.Message.Contains("lobby not found"))
-            {
-                Debug.Log($"[HostGameManager] Lobby already deleted (expected during shutdown)");
-            }
-            else
-            {
-                Debug.LogWarning($"[HostGameManager] Failed to delete lobby: {e.Message}");
-            }
-        }
-        catch (System.Exception e)
-        {
-            // Handle any other exceptions gracefully during shutdown
-            Debug.LogWarning($"[HostGameManager] Exception during lobby deletion (expected during shutdown): {e.Message}");
-        }
-        
-        lobbyID = string.Empty;
+        await lobbyService.DeleteLobbyAsync();
 
         // Unsubscribe from events if NetworkServer still exists
         if (NetworkServer != null)

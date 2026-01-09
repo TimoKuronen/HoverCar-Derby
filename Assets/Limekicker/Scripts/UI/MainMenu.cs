@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using TMPro;
 using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
@@ -16,6 +15,7 @@ public class MainMenu : MonoBehaviour
     private bool isMatchmaking;
     private bool isCanceling;
     private bool isBusy;
+    private LobbyService lobbyService;
 
     float timeInQueue = 0;
 
@@ -26,6 +26,8 @@ public class MainMenu : MonoBehaviour
     {
         if (ClientSingleton.Instance == null)
             return;
+
+        lobbyService = new LobbyService(this);
 
         Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
 
@@ -159,26 +161,7 @@ public class MainMenu : MonoBehaviour
     {
         try
         {
-            QueryLobbiesOptions options = new QueryLobbiesOptions();
-            options.Count = 1; // Only need the first one
-
-            options.Filters = new List<QueryFilter>()
-            {
-                new QueryFilter
-                (
-                  field: QueryFilter.FieldOptions.AvailableSlots,
-                  op: QueryFilter.OpOptions.GT,
-                  value: "0"
-                ),
-                new QueryFilter
-                (
-                  field: QueryFilter.FieldOptions.IsLocked,
-                  op: QueryFilter.OpOptions.EQ,
-                  value: "0"
-                )
-            };
-
-            QueryResponse lobbies = await Lobbies.Instance.QueryLobbiesAsync(options);
+            QueryResponse lobbies = await lobbyService.QueryAvailableLobbiesAsync(count: 1);
 
             if (lobbies.Results != null && lobbies.Results.Count > 0)
             {
@@ -212,7 +195,7 @@ public class MainMenu : MonoBehaviour
 
         try
         {
-            Lobby joiningLobby = await Lobbies.Instance.JoinLobbyByIdAsync(lobby.Id);
+            Lobby joiningLobby = await lobbyService.JoinLobbyByIdAsync(lobby.Id);
 
             string joinCode = joiningLobby.Data["JoinCode"].Value;
 

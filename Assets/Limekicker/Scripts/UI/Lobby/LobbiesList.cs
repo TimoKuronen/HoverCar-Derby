@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
 
@@ -11,6 +9,12 @@ public class LobbiesList : MonoBehaviour
     [SerializeField] private LobbyItem lobbyItemPrefab;
 
     private bool isRefreshing = false;
+    private LobbyService lobbyService;
+
+    private void Start()
+    {
+        lobbyService = new LobbyService(this);
+    }
 
     private void OnEnable()
     {
@@ -26,27 +30,7 @@ public class LobbiesList : MonoBehaviour
 
         try
         {
-            QueryLobbiesOptions options = new QueryLobbiesOptions();
-
-            options.Count = 25;
-
-            options.Filters = new List<QueryFilter>()
-            {
-                new QueryFilter
-                (
-                  field: QueryFilter.FieldOptions.AvailableSlots,
-                  op: QueryFilter.OpOptions.GT,
-                  value: "0"
-                ),
-                new QueryFilter
-                (
-                  field: QueryFilter.FieldOptions.IsLocked,
-                  op: QueryFilter.OpOptions.EQ,
-                  value: "0"
-                )
-            };
-
-            QueryResponse lobbies = await Lobbies.Instance.QueryLobbiesAsync(options);
+            QueryResponse lobbies = await lobbyService.QueryAvailableLobbiesAsync(count: 25);
 
             foreach (Transform child in lobbyItemParent)
             {
