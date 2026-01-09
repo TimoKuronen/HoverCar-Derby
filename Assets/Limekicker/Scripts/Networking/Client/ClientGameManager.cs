@@ -3,10 +3,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
-using Unity.Networking.Transport.Relay;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
-using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -19,6 +17,7 @@ public class ClientGameManager : IDisposable
 
     private NetworkClient networkClient;
     private MatchplayMatchmaker matchmaker;
+    private RelayService relayService;
 
     private UserData userData;
 
@@ -29,6 +28,7 @@ public class ClientGameManager : IDisposable
 
         networkClient = new NetworkClient(NetworkManager.Singleton);
         matchmaker = new MatchplayMatchmaker();
+        relayService = new RelayService();
 
         AuthenticatorState authenticatorState = await AuthenticatorHandler.DoAuthentication();
 
@@ -67,7 +67,7 @@ public class ClientGameManager : IDisposable
     {
         try
         {
-            allocation = await Relay.Instance.JoinAllocationAsync(joinCode);
+            allocation = await relayService.JoinAllocationAsync(joinCode);
         }
         catch (Exception e)
         {
@@ -75,11 +75,15 @@ public class ClientGameManager : IDisposable
             return;
         }
 
-        UnityTransport transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-
-        // Use "dtls" for more security but if facing issues, try "udp"
-        RelayServerData relayServerData = new RelayServerData(allocation, "dtls");
-        transport.SetRelayServerData(relayServerData);
+        try
+        {
+            relayService.ConfigureTransportForClient(allocation);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Failed to configure transport: {e.Message}");
+            return;
+        }
 
         ConnectClient();
     }

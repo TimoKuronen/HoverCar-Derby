@@ -1,11 +1,8 @@
 using System;
 using System.Threading.Tasks;
 using Unity.Netcode;
-using Unity.Netcode.Transports.UTP;
-using Unity.Networking.Transport.Relay;
 using Unity.Services.Authentication;
 using Unity.Services.Lobbies;
-using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -42,6 +39,7 @@ public class HostGameManager : IDisposable
     private NetworkObject playerPrefab;
     public NetworkServer NetworkServer { get; private set; }
     private LobbyService lobbyService;
+    private RelayService relayService;
     private const int MaxConnections = 8;
     private const string GameSceneName = "PlayScene";
 
@@ -49,6 +47,7 @@ public class HostGameManager : IDisposable
     {
         this.playerPrefab = playerPrefab;
         this.lobbyService = new LobbyService(coroutineRunner ?? HostSingleton.Instance);
+        this.relayService = new RelayService();
     }
 
     /// <summary>Creates Relay allocation, lobby, starts host, and loads game scene.</summary>
@@ -56,7 +55,7 @@ public class HostGameManager : IDisposable
     {
         try
         {
-            allocation = await Relay.Instance.CreateAllocationAsync(MaxConnections);
+            (allocation, joinCode) = await relayService.CreateAllocationWithJoinCodeAsync(MaxConnections);
         }
         catch (Exception e)
         {
@@ -66,20 +65,13 @@ public class HostGameManager : IDisposable
 
         try
         {
-            joinCode = await Relay.Instance.GetJoinCodeAsync(allocation.AllocationId);
-            Debug.Log($"Join code: {joinCode}");
+            relayService.ConfigureTransportForHost(allocation);
         }
         catch (Exception e)
         {
-            Debug.LogError($"Failed to start host: {e.Message}");
+            Debug.LogError($"Failed to configure transport: {e.Message}");
             return;
         }
-
-        UnityTransport transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-
-        // Use "dtls" for more security but if facing issues, try "udp"
-        RelayServerData relayServerData = new RelayServerData(allocation, "dtls");
-        transport.SetRelayServerData(relayServerData);
 
         try
         {
