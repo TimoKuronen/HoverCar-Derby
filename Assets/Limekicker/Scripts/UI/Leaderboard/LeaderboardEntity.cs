@@ -9,11 +9,11 @@ public class LeaderboardEntity : MonoBehaviour
     [SerializeField] private Color myColor;
 
     public ulong ClientId { get; private set; }
-    public int Cash { get; private set; }
+    public int Points { get; private set; }
 
     private FixedString32Bytes playerName;
 
-    public void Initialise(ulong clientId, FixedString32Bytes playerName, int cash)
+    public void Initialise(ulong clientId, FixedString32Bytes playerName, int points)
     {
         this.ClientId = clientId;
         this.playerName = playerName;
@@ -23,18 +23,18 @@ public class LeaderboardEntity : MonoBehaviour
             displayText.color = myColor;
         }
 
-        UpdateCash(cash);
+        UpdatePoints(points);
     }
 
-    public void UpdateCash(int cash)
+    public void UpdatePoints(int points)
     {
-        Cash = cash;
+        Points = points;
 
         UpdateText();
     }
 
     public void UpdateText()
     {
-        displayText.text = $"{transform.GetSiblingIndex() + 1}. {playerName} ({Cash})";
+        displayText.text = $"{transform.GetSiblingIndex() + 1}. {playerName} ({Points})";
     }
 }

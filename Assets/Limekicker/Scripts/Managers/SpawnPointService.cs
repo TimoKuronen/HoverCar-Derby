@@ -21,7 +21,7 @@ public class SpawnPointService
         }
         else
         {
-            Debug.Log($"[SpawnPointService] Initialized with {allSpawnPoints.Length} spawn points");
+            //Debug.Log($"[SpawnPointService] Initialized with {allSpawnPoints.Length} spawn points");
         }
     }
 
@@ -71,7 +71,7 @@ public class SpawnPointService
             assignedSpawnPoints[networkObject] = spawnData;
         }
 
-        Debug.Log($"[SpawnPointService] Assigned spawn point at {selectedSpawnPoint.transform.position} to {networkObject?.name ?? "null"} ({usedSpawnPoints.Count}/{allSpawnPoints.Length} used)");
+        //Debug.Log($"[SpawnPointService] Assigned spawn point at {selectedSpawnPoint.transform.position} to {networkObject?.name ?? "null"} ({usedSpawnPoints.Count}/{allSpawnPoints.Length} used)");
 
         return spawnData;
     }

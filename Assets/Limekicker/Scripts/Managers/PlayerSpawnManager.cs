@@ -18,7 +18,7 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
     public void Construct(IInputService inputService)
     {
         this.inputService = inputService;
-        Debug.Log("[PlayerSpawnManager] Constructed, starting initialization with input service " + inputService);
+        //Debug.Log("[PlayerSpawnManager] Constructed, starting initialization with input service " + inputService);
 
         CoroutineMonoBehavior.Instance.StartCoroutine(Initialize());
     }
@@ -36,7 +36,7 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
             networkServer.OnUserJoined += HandleUserJoined;
             networkServer.OnUserLeft += HandleUserLeft;
 
-            Debug.Log("[PlayerSpawnManager] Initialized and listening for joins.");
+            //Debug.Log("[PlayerSpawnManager] Initialized and listening for joins.");
 
             foreach (var existing in networkServer.GetConnectedUsers())
             {
@@ -150,12 +150,12 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
 
         OnPlayerSpawned?.Invoke(userData, instance);
 
-        Debug.Log($"[PlayerSpawnManager] Spawned player object for {userData.userName} at {spawnData.Position}");
+        //Debug.Log($"[PlayerSpawnManager] Spawned player object for {userData.userName} at {spawnData.Position}");
     }
 
     private void HandleUserLeft(UserData userData)
     {
-        Debug.Log($"[PlayerSpawnManager] Player {userData.userName} left.");
+        //Debug.Log($"[PlayerSpawnManager] Player {userData.userName} left.");
 
         // Release the spawn point if we can find the player's network object
         var server = ResolveNetworkServer();
@@ -228,7 +228,7 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
             controller.PlayerName.Value = new Unity.Collections.FixedString32Bytes("Bot Player " + (totalPlayerCount + 1));
         }
 
-        Debug.Log($"[PlayerSpawnManager] Spawned bot player at {spawnData.Position} with index {totalPlayerCount}");
+        //Debug.Log($"[PlayerSpawnManager] Spawned bot player at {spawnData.Position} with index {totalPlayerCount}");
     }
 
     /// <summary>
@@ -269,7 +269,7 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
         if (networkObject.TryGetComponent<Unity.Netcode.Components.NetworkTransform>(out var networkTransform))
         {
             networkTransform.Teleport(spawnData.Position, spawnData.Rotation, Vector3.one);
-            Debug.Log($"[PlayerSpawnManager] Server teleported {networkObject.name} to spawn point: {spawnData.Position}");
+            //Debug.Log($"[PlayerSpawnManager] Server teleported {networkObject.name} to spawn point: {spawnData.Position}");
         }
         else
         {

@@ -94,8 +94,8 @@ public class Leaderboard : NetworkBehaviour
             HandlePlayerSpawned(player);
         }
 
-        PlayerController.OnPlayerSpawned += HandlePlayerSpawned;
-        PlayerController.OnPlayerDespawned += HandlePlayerDespanwed;
+        //PlayerController.OnPlayerSpawned += HandlePlayerSpawned;
+        //PlayerController.OnPlayerDespawned += HandlePlayerDespanwed;
     }
 
     private void HandleLeaderboardEntitiesChanged(NetworkListEvent<LeaderboardEntityState> changeEvent)
@@ -136,12 +136,12 @@ public class Leaderboard : NetworkBehaviour
                     var entityToUpdate = leaderboardDisplays.FirstOrDefault(x => x.ClientId == changeEvent.Value.ClientId);
                     if (entityToUpdate != null)
                     {
-                        entityToUpdate.UpdateCash(changeEvent.Value.Cash);
+                        entityToUpdate.UpdatePoints(changeEvent.Value.Cash);
                     }
                     break;
             }
 
-            leaderboardDisplays.Sort((x, y) => y.Cash.CompareTo(x.Cash));
+            leaderboardDisplays.Sort((x, y) => y.Points.CompareTo(x.Points));
 
             for (int i = 0; i < leaderboardDisplays.Count; i++)
             {
@@ -185,8 +185,8 @@ public class Leaderboard : NetworkBehaviour
         if (!IsServer)
             return;
 
-        PlayerController.OnPlayerSpawned -= HandlePlayerSpawned;
-        PlayerController.OnPlayerDespawned -= HandlePlayerDespanwed;
+        //PlayerController.OnPlayerSpawned -= HandlePlayerSpawned;
+        //PlayerController.OnPlayerDespawned -= HandlePlayerDespanwed;
     }
 
     /// <summary>

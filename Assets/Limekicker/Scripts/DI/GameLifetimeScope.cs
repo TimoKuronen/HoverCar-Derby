@@ -9,6 +9,8 @@ public class GameLifetimeScope : LifetimeScope
         Debug.Log("[GameLifetimeScope] Configuring DI container...");
 
         builder.Register<IPlayerSpawnManager, PlayerSpawnManager>(Lifetime.Scoped);
+        builder.Register<IScoreManager, ScoreManager>(Lifetime.Scoped);
+
         builder.RegisterComponentInHierarchy<GasButton>();
         builder.RegisterComponentInHierarchy<SimpleHoverChaseCam>();
 

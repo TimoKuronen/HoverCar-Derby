@@ -20,7 +20,7 @@ public class CinematicState : IGameState
     public void Enter()
     {
         mainCamera.cullingMask &= ~(1 << playerLayer);
-        manager.Context.DollyCamera.ToggleMovement();
+        manager.Context.endingDollyCamera.ToggleMovement();
     }
 
     public void Update()
@@ -35,7 +35,7 @@ public class CinematicState : IGameState
 
     public void Exit()
     {
-        manager.Context.DollyCamera.ToggleMovement();
+        manager.Context.endingDollyCamera.ToggleMovement();
         mainCamera.cullingMask |= 1 << playerLayer;
 
         timer = 0;

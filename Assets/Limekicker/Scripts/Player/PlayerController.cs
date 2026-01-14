@@ -4,7 +4,6 @@ using System.Collections;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
-using VContainer;
 
 public class PlayerController : NetworkBehaviour
 {
@@ -25,9 +24,6 @@ public class PlayerController : NetworkBehaviour
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
-
-    public static event Action<PlayerController> OnPlayerSpawned;
-    public static event Action<PlayerController> OnPlayerDespawned;
 
     private EventBinding<GameStateChangeEvent> gameStateChangeEvent;
 
@@ -54,12 +50,12 @@ public class PlayerController : NetworkBehaviour
                 PlayerName.Value = userdata.userName;
             }
 
-            OnPlayerSpawned?.Invoke(this);
+            //OnPlayerSpawned?.Invoke(this);
         }
         else if (IsOwner && !IsBot)
         {
             // Client-side: Invoke OnPlayerSpawned for local client so camera can attach but NOT for bots
-            OnPlayerSpawned?.Invoke(this);
+            //OnPlayerSpawned?.Invoke(this);
         }
         else if (IsBot)
         {
@@ -176,7 +172,7 @@ public class PlayerController : NetworkBehaviour
         if (carColorPainter != null && newIndex >= 0)
         {
             carColorPainter.AssignColor(newIndex);
-            Debug.Log($"[PlayerController] PlayerIndex changed to {newIndex}, applied car color");
+            //Debug.Log($"[PlayerController] PlayerIndex changed to {newIndex}, applied car color");
         }
     }
 
@@ -194,7 +190,7 @@ public class PlayerController : NetworkBehaviour
         }
 
         PlayerIndex.Value = playerIndex;
-        Debug.Log($"[PlayerController] Server initialized player with index: {playerIndex}");
+        //Debug.Log($"[PlayerController] Server initialized player with index: {playerIndex}");
     }
 
     public override void OnNetworkDespawn()
@@ -211,18 +207,18 @@ public class PlayerController : NetworkBehaviour
         }
 
         // Invoke despawn event if we're server and there are subscribers
-        if (IsServer && OnPlayerDespawned != null)
-        {
-            try
-            {
-                OnPlayerDespawned.Invoke(this);
-            }
-            catch (System.Exception e)
-            {
-                // Subscribers might be destroyed during shutdown - this is expected
-                Debug.LogWarning($"[PlayerController] Exception during OnPlayerDespawned (expected during shutdown): {e.Message}");
-            }
-        }
+        //if (IsServer && OnPlayerDespawned != null)
+        //{
+        //    try
+        //    {
+        //        OnPlayerDespawned.Invoke(this);
+        //    }
+        //    catch (System.Exception e)
+        //    {
+        //        // Subscribers might be destroyed during shutdown - this is expected
+        //        Debug.LogWarning($"[PlayerController] Exception during OnPlayerDespawned (expected during shutdown): {e.Message}");
+        //    }
+        //}
 
         EventBus<GameStateChangeEvent>.Unregister(gameStateChangeEvent);
     }
