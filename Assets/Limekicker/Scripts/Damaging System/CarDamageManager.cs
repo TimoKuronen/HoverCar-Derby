@@ -4,7 +4,7 @@ using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 
-public class CarDamageManager : MonoBehaviour
+public class CarDamageManager
 {
     private CarManager carManager;
     private NetworkObject networkObject;
@@ -13,6 +13,7 @@ public class CarDamageManager : MonoBehaviour
 
     public PlayerController PlayerController { get; private set; }
     public float CarHealthPercentage => (currentCarHealth / maxCarHealth) * 100f;
+    public float CurrentCarHealth => currentCarHealth;
 
     // Currently not in use
     public Dictionary<CarPartType, CarPart> CarParts { get; private set; } = new Dictionary<CarPartType, CarPart>();
@@ -20,16 +21,11 @@ public class CarDamageManager : MonoBehaviour
     public event Action OnCarDestroyed;
     public event Action<float, Vector3> OnCarDamaged;
 
-    private void Start()
+    public CarDamageManager(CarManager carManager, NetworkObject networkObject, PlayerController playerController)
     {
-        carManager = GetComponent<CarManager>();
-        networkObject = GetComponent<NetworkObject>();
-        PlayerController = GetComponent<PlayerController>();
-
-        if (TryGetComponent<CarVFX>(out var carVFX))
-        {
-            carVFX.Init(this);
-        }
+        this.carManager = carManager;
+        this.networkObject = networkObject;
+        this.PlayerController = playerController;
 
         currentCarHealth = 100f;
         maxCarHealth = currentCarHealth;
@@ -89,7 +85,7 @@ public class CarDamageManager : MonoBehaviour
     private float[] DistributeValueWithClamp(float[] array, float additionValue, float maxLimit = 100f)
     {
         if (array == null || array.Length == 0)
-            throw new System.ArgumentException("Array cannot be null or empty");
+            throw new ArgumentException("Array cannot be null or empty");
 
         float[] result = (float[])array.Clone();
         float remainingAddition = additionValue;

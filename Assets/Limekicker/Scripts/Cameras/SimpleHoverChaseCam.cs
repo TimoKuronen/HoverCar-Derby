@@ -1,7 +1,6 @@
 using System;
 using Unity.Netcode;
 using UnityEngine;
-using VContainer;
 
 public class SimpleHoverChaseCam : MonoBehaviour
 {
@@ -18,14 +17,15 @@ public class SimpleHoverChaseCam : MonoBehaviour
     public int TryAssignLocalPlayer { get; private set; }
 
     private EventBinding<GameStateChangeEvent> gameStateChangeEvent;
+    private EventBinding<PlayerSpawnedEvent> playerSpawnedEvent;
 
-    [Inject]
-    public void Construct(IPlayerSpawnManager spawnManager)
+    public void Start()
     {
-        spawnManager.OnPlayerSpawned += OnPlayerSpawnedFromManager;
-
         gameStateChangeEvent = new EventBinding<GameStateChangeEvent>(HandleGameStateChange);
         EventBus<GameStateChangeEvent>.Register(gameStateChangeEvent);
+
+        playerSpawnedEvent = new EventBinding<PlayerSpawnedEvent>(HandlePlayerSpawnFromManager);
+        EventBus<PlayerSpawnedEvent>.Register(playerSpawnedEvent);
     }
 
     private void HandleGameStateChange(GameStateChangeEvent @event)
@@ -46,11 +46,11 @@ public class SimpleHoverChaseCam : MonoBehaviour
         }
     }
 
-    private void OnPlayerSpawnedFromManager(UserData data, NetworkObject netObj)
+    private void HandlePlayerSpawnFromManager(PlayerSpawnedEvent playerSpawnedEvent)
     {
-        if (netObj != null && netObj.IsOwner)
+        if (playerSpawnedEvent.NetworkObject != null && playerSpawnedEvent.NetworkObject.IsOwner)
         {
-            AssignTarget(netObj.transform, netObj.GetComponent<Rigidbody>());
+            AssignTarget(playerSpawnedEvent.NetworkObject.transform, playerSpawnedEvent.NetworkObject.GetComponent<Rigidbody>());
             //Debug.Log($"[SimpleHoverChaseCam] Assigned target from PlayerSpawnManager: {netObj.name}");
         }
     }
@@ -107,5 +107,6 @@ public class SimpleHoverChaseCam : MonoBehaviour
     private void OnDestroy()
     {
         EventBus<GameStateChangeEvent>.Unregister(gameStateChangeEvent);
+        EventBus<PlayerSpawnedEvent>.Unregister(playerSpawnedEvent);
     }
 }

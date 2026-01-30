@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
@@ -74,6 +75,27 @@ public class SpawnPointService
         //Debug.Log($"[SpawnPointService] Assigned spawn point at {selectedSpawnPoint.transform.position} to {networkObject?.name ?? "null"} ({usedSpawnPoints.Count}/{allSpawnPoints.Length} used)");
 
         return spawnData;
+    }
+
+    public SpawnPointData GetFurthestSpawnpoint(NetworkObject networkObject)
+    {
+        int furthestWaypointIndex = -1;
+        for (int i = 0; i < allSpawnPoints.Length; i++)
+        {
+            float furthestDistance = 0f;
+            float distance = Vector3.Distance(allSpawnPoints[i].transform.position, networkObject.transform.position);
+            if (distance > furthestDistance)
+            {
+                furthestDistance = distance;
+                furthestWaypointIndex = i;
+            }
+        }
+
+        return assignedSpawnPoints.ContainsKey(networkObject) ? assignedSpawnPoints[networkObject] : new SpawnPointData
+        {
+            SpawnPoint = allSpawnPoints[furthestWaypointIndex],
+            AssignedObject = networkObject
+        };
     }
 
     public SpawnPointData GetSpawnPointForObject(NetworkObject networkObject)

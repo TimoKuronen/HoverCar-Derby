@@ -2,27 +2,28 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Netcode;
-using VContainer;
 
 public class ScoreManager : IScoreManager
 {
     public Dictionary<PlayerData, int> PlayerScores { get; private set; } = new Dictionary<PlayerData, int>();
 
     public event Action<PlayerData> OnScoreChanged;
-    public event Action<PlayerData> OnPlayerAdded;
+    public event Action<PlayerData> OnPlayerAdded; // for UI
 
     private List<PlayerData> players = new List<PlayerData>();
-    private IPlayerSpawnManager playerSpawnManager;
+    private EventBinding<PlayerSpawnedEvent> playerSpawnedEvent;
 
-    [Inject]
-    public void Construct(IPlayerSpawnManager playerSpawnManager)
+    public void Construct()
     {
-        this.playerSpawnManager = playerSpawnManager;
-        this.playerSpawnManager.OnPlayerSpawned += AddPlayer;
+        playerSpawnedEvent = new EventBinding<PlayerSpawnedEvent>(AddPlayer);
+        EventBus<PlayerSpawnedEvent>.Register(playerSpawnedEvent);
     }
 
-    private void AddPlayer(UserData data, NetworkObject @object)
+    private void AddPlayer(PlayerSpawnedEvent playerSpawnedEvent)
     {
+        var data = playerSpawnedEvent.UserData;
+        var @object = playerSpawnedEvent.NetworkObject;
+
         PlayerData playerData = new PlayerData
         {
             PlayerName = data.userName,

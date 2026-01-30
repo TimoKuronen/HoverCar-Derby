@@ -107,17 +107,11 @@ public class HoverCarMover : NetworkBehaviour
 
     private void HandleGameStateChange(GameStateChangeEvent @event)
     {
-        switch (@event.NewState)
+        isReady = @event.NewState switch
         {
-            case PlayState:
-                rig.isKinematic = false;
-                isReady = true;
-                break;
-            default:
-                rig.isKinematic = true;
-                isReady = false;
-                break;
-        }
+            PlayState => true,
+            _ => false,
+        };
     }
 
     private void FixedUpdate()

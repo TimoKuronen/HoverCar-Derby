@@ -1,16 +1,50 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 public class CarManager : MonoBehaviour
 {
-    [SerializeField] private CarData carData;
+    [field: SerializeField] public CarData CarData { get; private set; }
     private CarDamageManager damageManager;
 
-    public CarData CarData => carData;
+    public static event Action<CarManager> OnCarRespawned;
+    public PlayerController PlayerController { get; private set; }
 
     private void Awake()
     {
-        damageManager = GetComponent<CarDamageManager>();
+        PlayerController = GetComponent<PlayerController>();
+        damageManager = new CarDamageManager(this, PlayerController.NetworkObject, PlayerController);
+        damageManager.OnCarDestroyed += HandleRespawn;
+
+        if (TryGetComponent<CarVFX>(out var carVFX))
+        {
+            carVFX.Init(damageManager);
+        }
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            damageManager.ApplyDamageToPart(CarPartType.Hull, damageManager.CurrentCarHealth, transform.position);
+            Debug.Log("Car destroyed for testing purposes." + PlayerController.PlayerName);
+        }
+    }
+
+    private void HandleRespawn()
+    {
+        StartCoroutine(Respawn());
+    }
+
+    private IEnumerator Respawn()
+    {
+        yield return new WaitForSeconds(0.5f);
+        damageManager.Repair(100f);
+        OnCarRespawned?.Invoke(this);
+        yield return new WaitForSeconds(0.5f);
+        // wait for teleportation to finish
+        yield return new WaitForSeconds(0.5f);
+
     }
 
     public void CollectItem(CollisionCollectible collectible)
@@ -33,5 +67,10 @@ public class CarManager : MonoBehaviour
                 Debug.LogWarning("Unknown collectible type!");
                 break;
         }
+    }
+
+    private void OnDestroy()
+    {
+        damageManager.OnCarDestroyed -= HandleRespawn;
     }
 }

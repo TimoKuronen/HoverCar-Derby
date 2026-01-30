@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using TMPro;
 using UnityEngine;
+using VContainer;
 
 public class MatchDurationDisplay : MonoBehaviour
 {
@@ -11,6 +12,7 @@ public class MatchDurationDisplay : MonoBehaviour
 
     private IGameManager gameManager;
 
+    [Inject]
     public void Construct(IGameManager gameManager)
     {
         this.gameManager = gameManager;

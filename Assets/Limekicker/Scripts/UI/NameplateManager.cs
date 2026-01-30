@@ -12,18 +12,21 @@ public class NameplateManager : MonoBehaviour
     [SerializeField] private GameObject nameplatePrefab;
 
     private Dictionary<ulong, RectTransform> plates = new();
-    private IPlayerSpawnManager playerSpawnManager;
+    private EventBinding<PlayerSpawnedEvent> playerSpawnedEvent;
 
     [Inject]
-    public void Construct(IPlayerSpawnManager playerSpawnManager)
+    public void Construct()
     {
-        this.playerSpawnManager = playerSpawnManager;
-        this.playerSpawnManager.OnPlayerSpawned += RegisterPlayer;
-        this.playerSpawnManager.OnPlayerDespawned += UnregisterPlayer;
+        playerSpawnedEvent = new EventBinding<PlayerSpawnedEvent>(RegisterPlayer);
+        EventBus<PlayerSpawnedEvent>.Register(playerSpawnedEvent);
+
+        //this.playerSpawnManager.OnPlayerDespawned += UnregisterPlayer;
     }
 
-    private void RegisterPlayer(UserData userData, NetworkObject playerObject)
+    private void RegisterPlayer(PlayerSpawnedEvent playerSpawnedEvent)
     {
+        var userData = playerSpawnedEvent.UserData;
+        var playerObject = playerSpawnedEvent.NetworkObject;
         // Skip local player's own nameplate
         if (playerObject.NetworkManager.LocalClientId == NetworkManager.Singleton.LocalClientId)
         {
@@ -55,5 +58,10 @@ public class NameplateManager : MonoBehaviour
             Destroy(plate.gameObject);
             plates.Remove(@object.NetworkManager.LocalClientId);
         }
+    }
+
+    private void OnDestroy()
+    {
+        EventBus<PlayerSpawnedEvent>.Unregister(playerSpawnedEvent);
     }
 }

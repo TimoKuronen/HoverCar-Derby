@@ -5,13 +5,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer;
 
-public interface IGameState
-{
-    void Enter();
-    void Update();
-    void Exit();
-}
-
 public class GameManager : MonoBehaviour, IGameManager
 {
     [Header("References")]
@@ -26,21 +19,25 @@ public class GameManager : MonoBehaviour, IGameManager
 
     public event Action<int> OnGameTimerUpdated;
 
-    private IPlayerSpawnManager playerSpawnManager;
-    public IScoreManager scoreManager { get; private set; }
-    public PlayerTracker playerTracker { get; private set; }
+    public IScoreManager ScoreManager { get; private set; }
+    public PlayerTracker PlayerTracker { get; private set; }
+
+    public float GameTimeLeft => gameTimer;
 
     [Inject]
-    public void Construct(IScoreManager scoreManager, IPlayerSpawnManager playerSpawnManager)
+    public void Construct(IScoreManager scoreManager)
     {
-        this.scoreManager = scoreManager;
-        this.playerTracker = new PlayerTracker(playerSpawnManager);
+        ScoreManager = scoreManager;
+        PlayerTracker = new PlayerTracker();
 
         CoroutineMonoBehavior.Instance.StartCoroutine(Initialize());
+
+        Debug.Log("GameManager Constructed.");
     }
 
     private IEnumerator Initialize()
     {
+        Debug.Log("GameManager Initialization Started.");
         // Start in Cinematic State
         // ChangeState(new CinematicState(this));
 
@@ -87,7 +84,6 @@ public class GameManager : MonoBehaviour, IGameManager
                 yield return null; // Wait for the next frame and re-check
             }
         }
-        Debug.Log("Game Timer Coroutine Ended.");
     }
 
     public void ChangeState(IGameState newState)

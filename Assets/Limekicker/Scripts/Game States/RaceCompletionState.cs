@@ -15,7 +15,7 @@ public class RaceCompletionState : IGameState
 
     public void Enter()
     {
-        Transform winningPlayer = gameManager.playerTracker.GetPlayerByID(gameManager.scoreManager.GetLeadingPlayer().ClientId).transform;
+        Transform winningPlayer = gameManager.PlayerTracker.GetPlayerByID(gameManager.ScoreManager.GetLeadingPlayer().ClientId).transform;
 
         // move victory dolly track to winner position
         gameManager.Context.victoryDollyTrack.transform.position = winningPlayer.position + dollyTrackOffset;

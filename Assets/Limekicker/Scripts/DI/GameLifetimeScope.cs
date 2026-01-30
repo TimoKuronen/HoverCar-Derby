@@ -11,8 +11,12 @@ public class GameLifetimeScope : LifetimeScope
         builder.Register<IPlayerSpawnManager, PlayerSpawnManager>(Lifetime.Scoped);
         builder.Register<IScoreManager, ScoreManager>(Lifetime.Scoped);
 
+        var gameManager = FindObjectOfType<GameManager>();
+        builder.RegisterComponent(gameManager)
+               .AsImplementedInterfaces()
+               .AsSelf();
+
         builder.RegisterComponentInHierarchy<GasButton>();
-        builder.RegisterComponentInHierarchy<SimpleHoverChaseCam>();
 
         builder.RegisterBuildCallback(container =>
         {

@@ -79,7 +79,6 @@ GameObject:
   - component: {fileID: 1519425467842652476}
   - component: {fileID: 11400000}
   - component: {fileID: -8266341070008308358}
-  - component: {fileID: 2021766897032597652}
   - component: {fileID: -7979957801431921888}
   - component: {fileID: 2510350370778634378}
   - component: {fileID: -1202630498088015474}
@@ -265,7 +264,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 2830146041
+  GlobalObjectIdHash: 3157248372
   InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -348,19 +347,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a579cce39eed17408603eace1e8cebd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  carData: {fileID: 11400000, guid: 08421187555d2804ab715aa4a7f2b1c4, type: 2}
---- !u!114 &2021766897032597652
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 100026}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: de30bb68325f3e14cafc5a7b00bcafbd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  <CarData>k__BackingField: {fileID: 11400000, guid: 08421187555d2804ab715aa4a7f2b1c4, type: 2}
 --- !u!114 &-7979957801431921888
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -375,9 +362,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerCamera: {fileID: 0}
   carColorPainter: {fileID: 0}
-  damageManager: {fileID: 2021766897032597652}
   cameraPriority: 10
-  spawnRotationDelay: 0.5
   PlayerName:
     m_InternalValue:
       utf8LengthInBytes: 6
@@ -429,7 +414,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   minImpactForce: 5
   explosiveForceMultiplier: 500
-  explosiveRadius: 5
   upwardModifier: 0.5
   damageMultiplier: 1
   minDamageThreshold: 5

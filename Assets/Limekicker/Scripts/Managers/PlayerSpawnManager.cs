@@ -8,19 +8,26 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
 {
     private INetworkServer networkServer;
     private IInputService inputService;
-
-    public event Action<UserData, NetworkObject> OnPlayerSpawned;
-    public event Action<UserData, NetworkObject> OnPlayerDespawned;
+    private IGameManager gameManager;
 
     private SpawnPointService spawnPointService = new SpawnPointService();
 
     [Inject]
-    public void Construct(IInputService inputService)
+    public void Construct(IInputService inputService, IGameManager gameManager)
     {
+        this.gameManager = gameManager;
         this.inputService = inputService;
-        //Debug.Log("[PlayerSpawnManager] Constructed, starting initialization with input service " + inputService);
 
         CoroutineMonoBehavior.Instance.StartCoroutine(Initialize());
+        CarManager.OnCarRespawned += CarManager_OnCarRespawned;
+    }
+
+    private void CarManager_OnCarRespawned(CarManager obj)
+    {
+        TeleportAfterSpawn(
+            obj.PlayerController.NetworkObject,
+            spawnPointService.GetFurthestSpawnpoint(gameManager.PlayerTracker.GetOtherPlayerByID(obj.PlayerController.NetworkObject.NetworkObjectId)), 
+            obj.PlayerController.NetworkObjectId);
     }
 
     public IEnumerator Initialize()
@@ -76,7 +83,7 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
             // UserData is null on clients, but netObj is what we need
             if (localPlayer != null)
             {
-                OnPlayerSpawned?.Invoke(null, localPlayer);
+                EventBus<PlayerSpawnedEvent>.Raise(new PlayerSpawnedEvent { UserData = null, NetworkObject = localPlayer });
             }
         }
     }
@@ -148,7 +155,7 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
             Debug.LogWarning($"[PlayerSpawnManager] Could not find PlayerController on spawned instance for {userData.userName}");
         }
 
-        OnPlayerSpawned?.Invoke(userData, instance);
+        EventBus<PlayerSpawnedEvent>.Raise(new PlayerSpawnedEvent { UserData = userData, NetworkObject = instance });
 
         //Debug.Log($"[PlayerSpawnManager] Spawned player object for {userData.userName} at {spawnData.Position}");
     }
