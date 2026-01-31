@@ -2,9 +2,8 @@ using System;
 using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
-using VContainer;
 
-public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
+public class PlayerSpawnManager : IDisposable
 {
     private INetworkServer networkServer;
     private IInputService inputService;
@@ -12,9 +11,9 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
 
     private SpawnPointService spawnPointService = new SpawnPointService();
 
-    [Inject]
-    public void Construct(IInputService inputService, IGameManager gameManager)
+    public PlayerSpawnManager(IInputService inputService, IGameManager gameManager)
     {
+        Debug.Log("[PlayerSpawnManager] Constructing PlayerSpawnManager...");
         this.gameManager = gameManager;
         this.inputService = inputService;
 
@@ -313,5 +312,7 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
     {
         networkServer.OnUserJoined -= HandleUserJoined;
         networkServer.OnUserLeft -= HandleUserLeft;
+
+        CarManager.OnCarRespawned -= HandleCarRespawn;
     }
 }

@@ -1,16 +1,48 @@
 using System;
 using Unity.Netcode;
 using UnityEngine;
-public abstract class CarPart : MonoBehaviour
+public abstract class CarPart : NetworkBehaviour
 {
     [SerializeField] private float maxHealth = 100f;
 
-    public NetworkVariable<float> CurrentHealth = new NetworkVariable<float>();
+    public NetworkVariable<float> CurrentHealth = new NetworkVariable<float>(
+        100f,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
     public event Action<float> OnCarPartHealthUpdated;
 
-    protected virtual void Start()
+    public override void OnNetworkSpawn()
     {
+        base.OnNetworkSpawn();
+        
+        // Subscribe to health changes
+        CurrentHealth.OnValueChanged += OnHealthChanged;
+        
+        // Initialize health on server
+        if (IsServer && CurrentHealth.Value == 0)
+        {
+            CurrentHealth.Value = maxHealth;
+        }
+        
+        // Invoke initial value
         OnCarPartHealthUpdated?.Invoke(CurrentHealth.Value);
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        CurrentHealth.OnValueChanged -= OnHealthChanged;
+        base.OnNetworkDespawn();
+    }
+
+    private void OnHealthChanged(float oldValue, float newValue)
+    {
+        OnCarPartHealthUpdated?.Invoke(newValue);
+        
+        if (newValue <= 0 && oldValue > 0)
+        {
+            OnDestroyed();
+        }
     }
 
     public void SetMaxHealth(CarData carData)
@@ -20,22 +52,40 @@ public abstract class CarPart : MonoBehaviour
 
     public virtual void TakeDamage(float damage)
     {
-        CurrentHealth.Value -= damage;
-        if (CurrentHealth.Value <= 0)
+        // Only server can apply damage
+        if (!IsServer)
         {
-            CurrentHealth.Value = 0;
-            OnDestroyed();
+            Debug.LogWarning("[CarPart] TakeDamage called on client - use ServerRpc instead");
+            return;
         }
 
-        OnCarPartHealthUpdated?.Invoke(CurrentHealth.Value);
+        float newHealth = Mathf.Max(0f, CurrentHealth.Value - damage);
+        CurrentHealth.Value = newHealth;
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void TakeDamageServerRpc(float damage)
+    {
+        TakeDamage(damage);
     }
 
     public virtual void RepairPart(float newHealthAmount)
     {
-        Debug.Log("repairing from " + CurrentHealth + " to " + newHealthAmount);
-        CurrentHealth.Value = newHealthAmount;
+        // Only server can repair
+        if (!IsServer)
+        {
+            Debug.LogWarning("[CarPart] RepairPart called on client - use ServerRpc instead");
+            return;
+        }
 
-        OnCarPartHealthUpdated?.Invoke(CurrentHealth.Value);
+        Debug.Log("repairing from " + CurrentHealth.Value + " to " + newHealthAmount);
+        CurrentHealth.Value = Mathf.Clamp(newHealthAmount, 0f, maxHealth);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void RepairPartServerRpc(float newHealthAmount)
+    {
+        RepairPart(newHealthAmount);
     }
 
     protected virtual void OnDestroyed()

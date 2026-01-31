@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine;
+using VContainer;
 
 public class ScoreManager : IScoreManager, IDisposable
 {
@@ -13,8 +14,10 @@ public class ScoreManager : IScoreManager, IDisposable
     private List<PlayerData> players = new List<PlayerData>();
     private EventBinding<PlayerSpawnedEvent> playerSpawnedEvent;
 
+    [Inject]
     public void Construct()
     {
+        Debug.Log("ScoreManager Constructed");
         playerSpawnedEvent = new EventBinding<PlayerSpawnedEvent>(AddPlayer);
         EventBus<PlayerSpawnedEvent>.Register(playerSpawnedEvent);
     }

@@ -16,8 +16,6 @@ public class MatchDurationDisplay : MonoBehaviour
         this.gameManager.OnGameTimerUpdated += UpdateTimeDisplay;
         
         UpdateTimeDisplay(gameManager.Context.roundDurationInSeconds);
-
-        Debug.Log("MatchDurationDisplay constructed and subscribed to game timer updates.");
     }
 
     private void UpdateTimeDisplay(int obj)

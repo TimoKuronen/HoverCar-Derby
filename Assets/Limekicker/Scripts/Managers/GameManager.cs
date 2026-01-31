@@ -13,8 +13,10 @@ public class GameManager : MonoBehaviour, IGameManager
     private IGameState currentState;
     private IGameState previousState;
     private IScoreManager scoreManager;
-    private int gameTimer = 0;
+
+    private PlayerSpawnManager playerSpawnManager;
     private Coroutine timerCoroutine;
+    private int gameTimer = 0;
 
     public PlayerTracker PlayerTracker { get; private set; }
     public RaceContext Context => context;
@@ -23,14 +25,17 @@ public class GameManager : MonoBehaviour, IGameManager
     public event Action<int> OnGameTimerUpdated;
 
     [Inject]
-    public void Construct(IScoreManager scoreManager)
+    public void Construct(IScoreManager scoreManager, IInputService inputService)
     {
         this.scoreManager = scoreManager;
         PlayerTracker = new PlayerTracker();
 
-        CoroutineMonoBehavior.Instance.StartCoroutine(Initialize());
+        playerSpawnManager = new PlayerSpawnManager(inputService, this);
+    }
 
-        Debug.Log("GameManager Constructed.");
+    void Start()
+    {
+        CoroutineMonoBehavior.Instance.StartCoroutine(Initialize());
     }
 
     private IEnumerator Initialize()
@@ -113,5 +118,10 @@ public class GameManager : MonoBehaviour, IGameManager
     public void ReturnToPreviousState()
     {
         ChangeState(previousState);
+    }
+
+    void OnDestroy()
+    {
+        playerSpawnManager?.Dispose();
     }
 }

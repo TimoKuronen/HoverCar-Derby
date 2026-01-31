@@ -147,7 +147,6 @@ GameObject:
   - component: {fileID: 3539576036926809982}
   - component: {fileID: 1909514303695403927}
   - component: {fileID: 3229446734444028994}
-  - component: {fileID: 3938395404630060673}
   m_Layer: 0
   m_Name: GameHUD
   m_TagString: Untagged
@@ -237,19 +236,6 @@ MonoBehaviour:
   logText: {fileID: 2733821510418295554}
   maxLines: 10
   maxCharsPerEntry: 200
---- !u!114 &3938395404630060673
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 216951266313414739}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 77673d1b3220ac0489ba3d648b0de42f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  logText: {fileID: 1544696648611546752}
 --- !u!1 &591038301938316842
 GameObject:
   m_ObjectHideFlags: 0

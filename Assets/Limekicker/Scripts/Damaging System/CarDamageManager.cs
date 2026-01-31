@@ -4,16 +4,22 @@ using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 
-public class CarDamageManager
-{
-    private readonly CarManager carManager;
-    private readonly NetworkObject networkObject;
-    private float currentCarHealth;
-    private readonly float maxCarHealth;
+public class CarDamageManager : NetworkBehaviour
+{    
+    private NetworkVariable<float> currentCarHealth = new NetworkVariable<float>(
+        100f,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+    
+    private CarManager carManager;
+    private NetworkObject networkObject;
+
+    private readonly float maxCarHealth = 100f;
 
     public PlayerController PlayerController { get; private set; }
-    public float CarHealthPercentage => currentCarHealth / maxCarHealth * 100f;
-    public float CurrentCarHealth => currentCarHealth;
+    public float CarHealthPercentage => currentCarHealth.Value / maxCarHealth * 100f;
+    public float CurrentCarHealth => currentCarHealth.Value;
 
     // Currently not in use
     public Dictionary<CarPartType, CarPart> CarParts { get; private set; } = new Dictionary<CarPartType, CarPart>();
@@ -21,18 +27,48 @@ public class CarDamageManager
     public event Action OnCarDestroyed;
     public event Action<Vector3> OnCarDamaged;
 
-    public CarDamageManager(CarManager carManager, NetworkObject networkObject, PlayerController playerController)
+    public void Initialize(CarManager carManager, NetworkObject networkObject, PlayerController playerController)
     {
         this.carManager = carManager;
         this.networkObject = networkObject;
         this.PlayerController = playerController;
 
-        currentCarHealth = 100f;
-        maxCarHealth = currentCarHealth;
+        // Initialize health NetworkVariable if not already set
+        if (IsServer && currentCarHealth.Value == 0)
+        {
+            currentCarHealth.Value = maxCarHealth;
+        }
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
+        
+        // Subscribe to health changes
+        currentCarHealth.OnValueChanged += OnHealthChanged;
+        
+        // Initialize health on server
+        if (IsServer && currentCarHealth.Value == 0)
+        {
+            currentCarHealth.Value = maxCarHealth;
+        }
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        currentCarHealth.OnValueChanged -= OnHealthChanged;
+        base.OnNetworkDespawn();
     }
 
     public void ApplyDamageToPart(CarPartType partType, float damage, Vector3 damagePosition, ulong? attackerClientId = null)
     {
+        // Only server can apply damage
+        if (!IsServer)
+        {
+            Debug.LogWarning("[CarDamageManager] ApplyDamageToPart called on client - use ServerRpc instead");
+            return;
+        }
+
         ulong attackerId = attackerClientId ?? ulong.MaxValue;
         ulong victimId = ulong.MaxValue;
 
@@ -42,29 +78,41 @@ public class CarDamageManager
         }
 
         float damageDealt = damage * GetDamageReductionMultiplier(partType);
-        currentCarHealth -= damageDealt;
+        float newHealth = Mathf.Max(0f, currentCarHealth.Value - damageDealt);
+        currentCarHealth.Value = newHealth;
 
         OnCarDamaged.Invoke(damagePosition);
 
-        ShowDamageNumber(damagePosition, damageDealt, attackerId, victimId);
+        Debug.Log($"[CarDamageManager] Car took {damageDealt} damage");
 
-        if (currentCarHealth <= 0)
-        {
-            OnCarDestroyed?.Invoke();
-        }
+        // Show damage number on UI
+        DamageNumberPool.Instance.ShowDamageNumber(damagePosition, damageDealt, attackerId, victimId);
     }
 
-    /// <summary>
-    /// Shows a damage number for this car.
-    /// </summary>
-    private void ShowDamageNumber(Vector3 worldPosition, float damageAmount, ulong attackerClientId, ulong victimClientId)
+    [ServerRpc(RequireOwnership = false)]
+    public void ApplyDamageToPartServerRpc(CarPartType partType, float damage, Vector3 damagePosition, ulong attackerClientId)
     {
-        DamageNumberPool.Instance.ShowDamageNumber(worldPosition, damageAmount, attackerClientId, victimClientId);
+        ApplyDamageToPart(partType, damage, damagePosition, attackerClientId);
     }
 
     public void Repair(float amount)
     {
-        currentCarHealth = Mathf.Min(currentCarHealth + amount, maxCarHealth);
+        // Only server can repair
+        if (!IsServer)
+        {
+            Debug.LogWarning("[CarDamageManager] Repair called on client - use ServerRpc instead");
+            return;
+        }
+
+        currentCarHealth.Value = Mathf.Min(currentCarHealth.Value + amount, maxCarHealth);
+
+        return; // Currently not repairing individual parts
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void RepairServerRpc(float amount)
+    {
+        Repair(amount);
 
         return; // Currently not repairing individual parts
 
@@ -83,6 +131,15 @@ public class CarDamageManager
         {
             item.Value.RepairPart(repairValues[index]);
             index++;
+        }
+    }
+
+    private void OnHealthChanged(float oldValue, float newValue)
+    {
+        // Check if car was destroyed
+        if (oldValue > 0 && newValue <= 0)
+        {
+            OnCarDestroyed?.Invoke();
         }
     }
 
@@ -146,7 +203,7 @@ public class CarDamageManager
         return result;
     }
 
-    float GetDamageReductionMultiplier(CarPartType carPartHit)
+    private float GetDamageReductionMultiplier(CarPartType carPartHit)
     {
         return carPartHit switch
         {

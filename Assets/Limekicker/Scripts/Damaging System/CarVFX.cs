@@ -15,7 +15,7 @@ public class CarVFX : NetworkBehaviour
     private CarDamageManager carDamageManager;
     private EventBinding<PlayerSpawnedEvent> playerSpawnedEvent;
 
-    public void Init(CarDamageManager carDamageManager)
+    public void Initialize(CarDamageManager carDamageManager)
     {
         this.carDamageManager = carDamageManager;
 
@@ -28,7 +28,6 @@ public class CarVFX : NetworkBehaviour
     private void HandleCarDamageVFX(Vector3 damagePosition)
     {
         float healthPercentage = carDamageManager.CarHealthPercentage;
-        //Debug.Log($"CarVFX: Handling car damage VFX with {healthPercentage} percentage of health left on {carDamageManager.PlayerController.PlayerName}");
 
         // Play effects locally on server
         PlayDamageVFXLocal(damagePosition, healthPercentage);
@@ -81,8 +80,6 @@ public class CarVFX : NetworkBehaviour
             damageImpactEffect.transform.position = damagePosition;
             damageImpactEffect.Play();
         }
-
-        Debug.Log($"CarVFX: Playing damage VFX locally with {healthPercentage} percentage of health left on {carDamageManager.PlayerController.PlayerName.Value}");
 
         // Check if smoke VFX array is valid
         if (damageSmokeVFXs == null || damageSmokeVFXs.Length < 3)
