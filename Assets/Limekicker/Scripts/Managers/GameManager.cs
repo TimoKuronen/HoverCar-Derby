@@ -1,6 +1,6 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer;
@@ -9,25 +9,23 @@ public class GameManager : MonoBehaviour, IGameManager
 {
     [Header("References")]
     [SerializeField] private RaceContext context;
-    public RaceContext Context => context;
 
     private IGameState currentState;
     private IGameState previousState;
-
+    private IScoreManager scoreManager;
     private int gameTimer = 0;
     private Coroutine timerCoroutine;
 
-    public event Action<int> OnGameTimerUpdated;
-
-    public IScoreManager ScoreManager { get; private set; }
     public PlayerTracker PlayerTracker { get; private set; }
-
+    public RaceContext Context => context;
     public float GameTimeLeft => gameTimer;
+
+    public event Action<int> OnGameTimerUpdated;
 
     [Inject]
     public void Construct(IScoreManager scoreManager)
     {
-        ScoreManager = scoreManager;
+        this.scoreManager = scoreManager;
         PlayerTracker = new PlayerTracker();
 
         CoroutineMonoBehavior.Instance.StartCoroutine(Initialize());
@@ -62,7 +60,6 @@ public class GameManager : MonoBehaviour, IGameManager
 
     private IEnumerator UpdateGameTimer()
     {
-        Debug.Log("Game Timer Coroutine Started.");
         while (true)
         {
             bool timeRunning = currentState is PlayState;
@@ -105,6 +102,12 @@ public class GameManager : MonoBehaviour, IGameManager
                 timerCoroutine = null;
             }
         }
+    }
+
+    public NetworkObject GetLeadingPlayer()
+    {
+        var leadingPlayerId = scoreManager.GetLeadingPlayer().ClientId;
+        return PlayerTracker.GetPlayerByID(leadingPlayerId);
     }
 
     public void ReturnToPreviousState()

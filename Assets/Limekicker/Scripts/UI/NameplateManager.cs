@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
-using VContainer;
 
 public class NameplateManager : MonoBehaviour
 {
@@ -14,13 +13,10 @@ public class NameplateManager : MonoBehaviour
     private Dictionary<ulong, RectTransform> plates = new();
     private EventBinding<PlayerSpawnedEvent> playerSpawnedEvent;
 
-    [Inject]
-    public void Construct()
+    private void Start()
     {
         playerSpawnedEvent = new EventBinding<PlayerSpawnedEvent>(RegisterPlayer);
         EventBus<PlayerSpawnedEvent>.Register(playerSpawnedEvent);
-
-        //this.playerSpawnManager.OnPlayerDespawned += UnregisterPlayer;
     }
 
     private void RegisterPlayer(PlayerSpawnedEvent playerSpawnedEvent)

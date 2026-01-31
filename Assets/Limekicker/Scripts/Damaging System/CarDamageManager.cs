@@ -6,20 +6,20 @@ using UnityEngine;
 
 public class CarDamageManager
 {
-    private CarManager carManager;
-    private NetworkObject networkObject;
+    private readonly CarManager carManager;
+    private readonly NetworkObject networkObject;
     private float currentCarHealth;
-    private float maxCarHealth;
+    private readonly float maxCarHealth;
 
     public PlayerController PlayerController { get; private set; }
-    public float CarHealthPercentage => (currentCarHealth / maxCarHealth) * 100f;
+    public float CarHealthPercentage => currentCarHealth / maxCarHealth * 100f;
     public float CurrentCarHealth => currentCarHealth;
 
     // Currently not in use
     public Dictionary<CarPartType, CarPart> CarParts { get; private set; } = new Dictionary<CarPartType, CarPart>();
 
     public event Action OnCarDestroyed;
-    public event Action<float, Vector3> OnCarDamaged;
+    public event Action<Vector3> OnCarDamaged;
 
     public CarDamageManager(CarManager carManager, NetworkObject networkObject, PlayerController playerController)
     {
@@ -44,7 +44,7 @@ public class CarDamageManager
         float damageDealt = damage * GetDamageReductionMultiplier(partType);
         currentCarHealth -= damageDealt;
 
-        OnCarDamaged.Invoke(damageDealt, damagePosition);
+        OnCarDamaged.Invoke(damagePosition);
 
         ShowDamageNumber(damagePosition, damageDealt, attackerId, victimId);
 
@@ -64,6 +64,10 @@ public class CarDamageManager
 
     public void Repair(float amount)
     {
+        currentCarHealth = Mathf.Min(currentCarHealth + amount, maxCarHealth);
+
+        return; // Currently not repairing individual parts
+
         float[] currentPartHealth = new float[CarParts.Count];
         int index = 0;
         foreach (var item in CarParts)

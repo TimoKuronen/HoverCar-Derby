@@ -1,6 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Text;
 using TMPro;
 using UnityEngine;
@@ -25,13 +22,11 @@ public class MatchDurationDisplay : MonoBehaviour
 
     private void UpdateTimeDisplay(int obj)
     {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new();
         int minutes = obj / 60;
         int seconds = obj % 60;
         sb.AppendFormat("{0:00}:{1:00}", minutes, seconds);
         matchDurationText.text = sb.ToString();
-
-        Debug.Log("tick");
     }
 
     private void OnDestroy()

@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
-using Unity.Netcode;
+using UnityEngine;
 
-public class ScoreManager : IScoreManager
+public class ScoreManager : IScoreManager, IDisposable
 {
     public Dictionary<PlayerData, int> PlayerScores { get; private set; } = new Dictionary<PlayerData, int>();
 
@@ -59,6 +59,11 @@ public class ScoreManager : IScoreManager
         }
 
         return leadingPlayer;
+    }
+
+    public void Dispose()
+    {
+        EventBus<PlayerSpawnedEvent>.Unregister(playerSpawnedEvent);
     }
 }
 

@@ -1,8 +1,4 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using Unity.Netcode;
-using Unity.Services.Matchmaker.Models;
 using UnityEngine;
 
 [RequireComponent(typeof(NetworkObject))]
@@ -17,40 +13,67 @@ public class CarVFX : NetworkBehaviour
     [SerializeField] private Color heavyDamageSmokeColor;
 
     private CarDamageManager carDamageManager;
+    private EventBinding<PlayerSpawnedEvent> playerSpawnedEvent;
 
     public void Init(CarDamageManager carDamageManager)
     {
         this.carDamageManager = carDamageManager;
 
         carDamageManager.OnCarDamaged += HandleCarDamageVFX;
+
+        playerSpawnedEvent = new EventBinding<PlayerSpawnedEvent>(ResetVFX);
+        EventBus<PlayerSpawnedEvent>.Register(playerSpawnedEvent);
     }
 
-    private void HandleCarDamageVFX(float damageAmount, Vector3 damagePosition)
+    private void HandleCarDamageVFX(Vector3 damagePosition)
     {
         float healthPercentage = carDamageManager.CarHealthPercentage;
         //Debug.Log($"CarVFX: Handling car damage VFX with {healthPercentage} percentage of health left on {carDamageManager.PlayerController.PlayerName}");
 
         // Play effects locally on server
-        PlayDamageVFXLocal(damageAmount, damagePosition, healthPercentage);
+        PlayDamageVFXLocal(damagePosition, healthPercentage);
 
         // If we're on the server, sync to all clients
         if (IsServer)
         {
-            PlayDamageVFXClientRpc(damageAmount, damagePosition, healthPercentage);
+            PlayDamageVFXClientRpc(damagePosition, healthPercentage);
         }
     }
 
     [ClientRpc]
-    private void PlayDamageVFXClientRpc(float damageAmount, Vector3 damagePosition, float healthPercentage)
+    private void PlayDamageVFXClientRpc(Vector3 damagePosition, float healthPercentage)
     {
         // Only play on clients (server already played locally)
         if (!IsServer)
         {
-            PlayDamageVFXLocal(damageAmount, damagePosition, healthPercentage);
+            PlayDamageVFXLocal(damagePosition, healthPercentage);
         }
     }
 
-    private void PlayDamageVFXLocal(float damageAmount, Vector3 damagePosition, float healthPercentage)
+    public void ResetVFX(PlayerSpawnedEvent playerSpawnedEvent)
+    {
+        if (playerSpawnedEvent.NetworkObject != carDamageManager.PlayerController.NetworkObject)
+            return;
+
+        // Stop all VFX
+        if (fireVFX != null)
+        {
+            fireVFX.Stop();
+            fireVFX.gameObject.SetActive(false);
+        }
+        if (damageSmokeVFXs != null)
+        {
+            foreach (var smokeVFX in damageSmokeVFXs)
+            {
+                if (smokeVFX != null)
+                {
+                    smokeVFX.Stop();
+                }
+            }
+        }
+    }
+
+    private void PlayDamageVFXLocal(Vector3 damagePosition, float healthPercentage)
     {
         if (damageImpactEffect != null)
         {
@@ -108,5 +131,7 @@ public class CarVFX : NetworkBehaviour
 
         if (carDamageManager != null)
             carDamageManager.OnCarDamaged -= HandleCarDamageVFX;
-    } 
+
+        EventBus<PlayerSpawnedEvent>.Unregister(playerSpawnedEvent);
+    }
 }

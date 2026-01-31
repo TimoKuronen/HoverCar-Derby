@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class RaceCompletionState : IGameState
@@ -15,7 +13,7 @@ public class RaceCompletionState : IGameState
 
     public void Enter()
     {
-        Transform winningPlayer = gameManager.PlayerTracker.GetPlayerByID(gameManager.ScoreManager.GetLeadingPlayer().ClientId).transform;
+        Transform winningPlayer = gameManager.GetLeadingPlayer().transform;
 
         // move victory dolly track to winner position
         gameManager.Context.victoryDollyTrack.transform.position = winningPlayer.position + dollyTrackOffset;

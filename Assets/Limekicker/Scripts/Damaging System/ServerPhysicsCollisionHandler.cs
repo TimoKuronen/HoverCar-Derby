@@ -26,12 +26,15 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        rb = GetComponent<Rigidbody>();
-        playerController = GetComponent<PlayerController>();
-        damageManager = GetComponent<CarDamageManager>();
-
         if (!IsServer) 
             enabled = false;
+    }
+
+    private void Start()
+    {
+        rb = GetComponent<Rigidbody>();
+        playerController = GetComponent<PlayerController>();
+        damageManager = playerController.DamageManager;
     }
 
     private void OnCollisionEnter(Collision collision)

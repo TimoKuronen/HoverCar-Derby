@@ -10,11 +10,17 @@ public class HoverCarControl : MonoBehaviour
 
     private int layerMask;
     private Rigidbody rig;
+    private bool isHovering = true;
 
     void Start()
     {
         rig = GetComponent<Rigidbody>();
         layerMask = 1 << LayerMask.NameToLayer("Terrain");
+    }
+
+    public void ToggleHovering(bool value)
+    {
+        isHovering = value;
     }
 
     void FixedUpdate()

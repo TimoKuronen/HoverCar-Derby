@@ -19,14 +19,17 @@ public class PlayerSpawnManager : IPlayerSpawnManager, IDisposable
         this.inputService = inputService;
 
         CoroutineMonoBehavior.Instance.StartCoroutine(Initialize());
-        CarManager.OnCarRespawned += CarManager_OnCarRespawned;
+        CarManager.OnCarRespawned += HandleCarRespawn;
     }
 
-    private void CarManager_OnCarRespawned(CarManager obj)
+    private void HandleCarRespawn(CarManager obj)
     {
+        var spawnData = spawnPointService.GetRandomUnusedSpawnPoint(
+            gameManager.PlayerTracker.GetOtherPlayerByID(obj.PlayerController.NetworkObject.NetworkObjectId));
+
         TeleportAfterSpawn(
             obj.PlayerController.NetworkObject,
-            spawnPointService.GetFurthestSpawnpoint(gameManager.PlayerTracker.GetOtherPlayerByID(obj.PlayerController.NetworkObject.NetworkObjectId)), 
+            spawnData, 
             obj.PlayerController.NetworkObjectId);
     }
 
