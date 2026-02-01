@@ -1,5 +1,7 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -10,6 +12,8 @@ public class PlayerSpawnManager : IDisposable
     private IGameManager gameManager;
 
     private SpawnPointService spawnPointService = new SpawnPointService();
+    private HashSet<ulong> spawnedClientIds = new HashSet<ulong>(); // Track spawned clientIds to prevent duplicates
+    private bool botSpawned = false; // Track if bot has been spawned
 
     public PlayerSpawnManager(IInputService inputService, IGameManager gameManager)
     {
@@ -23,13 +27,29 @@ public class PlayerSpawnManager : IDisposable
 
     private void HandleCarRespawn(CarManager obj)
     {
-        var spawnData = spawnPointService.GetRandomUnusedSpawnPoint(
-            gameManager.PlayerTracker.GetOtherPlayerByID(obj.PlayerController.NetworkObject.NetworkObjectId));
+        // Get another player's NetworkObject to avoid spawning at their location
+        // For real players, use OwnerClientId; for bots, we need to find any other player
+        NetworkObject otherPlayer = null;
+        if (obj.PlayerController.IsBot)
+        {
+            // For bots, find any other player (real or bot) that's not this one
+            var allPlayers = gameManager.PlayerTracker.GetAllPlayers();
+            otherPlayer = allPlayers.FirstOrDefault(p => p != obj.PlayerController.NetworkObject);
+        }
+        else
+        {
+            // For real players, find a player with different OwnerClientId
+            otherPlayer = gameManager.PlayerTracker.GetOtherPlayerByID(obj.PlayerController.OwnerClientId);
+        }
+        
+        var spawnData = spawnPointService.GetRandomUnusedSpawnPoint(otherPlayer);
 
+        // Use OwnerClientId for real players, NetworkObjectId for bots (matching TeleportAfterSpawn signature)
+        ulong clientId = obj.PlayerController.IsBot ? obj.PlayerController.NetworkObjectId : obj.PlayerController.OwnerClientId;
         TeleportAfterSpawn(
             obj.PlayerController.NetworkObject,
             spawnData, 
-            obj.PlayerController.NetworkObjectId);
+            clientId);
     }
 
     public IEnumerator Initialize()
@@ -42,15 +62,17 @@ public class PlayerSpawnManager : IDisposable
             yield return new WaitUntil(() => ResolveNetworkServer() != null);
 
             networkServer = ResolveNetworkServer();
-            networkServer.OnUserJoined += HandleUserJoined;
-            networkServer.OnUserLeft += HandleUserLeft;
-
-            //Debug.Log("[PlayerSpawnManager] Initialized and listening for joins.");
-
+            
+            // Process existing users FIRST (before subscribing to events)
+            // This handles users that joined before PlayerSpawnManager was created
             foreach (var existing in networkServer.GetConnectedUsers())
             {
                 HandleUserJoined(existing);
             }
+            
+            // NOW subscribe to events (so we don't process the same users twice)
+            networkServer.OnUserJoined += HandleUserJoined;
+            networkServer.OnUserLeft += HandleUserLeft;
 
             yield return new WaitForSeconds(1);
 
@@ -112,6 +134,25 @@ public class PlayerSpawnManager : IDisposable
             Debug.LogWarning($"[PlayerSpawnManager] Could not resolve clientId for {userData.userName}; aborting spawn.");
             return;
         }
+
+        // Check if we've already spawned this clientId (prevents race conditions)
+        if (spawnedClientIds.Contains(clientId))
+        {
+            Debug.Log($"[PlayerSpawnManager] Player for {userData.userName} (Client ID: {clientId}) already spawned, skipping.");
+            return;
+        }
+
+        // Also check if player already exists in NetworkManager (backup check)
+        if (NetworkManager.Singleton.SpawnManager != null && 
+            NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(clientId) != null)
+        {
+            Debug.Log($"[PlayerSpawnManager] Player for {userData.userName} (Client ID: {clientId}) already exists, skipping spawn.");
+            spawnedClientIds.Add(clientId); // Mark as spawned even though we didn't spawn it
+            return;
+        }
+
+        // Mark as spawned BEFORE spawning to prevent race conditions
+        spawnedClientIds.Add(clientId);
 
         // Get a random unused spawn point first (we'll assign the network object after spawn)
         // Create instance first to get a reference for assignment
@@ -186,10 +227,20 @@ public class PlayerSpawnManager : IDisposable
         if (!NetworkManager.Singleton.IsServer)
             return;
 
+        // Prevent duplicate bot spawns
+        if (botSpawned)
+        {
+            Debug.LogWarning("[PlayerSpawnManager] Bot already spawned, skipping duplicate call.");
+            return;
+        }
+
+        botSpawned = true;
+
         var server = ResolveNetworkServer();
         if (server == null || server.PlayerPrefab == null)
         {
             Debug.LogWarning("[PlayerSpawnManager] Cannot spawn bot: NetworkServer or PlayerPrefab is null.");
+            botSpawned = false; // Reset on error
             return;
         }
 
@@ -236,6 +287,10 @@ public class PlayerSpawnManager : IDisposable
             // Set bot name
             controller.PlayerName.Value = new Unity.Collections.FixedString32Bytes("Bot Player " + (totalPlayerCount + 1));
         }
+
+        // Raise PlayerSpawnedEvent for bots so they can be added to score system
+        // UserData is null for bots since they don't have user authentication
+        EventBus<PlayerSpawnedEvent>.Raise(new PlayerSpawnedEvent { UserData = null, NetworkObject = botInstance });
 
         //Debug.Log($"[PlayerSpawnManager] Spawned bot player at {spawnData.Position} with index {totalPlayerCount}");
     }

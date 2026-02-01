@@ -51,6 +51,13 @@ public class CarVFX : NetworkBehaviour
 
     public void ResetVFX(PlayerSpawnedEvent playerSpawnedEvent)
     {
+        // Safety checks to prevent null reference exceptions
+        if (playerSpawnedEvent.NetworkObject == null)
+            return;
+
+        if (carDamageManager == null || carDamageManager.PlayerController == null || carDamageManager.PlayerController.NetworkObject == null)
+            return;
+
         if (playerSpawnedEvent.NetworkObject != carDamageManager.PlayerController.NetworkObject)
             return;
 

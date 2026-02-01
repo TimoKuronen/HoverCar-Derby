@@ -1,13 +1,32 @@
+using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using VContainer;
+
+public enum InfoTextType
+{
+    None,
+    GameState
+}
 
 public class GameHUD : MonoBehaviour
 {
     public static GameHUD Instance { get; private set; }
     public TextMeshProUGUI startCounterText;
     public TextMeshProUGUI GoText;
+    public TextMeshProUGUI infoText;
+    public InfoTextType debugInfoToDisplay;
     public GameObject pauseMenu;
+
+    private IGameManager gameManager;
+
+    [Inject]
+    public void Construct(IGameManager gameManager)
+    {
+        Debug.Log("GameHUD Constructed");
+        this.gameManager = gameManager;
+    }
 
     void Awake()
     {
@@ -17,6 +36,28 @@ public class GameHUD : MonoBehaviour
             return;
         }
         Instance = this;
+    }
+
+    private void Update()
+    {
+        UpdateInfoText();
+    }
+
+    private void UpdateInfoText()
+    {
+        if (debugInfoToDisplay == InfoTextType.None || gameManager.CurrentGameState == null)
+            return;
+
+        // Update info text based on selected type
+        switch (debugInfoToDisplay)
+        {
+            case InfoTextType.None:
+                infoText.text = "";
+                break;
+            case InfoTextType.GameState:
+                infoText.text = gameManager.CurrentGameState.ToString();
+                break;
+        }
     }
 
     public void LeaveGame()

@@ -2,9 +2,21 @@ using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
+public enum CollectibleType
+{
+    None,
+    Repair,
+    Points,
+    Damage,
+    SpeedBoost
+}
+
 public abstract class CollisionCollectible : NetworkBehaviour
 {
+    [SerializeField] private CollectibleType collectibleType;
     [SerializeField] private GameObject visuals;
+
+    public CollectibleType CollectibleType => collectibleType;
 
     private Collider triggerCollider;
     private NetworkVariable<bool> isProcessed = new NetworkVariable<bool>(
@@ -49,7 +61,7 @@ public abstract class CollisionCollectible : NetworkBehaviour
         {
             isProcessed.Value = false;
         }
-        
+
         if (visuals != null)
             visuals.SetActive(true);
         if (triggerCollider != null)
@@ -69,7 +81,7 @@ public abstract class CollisionCollectible : NetworkBehaviour
         }
     }
 
-    void ProcessItem(Collision collidingCar)
+    private void ProcessItem(Collision collidingCar)
     {
         // Mark as processed (server-only)
         if (!IsServer)
@@ -82,7 +94,7 @@ public abstract class CollisionCollectible : NetworkBehaviour
         {
             CollectItem(this, carManager);
         }
-        
+
         StartCoroutine(PlayEffects());
     }
 

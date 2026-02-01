@@ -47,7 +47,15 @@ public class SimpleHoverChaseCam : MonoBehaviour
 
     private void HandlePlayerSpawnFromManager(PlayerSpawnedEvent playerSpawnedEvent)
     {
-        if (playerSpawnedEvent.NetworkObject != null && playerSpawnedEvent.NetworkObject.IsOwner)
+        if (playerSpawnedEvent.NetworkObject == null)
+            return;
+            
+        // Don't follow bots - only follow real players that we own
+        var playerController = playerSpawnedEvent.NetworkObject.GetComponent<PlayerController>();
+        if (playerController != null && playerController.IsBot)
+            return;
+            
+        if (playerSpawnedEvent.NetworkObject.IsOwner)
         {
             AssignTarget(playerSpawnedEvent.NetworkObject.transform, playerSpawnedEvent.NetworkObject.GetComponent<Rigidbody>());
             //Debug.Log($"[SimpleHoverChaseCam] Assigned target from PlayerSpawnManager: {netObj.name}");

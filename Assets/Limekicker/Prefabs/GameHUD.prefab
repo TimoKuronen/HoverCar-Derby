@@ -220,6 +220,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   startCounterText: {fileID: 2836231645781518523}
   GoText: {fileID: 3056302203584785655}
+  infoText: {fileID: 1544696648611546752}
+  debugInfoToDisplay: 1
   pauseMenu: {fileID: 1778918927532906983}
 --- !u!114 &3229446734444028994
 MonoBehaviour:

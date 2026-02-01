@@ -19,6 +19,7 @@ public class GameManager : MonoBehaviour, IGameManager
     private int gameTimer = 0;
 
     public PlayerTracker PlayerTracker { get; private set; }
+    public IGameState CurrentGameState => currentState;
     public RaceContext Context => context;
     public float GameTimeLeft => gameTimer;
 

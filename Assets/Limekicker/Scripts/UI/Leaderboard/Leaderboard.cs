@@ -25,9 +25,12 @@ public class Leaderboard : NetworkBehaviour
 
         try
         {
+            // Bots use NetworkObjectId, real players use OwnerClientId (matching ScoreManager pattern)
+            ulong clientId = player.IsBot ? player.NetworkObjectId : player.OwnerClientId;
+            
             var newEntry = new LeaderboardEntityState
             {
-                ClientId = player.OwnerClientId,
+                ClientId = clientId,
                 PlayerName = player.PlayerName.Value,
                 Cash = 0
             };
@@ -51,9 +54,12 @@ public class Leaderboard : NetworkBehaviour
 
         try
         {
+            // Bots use NetworkObjectId, real players use OwnerClientId (matching ScoreManager pattern)
+            ulong clientId = player.IsBot ? player.NetworkObjectId : player.OwnerClientId;
+            
             foreach (var entry in leaderboardEntities)
             {
-                if (entry.ClientId == player.OwnerClientId)
+                if (entry.ClientId == clientId)
                 {
                     leaderboardEntities.Remove(entry);
                     break;

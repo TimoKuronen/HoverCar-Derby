@@ -22,8 +22,18 @@ public class ScoreDisplay : MonoBehaviour
 
     private void AddPlayer(PlayerData data)
     {
+        Debug.Log($"Adding player {data.ClientId} with score {data.Points}");
+        
+        // Check if player already exists to prevent duplicate key errors
+        if (playerScores.ContainsKey(data.ClientId))
+        {
+            Debug.LogWarning($"Player {data.ClientId} already exists in score display, updating instead of adding.");
+            playerScores[data.ClientId].Initialise(data.ClientId, data.PlayerName.Value.ToString(), data.Points);
+            return;
+        }
+        
         playerScores.Add(data.ClientId, Instantiate(leaderboardEntityPrefab, container));
-        playerScores[data.ClientId].Initialise(data.ClientId, data.PlayerName.ToString(), data.Points);
+        playerScores[data.ClientId].Initialise(data.ClientId, data.PlayerName.Value.ToString(), data.Points);
     }
 
     private void UpdateScore(PlayerData data)

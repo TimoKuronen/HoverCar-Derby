@@ -27,10 +27,14 @@ public class ScoreManager : IScoreManager, IDisposable
         var data = playerSpawnedEvent.UserData;
         var @object = playerSpawnedEvent.NetworkObject;
 
+        // Check if this is a bot - bots use NetworkObjectId, real players use OwnerClientId
+        bool isBot = @object.TryGetComponent<PlayerController>(out var controller) && controller.IsBot;
+        ulong clientId = isBot ? @object.NetworkObjectId : @object.OwnerClientId;
+
         PlayerData playerData = new PlayerData
         {
-            PlayerName = data.userName,
-            ClientId = @object.NetworkObjectId,
+            PlayerName = data?.userName ?? (isBot && controller != null ? controller.PlayerName.Value : new FixedString32Bytes("Unknown")),
+            ClientId = clientId,
             Points = 0
         };
 
@@ -39,10 +43,13 @@ public class ScoreManager : IScoreManager, IDisposable
     }
     public void IncreaseScore(PlayerController data, int scoreToAdd)
     {
+        // Bots use NetworkObjectId, real players use OwnerClientId (matching collision system)
+        ulong clientId = data.IsBot ? data.NetworkObjectId : data.OwnerClientId;
+        
         OnScoreChanged?.Invoke(new PlayerData
         {
             PlayerName = data.PlayerName.Value,
-            ClientId = data.OwnerClientId,
+            ClientId = clientId,
             Points = scoreToAdd
         });
     }

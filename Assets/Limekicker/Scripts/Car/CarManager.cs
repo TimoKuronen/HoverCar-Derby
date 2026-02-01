@@ -119,10 +119,7 @@ public class CarManager : NetworkBehaviour
                 break;
 
             case DamagingCollectible damager:
-                CarPartType[] parts = (CarPartType[])Enum.GetValues(typeof(CarPartType));
-                int index = UnityEngine.Random.Range(0, parts.Length);
-
-                DamageManager.ApplyDamageToPart(parts[index], damager.DamageAmount, collectible.transform.position);
+                DamageManager.ApplyDamageToPart(CarPartType.Hull, damager.DamageAmount, collectible.transform.position);
                 break;
 
             default:
@@ -131,8 +128,9 @@ public class CarManager : NetworkBehaviour
         }
     }
 
-    private void OnDestroy()
+    public override void OnNetworkDespawn()
     {
         DamageManager.OnCarDestroyed -= HandleRespawn;
+        base.OnNetworkDespawn();
     }
 }

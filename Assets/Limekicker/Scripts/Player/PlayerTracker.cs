@@ -16,16 +16,40 @@ public class PlayerTracker
 
     private void AddPlayer(PlayerSpawnedEvent playerSpawned)
     {
+        // Store by NetworkObjectId to handle bots correctly (bots share OwnerClientId with server)
+        // But provide lookup methods that search by OwnerClientId for real players
         players.Add(playerSpawned.NetworkObject.NetworkObjectId, playerSpawned.NetworkObject);
     }
 
+    /// <summary>
+    /// Gets a player NetworkObject by their OwnerClientId (connection ID).
+    /// Note: This works for real players. For bots, use GetPlayerByNetworkObjectId instead.
+    /// </summary>
     public NetworkObject GetPlayerByID(ulong clientId)
     {
         return players.Values.FirstOrDefault(p => p.OwnerClientId == clientId);
     }
 
+    /// <summary>
+    /// Gets a player NetworkObject by their NetworkObjectId.
+    /// Use this when you have a NetworkObjectId (e.g., from another NetworkObject).
+    /// </summary>
+    public NetworkObject GetPlayerByNetworkObjectId(ulong networkObjectId)
+    {
+        return players.TryGetValue(networkObjectId, out var player) ? player : null;
+    }
+
+    /// <summary>
+    /// Gets a player NetworkObject that is NOT owned by the given clientId.
+    /// Note: This works for real players. For bots, use GetPlayerByNetworkObjectId instead.
+    /// </summary>
     public NetworkObject GetOtherPlayerByID(ulong clientId)
     {
         return players.Values.FirstOrDefault(p => p.OwnerClientId != clientId);
+    }
+
+    public IEnumerable<NetworkObject> GetAllPlayers()
+    {
+        return players.Values;
     }
 }
