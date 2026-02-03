@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
@@ -7,23 +6,18 @@ using UnityEngine;
 public class SpawnPointService
 {
     private SpawnPoint[] allSpawnPoints;
-    private Dictionary<NetworkObject, SpawnPointData> assignedSpawnPoints = new Dictionary<NetworkObject, SpawnPointData>();
-    private HashSet<SpawnPoint> usedSpawnPoints = new HashSet<SpawnPoint>();
+    private Dictionary<NetworkObject, SpawnPointData> assignedSpawnPoints = new();
+    private HashSet<SpawnPoint> usedSpawnPoints = new();
+    public SpawnPointService() { }
 
-    public SpawnPointService()
+    public void Initialize()
     {
         allSpawnPoints = Object.FindObjectsOfType<SpawnPoint>(true)
             .OrderBy(sp => sp.transform.position.x)
             .ToArray();
 
-        if (allSpawnPoints == null || allSpawnPoints.Length == 0)
-        {
-            Debug.LogError("[SpawnPointService] No spawn points found in the scene! Players will spawn at origin (0,0,0).");
-        }
-        else
-        {
-            //Debug.Log($"[SpawnPointService] Initialized with {allSpawnPoints.Length} spawn points");
-        }
+        assignedSpawnPoints.Clear();
+        usedSpawnPoints.Clear();
     }
 
     public SpawnPointData GetRandomUnusedSpawnPoint(NetworkObject networkObject)

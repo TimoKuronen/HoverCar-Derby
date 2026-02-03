@@ -1,28 +1,32 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
-using UnityEngine;
 using VContainer;
+using VContainer.Unity;
 
-public class ScoreManager : IScoreManager, IDisposable
+public class ScoreManager : IScoreManager, IDisposable, IStartable
 {
     public Dictionary<PlayerData, int> PlayerScores { get; private set; } = new Dictionary<PlayerData, int>();
 
     public event Action<PlayerData> OnScoreChanged;
     public event Action<PlayerData> OnPlayerAdded; // for UI
 
-    private List<PlayerData> players = new List<PlayerData>();
+    private List<PlayerData> players = new();
+
     private EventBinding<PlayerSpawnedEvent> playerSpawnedEvent;
 
     [Inject]
     public void Construct()
     {
-        Debug.Log("ScoreManager Constructed");
-        playerSpawnedEvent = new EventBinding<PlayerSpawnedEvent>(AddPlayer);
+        playerSpawnedEvent = new EventBinding<PlayerSpawnedEvent>(AddPlayerToScoreBoard);
+    }
+
+    public void Start()
+    {
         EventBus<PlayerSpawnedEvent>.Register(playerSpawnedEvent);
     }
 
-    private void AddPlayer(PlayerSpawnedEvent playerSpawnedEvent)
+    private void AddPlayerToScoreBoard(PlayerSpawnedEvent playerSpawnedEvent)
     {
         var data = playerSpawnedEvent.UserData;
         var @object = playerSpawnedEvent.NetworkObject;
@@ -41,6 +45,7 @@ public class ScoreManager : IScoreManager, IDisposable
         players.Add(playerData);
         OnPlayerAdded?.Invoke(playerData);
     }
+
     public void IncreaseScore(PlayerController data, int scoreToAdd)
     {
         // Bots use NetworkObjectId, real players use OwnerClientId (matching collision system)

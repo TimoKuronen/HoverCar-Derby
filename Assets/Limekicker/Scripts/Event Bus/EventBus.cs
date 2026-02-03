@@ -1,7 +1,4 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
 public static class EventBus<T> where T : IEvent
 {
@@ -20,8 +17,11 @@ public static class EventBus<T> where T : IEvent
     {
         foreach (var binding in bindings)
         {
-            binding.OnEvent(@event);
-            binding.OnEventNoArgs();
+            if (binding == null)
+                continue;
+
+            binding.OnEvent?.Invoke(@event);
+            binding.OnEventNoArgs?.Invoke();
         }
     }
 }

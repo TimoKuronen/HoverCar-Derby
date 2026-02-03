@@ -35,7 +35,7 @@ public class CarManager : NetworkBehaviour
         // Initialize damage manager after network spawn
         if (PlayerController != null && DamageManager != null)
         {
-            DamageManager.Initialize(this, PlayerController.NetworkObject, PlayerController);
+            DamageManager.Initialize(this, PlayerController);
         }
     }
 

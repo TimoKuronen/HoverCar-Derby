@@ -11,6 +11,7 @@ public class PlayerController : NetworkBehaviour
     [SerializeField] private CinemachineVirtualCamera playerCamera;
     [SerializeField] private CarColorPainter carColorPainter;
     [SerializeField] private CarDamageManager damageManager;
+    [SerializeField] private Rigidbody cachedRigidbody;
 
     [Header("Settings")]
     [SerializeField] private int cameraPriority = 10;
@@ -27,9 +28,9 @@ public class PlayerController : NetworkBehaviour
 
     private EventBinding<GameStateChangeEvent> gameStateChangeEvent;
 
+    #region Network Lifecycle
     public override void OnNetworkSpawn()
     {
-        // Check if this is a bot - bots should not trigger player spawn events
         IsBot = GetComponent<BotPlayerController>() != null;
 
         if (IsServer && !IsBot)
@@ -49,24 +50,14 @@ public class PlayerController : NetworkBehaviour
             {
                 PlayerName.Value = userdata.userName;
             }
-
-            //OnPlayerSpawned?.Invoke(this);
-        }
-        else if (IsOwner && !IsBot)
-        {
-            // Client-side: Invoke OnPlayerSpawned for local client so camera can attach but NOT for bots
-            //OnPlayerSpawned?.Invoke(this);
         }
         else if (IsBot)
         {
-            // Bot: Just set name, don't trigger events
             PlayerName.Value = new FixedString32Bytes("Bot " + PlayerIndex.Value);
         }
 
-        // Subscribe to PlayerIndex changes to apply colors when it's set by server
         PlayerIndex.OnValueChanged += OnPlayerIndexChanged;
 
-        // Apply initial value if already set (for late joiners)
         if (PlayerIndex.Value > 0)
         {
             OnPlayerIndexChanged(0, PlayerIndex.Value);
@@ -76,34 +67,35 @@ public class PlayerController : NetworkBehaviour
         EventBus<GameStateChangeEvent>.Register(gameStateChangeEvent);
     }
 
-    private void HandleGameStateChange(GameStateChangeEvent @event)
+    public override void OnNetworkDespawn()
     {
-        switch (@event.NewState)
+        try
         {
-            case CountdownState:
-                SetPlayerCamera();
-                break;
-            default:              
-                break;
+            PlayerIndex.OnValueChanged -= OnPlayerIndexChanged;
         }
-    }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"[PlayerController] Failed to unsubscribe from PlayerIndex (expected during shutdown): {e.Message}");
+        }
 
-    private void SetPlayerCamera()
+        EventBus<GameStateChangeEvent>.Unregister(gameStateChangeEvent);
+    }
+    #endregion
+
+    #region Public Methods
+    /// <summary>
+    /// Called by PlayerSpawnManager on server to set the player's index.
+    /// This is the single source of truth - server sets it, clients receive it via NetworkVariable.
+    /// </summary>
+    public void Initialize(int playerIndex)
     {
-        if (IsOwner)
+        if (!IsServer)
         {
-            if (playerCamera != null)
-            {
-                playerCamera.Priority = cameraPriority;
-                playerCamera.enabled = true;
-            }
+            Debug.LogWarning("[PlayerController] Initialize called on client - this should only be called on server!");
+            return;
         }
-        else if (playerCamera != null)
-        {
-            // Lower priority and disable non-owner cameras so host doesn't switch to joining client's camera
-            playerCamera.Priority = 0;
-            playerCamera.enabled = false;
-        }
+
+        PlayerIndex.Value = playerIndex;
     }
 
     /// <summary>
@@ -119,48 +111,65 @@ public class PlayerController : NetworkBehaviour
 
         StartCoroutine(TeleportToPositionCoroutine(position, rotation));
     }
+    #endregion
+
+    #region Private Methods
+    private void HandleGameStateChange(GameStateChangeEvent @event)
+    {
+        if (@event.NewState is CountdownState)
+            SetPlayerCamera();
+    }
+
+    private void SetPlayerCamera()
+    {
+        if (IsOwner)
+        {
+            if (playerCamera != null)
+            {
+                playerCamera.Priority = cameraPriority;
+                playerCamera.enabled = true;
+            }
+        }
+        else if (playerCamera != null)
+        {
+            playerCamera.Priority = 0;
+            playerCamera.enabled = false;
+        }
+    }
 
     /// <summary>
     /// Coroutine to teleport the player to a specific position. Called by ClientRPC.
     /// </summary>
     private IEnumerator TeleportToPositionCoroutine(Vector3 position, Quaternion rotation)
     {
-        // 1. Give the client a moment to finish its internal 'Spawn' handshake
+        // Give the client a moment to finish its internal 'Spawn' handshake
         // If you teleport too fast, the NetworkTransform might not be ready to 'Commit'
         yield return new WaitForSeconds(0.05f);
 
         if (!IsOwner) 
             yield break;
 
-        // 2. Handle Rigidbody if it exists (Crucial for cars)
-        Rigidbody rb = GetComponent<Rigidbody>();
-        if (rb != null)
+        if (cachedRigidbody != null)
         {
-            rb.isKinematic = true; // Temporarily stop physics interference
-            rb.position = position;
-            rb.rotation = rotation;
-            rb.velocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
+            cachedRigidbody.isKinematic = true;
+            cachedRigidbody.position = position;
+            cachedRigidbody.rotation = rotation;
+            cachedRigidbody.velocity = Vector3.zero;
+            cachedRigidbody.angularVelocity = Vector3.zero;
         }
 
-        // 3. Apply to Transform
         transform.SetPositionAndRotation(position, rotation);
 
-        // 4. Force the NetworkTransform to recognize the 'Teleport'
         if (TryGetComponent<Unity.Netcode.Components.NetworkTransform>(out var networkTransform))
         {
             networkTransform.Teleport(position, rotation, Vector3.one);
         }
 
-        // 5. Re-enable physics
-        if (rb != null)
+        if (cachedRigidbody != null)
         {
-            rb.isKinematic = false;
-            // Force physics engine to sync with the new transform position immediately
+            cachedRigidbody.isKinematic = false;
             Physics.SyncTransforms();
         }
-
-        Debug.Log($"[PlayerController] Client successfully teleported and synced to: {position}");
     }
 
     /// <summary>
@@ -172,54 +181,7 @@ public class PlayerController : NetworkBehaviour
         if (carColorPainter != null && newIndex >= 0)
         {
             carColorPainter.AssignColor(newIndex);
-            //Debug.Log($"[PlayerController] PlayerIndex changed to {newIndex}, applied car color");
         }
     }
-
-
-    /// <summary>
-    /// Called by PlayerSpawnManager on server to set the player's index.
-    /// This is the single source of truth - server sets it, clients receive it via NetworkVariable.
-    /// </summary>
-    public void Initialize(int playerIndex)
-    {
-        if (!IsServer)
-        {
-            Debug.LogWarning("[PlayerController] Initialize called on client - this should only be called on server!");
-            return;
-        }
-
-        PlayerIndex.Value = playerIndex;
-        //Debug.Log($"[PlayerController] Server initialized player with index: {playerIndex}");
-    }
-
-    public override void OnNetworkDespawn()
-    {
-        // Unsubscribe from NetworkVariable events
-        try
-        {
-            PlayerIndex.OnValueChanged -= OnPlayerIndexChanged;
-        }
-        catch (System.Exception e)
-        {
-            // NetworkVariable might be destroyed during shutdown - this is expected
-            Debug.LogWarning($"[PlayerController] Failed to unsubscribe from PlayerIndex (expected during shutdown): {e.Message}");
-        }
-
-        // Invoke despawn event if we're server and there are subscribers
-        //if (IsServer && OnPlayerDespawned != null)
-        //{
-        //    try
-        //    {
-        //        OnPlayerDespawned.Invoke(this);
-        //    }
-        //    catch (System.Exception e)
-        //    {
-        //        // Subscribers might be destroyed during shutdown - this is expected
-        //        Debug.LogWarning($"[PlayerController] Exception during OnPlayerDespawned (expected during shutdown): {e.Message}");
-        //    }
-        //}
-
-        EventBus<GameStateChangeEvent>.Unregister(gameStateChangeEvent);
-    }
+    #endregion
 }

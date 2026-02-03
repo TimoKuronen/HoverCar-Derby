@@ -13,7 +13,6 @@ public class CarDamageManager : NetworkBehaviour
     );
     
     private CarManager carManager;
-    private NetworkObject networkObject;
 
     private readonly float maxCarHealth = 100f;
 
@@ -27,23 +26,22 @@ public class CarDamageManager : NetworkBehaviour
     public event Action OnCarDestroyed;
     public event Action<Vector3> OnCarDamaged;
 
-    public void Initialize(CarManager carManager, NetworkObject networkObject, PlayerController playerController)
+    public void Initialize(CarManager carManager, PlayerController playerController)
     {
         this.carManager = carManager;
-        this.networkObject = networkObject;
         this.PlayerController = playerController;
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
 
         // Initialize health NetworkVariable if not already set
         if (IsServer && currentCarHealth.Value == 0)
         {
             currentCarHealth.Value = maxCarHealth;
         }
-    }
 
-    public override void OnNetworkSpawn()
-    {
-        base.OnNetworkSpawn();
-        
         // Subscribe to health changes
         currentCarHealth.OnValueChanged += OnHealthChanged;
         
@@ -72,7 +70,7 @@ public class CarDamageManager : NetworkBehaviour
         ulong attackerId = attackerClientId ?? ulong.MaxValue;
         ulong victimId = ulong.MaxValue;
 
-        if (PlayerController != null && networkObject != null)
+        if (PlayerController != null && NetworkObject != null)
         {
             victimId = PlayerController.OwnerClientId;
         }

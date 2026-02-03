@@ -29,14 +29,15 @@ public class GameManager : MonoBehaviour, IGameManager
     public void Construct(IScoreManager scoreManager, IInputService inputService)
     {
         this.scoreManager = scoreManager;
-        PlayerTracker = new PlayerTracker();
 
+        PlayerTracker = new PlayerTracker();
         playerSpawnManager = new PlayerSpawnManager(inputService, this);
     }
 
     void Start()
     {
-        CoroutineMonoBehavior.Instance.StartCoroutine(Initialize());
+        StartCoroutine(Initialize());
+        StartCoroutine(playerSpawnManager.Initialize());
     }
 
     private IEnumerator Initialize()

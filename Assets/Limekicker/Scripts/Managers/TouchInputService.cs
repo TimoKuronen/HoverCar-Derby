@@ -1,7 +1,8 @@
 using UnityEngine;
-using UnityEngine.InputSystem; // New Input System namespace
+using UnityEngine.InputSystem;
+using VContainer.Unity;
 
-public class TouchInputService : IInputService
+public class TouchInputService : IInputService, ITickable
 {
     [Header("Settings")]
     [SerializeField] private float sensitivity = 0.005f;
@@ -128,7 +129,7 @@ public class TouchInputService : IInputService
                         phase == UnityEngine.InputSystem.TouchPhase.Canceled)
                     {
                         activeTouchEnded = true;
-                        break; // Exit loop early
+                        break;
                     }
                 }
             }
@@ -167,7 +168,7 @@ public class TouchInputService : IInputService
                 {
                     float deltaX = pos.x - startPos.x;
                     targetSteer = Mathf.Clamp(deltaX * sensitivity, -1f, 1f);
-                    activeTouchExists = true; // Touch is still active
+                    activeTouchExists = true;
                 }
             }
             // Start a new steering touch only if in steering region and we don't have one
@@ -202,4 +203,3 @@ public class TouchInputService : IInputService
         currentSteer = Mathf.Lerp(currentSteer, targetSteer, Time.deltaTime * smoothing);
     }
 }
-

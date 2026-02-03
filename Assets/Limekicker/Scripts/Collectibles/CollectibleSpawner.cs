@@ -1,5 +1,3 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
@@ -12,24 +10,43 @@ public class CollectibleSpawner : MonoBehaviour
     [SerializeField] private float spawnRadius = 60f;
     [SerializeField] private float minDistanceFromOthers;
 
-    private float timer;
-    private CollectibleType previouslySpawnedCollectible;
-    private List<CollisionCollectible> activeCollectibles = new List<CollisionCollectible>();
-
     private IGameManager gameManager;
+    private CollectibleType previouslySpawnedCollectible;
+    private List<CollisionCollectible> activeCollectibles = new();
+
+    private bool isSpawningActive = false;
+    private float timer;
+
+    private EventBinding<GameStateChangeEvent> gameStateChangeEvent;
 
     [Inject]
     public void Construct(IGameManager gameManager)
     {
         this.gameManager = gameManager;
+
+        gameStateChangeEvent = new EventBinding<GameStateChangeEvent>(HandleGameStateChange);
     }
 
-    private IEnumerator SpawnCollectibles()
+    public void Start()
     {
-        while (true)
+        EventBus<GameStateChangeEvent>.Register(gameStateChangeEvent);
+    }
+
+    private void HandleGameStateChange(GameStateChangeEvent @event)
+    {
+        isSpawningActive = @event.NewState is PlayState;
+    }
+
+    private void Update()
+    {
+        if (isSpawningActive)
         {
-            yield return new WaitForSeconds(spawnInterval);
-            SpawnCollectible();
+            timer += Time.deltaTime;
+            if (timer >= spawnInterval)
+            {
+                SpawnCollectible();
+                timer = 0f;
+            }
         }
     }
 
@@ -102,5 +119,10 @@ public class CollectibleSpawner : MonoBehaviour
         }
 
         return false;
+    }
+
+    private void OnDestroy()
+    {
+        EventBus<GameStateChangeEvent>.Unregister(gameStateChangeEvent);
     }
 }

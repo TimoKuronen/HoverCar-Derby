@@ -3723,6 +3723,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: -7027664488542570481}
     - target: {fileID: -7979957801431921888, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
+      propertyPath: cachedRigidbody
+      value: 
+      objectReference: {fileID: 3339160355487100961}
+    - target: {fileID: -7979957801431921888, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       propertyPath: carColorPainter
       value: 
       objectReference: {fileID: 6176741447133205457}

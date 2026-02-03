@@ -113,7 +113,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.mobile.android-logcat": {
-      "version": "1.4.6",
+      "version": "1.4.7",
       "depth": 0,
       "source": "registry",
       "dependencies": {},

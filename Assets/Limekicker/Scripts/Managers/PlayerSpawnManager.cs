@@ -8,52 +8,24 @@ using UnityEngine;
 public class PlayerSpawnManager : IDisposable
 {
     private INetworkServer networkServer;
-    private IInputService inputService;
-    private IGameManager gameManager;
+    private readonly IInputService inputService;
+    private readonly IGameManager gameManager;
 
-    private SpawnPointService spawnPointService = new SpawnPointService();
-    private HashSet<ulong> spawnedClientIds = new HashSet<ulong>(); // Track spawned clientIds to prevent duplicates
+    private SpawnPointService spawnPointService = new();
+    private HashSet<ulong> spawnedClientIds = new(); // Track spawned clientIds to prevent duplicates
     private bool botSpawned = false; // Track if bot has been spawned
 
     public PlayerSpawnManager(IInputService inputService, IGameManager gameManager)
     {
-        Debug.Log("[PlayerSpawnManager] Constructing PlayerSpawnManager...");
         this.gameManager = gameManager;
         this.inputService = inputService;
-
-        CoroutineMonoBehavior.Instance.StartCoroutine(Initialize());
-        CarManager.OnCarRespawned += HandleCarRespawn;
-    }
-
-    private void HandleCarRespawn(CarManager obj)
-    {
-        // Get another player's NetworkObject to avoid spawning at their location
-        // For real players, use OwnerClientId; for bots, we need to find any other player
-        NetworkObject otherPlayer = null;
-        if (obj.PlayerController.IsBot)
-        {
-            // For bots, find any other player (real or bot) that's not this one
-            var allPlayers = gameManager.PlayerTracker.GetAllPlayers();
-            otherPlayer = allPlayers.FirstOrDefault(p => p != obj.PlayerController.NetworkObject);
-        }
-        else
-        {
-            // For real players, find a player with different OwnerClientId
-            otherPlayer = gameManager.PlayerTracker.GetOtherPlayerByID(obj.PlayerController.OwnerClientId);
-        }
-        
-        var spawnData = spawnPointService.GetRandomUnusedSpawnPoint(otherPlayer);
-
-        // Use OwnerClientId for real players, NetworkObjectId for bots (matching TeleportAfterSpawn signature)
-        ulong clientId = obj.PlayerController.IsBot ? obj.PlayerController.NetworkObjectId : obj.PlayerController.OwnerClientId;
-        TeleportAfterSpawn(
-            obj.PlayerController.NetworkObject,
-            spawnData, 
-            clientId);
     }
 
     public IEnumerator Initialize()
     {
+        CarManager.OnCarRespawned += HandleCarRespawn;
+        spawnPointService.Initialize();
+
         yield return new WaitUntil(() => NetworkManager.Singleton != null);
 
         // Server/host path: Initialize server-side spawn management
@@ -110,6 +82,32 @@ public class PlayerSpawnManager : IDisposable
                 EventBus<PlayerSpawnedEvent>.Raise(new PlayerSpawnedEvent { UserData = null, NetworkObject = localPlayer });
             }
         }
+    }
+    private void HandleCarRespawn(CarManager obj)
+    {
+        // Get another player's NetworkObject to avoid spawning at their location
+        // For real players, use OwnerClientId; for bots, we need to find any other player
+        NetworkObject otherPlayer = null;
+        if (obj.PlayerController.IsBot)
+        {
+            // For bots, find any other player (real or bot) that's not this one
+            var allPlayers = gameManager.PlayerTracker.GetAllPlayers();
+            otherPlayer = allPlayers.FirstOrDefault(p => p != obj.PlayerController.NetworkObject);
+        }
+        else
+        {
+            // For real players, find a player with different OwnerClientId
+            otherPlayer = gameManager.PlayerTracker.GetOtherPlayerByID(obj.PlayerController.OwnerClientId);
+        }
+
+        var spawnData = spawnPointService.GetRandomUnusedSpawnPoint(otherPlayer);
+
+        // Use OwnerClientId for real players, NetworkObjectId for bots (matching TeleportAfterSpawn signature)
+        ulong clientId = obj.PlayerController.IsBot ? obj.PlayerController.NetworkObjectId : obj.PlayerController.OwnerClientId;
+        TeleportAfterSpawn(
+            obj.PlayerController.NetworkObject,
+            spawnData,
+            clientId);
     }
 
     private INetworkServer ResolveNetworkServer()
@@ -181,14 +179,6 @@ public class PlayerSpawnManager : IDisposable
 
         int playerIndex = instance.NetworkManager.ConnectedClients.Count - 1;
 
-        if (instance.TryGetComponent<HoverCarMover>(out HoverCarMover mover) && inputService != null)
-        {
-            mover.Construct(inputService);
-        }
-        else
-        {
-            Debug.LogWarning($"[PlayerSpawnManager] mover: {mover}, inputService: {inputService}");
-        }
         if (instance.TryGetComponent<PlayerController>(out PlayerController controller))
         {
             controller.Initialize(instance.NetworkManager.ConnectedClients.Count - 1);
