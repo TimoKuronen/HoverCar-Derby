@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using VContainer;
 
 public enum InfoTextType
@@ -41,6 +42,11 @@ public class GameHUD : MonoBehaviour
     private void Update()
     {
         UpdateInfoText();
+
+        if(Keyboard.current.iKey.wasPressedThisFrame)
+        {
+            Debug.Log(gameManager.CurrentGameState.ToString());
+        }
     }
 
     private void UpdateInfoText()

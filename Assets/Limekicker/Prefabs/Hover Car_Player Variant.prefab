@@ -4017,6 +4017,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 100026, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       insertIndex: -1
       addedObject: {fileID: -7027664488542570481}
+    - targetCorrespondingSourceObject: {fileID: 100026, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 9033144295017632987}
     - targetCorrespondingSourceObject: {fileID: 8869382030903854776, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       insertIndex: -1
       addedObject: {fileID: 586544032995439241}
@@ -4154,6 +4157,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de30bb68325f3e14cafc5a7b00bcafbd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &9033144295017632987
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3339160355484193627}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: afc59f26d2690df40bdade3f3ce12e34, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lightCollisionCue: {fileID: 11400000, guid: ec87f1d6dd1dd5c439c7a740bb0bac72, type: 2}
+  mediumCollisionCue: {fileID: 11400000, guid: 3c6eb1b11d9b30b4eaeae26e2664ba11, type: 2}
+  heavyCollisionCue: {fileID: 11400000, guid: 498bdbd16f7d56f4eb88f4bc6f1967b7, type: 2}
+  collectibleCollectedCue: {fileID: 0}
+  minCollisionVelocity: 3
+  mediumCollisionThreshold: 8
+  heavyCollisionThreshold: 15
+  collisionCooldown: 0.2
+  audioSource: {fileID: 3590478069542590731}
 --- !u!4 &3339160355484225391 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 400014, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
@@ -4162,6 +4186,11 @@ Transform:
 --- !u!54 &3339160355487100961 stripped
 Rigidbody:
   m_CorrespondingSourceObject: {fileID: 5400000, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
+  m_PrefabInstance: {fileID: 3339160355484095969}
+  m_PrefabAsset: {fileID: 0}
+--- !u!82 &3590478069542590731 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: -6952180818947552022, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
   m_PrefabInstance: {fileID: 3339160355484095969}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &6143274181295575897 stripped

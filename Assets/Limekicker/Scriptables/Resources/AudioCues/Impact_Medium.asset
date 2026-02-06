@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be28c4f6590319e47b3598068def8bd0, type: 3}
+  m_Name: Impact_Medium
+  m_EditorClassIdentifier: 
+  loop: 0
+  randomize: 0
+  playAllClips: 0
+  dontAdjustVolume: 0
+  stopPrevious: 0
+  soundType: 0
+  clips:
+  - {fileID: 8300000, guid: 4776b3086f8dbee4691f063ca99cc3a4, type: 3}
+  overlayClips:
+  - {fileID: 8300000, guid: 1d578619b7f189d41a69bcd275b12051, type: 3}
+  - {fileID: 8300000, guid: 72b7b935928c61840a9ef78e9ebeb00e, type: 3}
+  playAllOverlayClips: 1
+  minVolume: 1
+  maxVolume: 1
+  volumeMultiplier: 1
+  ovrMinVolume: 1
+  ovrMaxVolume: 1
+  minPitch: 0.95
+  maxPitch: 1.05
+  forcedPitch: 1
+  playDuration: 1

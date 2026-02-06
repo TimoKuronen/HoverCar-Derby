@@ -83,7 +83,6 @@ public abstract class CollisionCollectible : NetworkBehaviour
 
     private void ProcessItem(Collision collidingCar)
     {
-        // Mark as processed (server-only)
         if (!IsServer)
             return;
 
@@ -93,9 +92,25 @@ public abstract class CollisionCollectible : NetworkBehaviour
         if (carManager != null)
         {
             CollectItem(this, carManager);
+
+            NetworkObject playerNetworkObject = collidingCar.gameObject.GetComponent<NetworkObject>();
+            if (playerNetworkObject != null)
+            {
+                RaiseCollectibleCollectedEventClientRpc(playerNetworkObject.NetworkObjectId, (int)collectibleType);
+            }
         }
 
         StartCoroutine(PlayEffects());
+    }
+
+    [ClientRpc]
+    private void RaiseCollectibleCollectedEventClientRpc(ulong playerNetworkObjectId, int collectibleTypeInt)
+    {
+        EventBus<CollectibleCollectedEvent>.Raise(new CollectibleCollectedEvent
+        {
+            PlayerNetworkObjectId = playerNetworkObjectId,
+            CollectibleType = (CollectibleType)collectibleTypeInt
+        });
     }
 
     private IEnumerator PlayEffects()

@@ -6,61 +6,184 @@ public class AudioCuePlayer : MonoBehaviour
     public bool playOnAwake = false;
     public AudioCue audioCue;
 
-    public static int Play(AudioCue cue, AudioSource audioSource, int _previousClip = -1)
+    private void Awake()
     {
-        if (!cue || !audioSource || !audioSource.isActiveAndEnabled)
-            return -1;
+        if (playOnAwake && audioCue != null && audioSource != null)
+        {
+            Play(audioCue, audioSource);
+        }
+    }
 
-        if (cue.clips.Length < 1)
+    public static int Play(AudioCue cue, AudioSource audioSource, int previousClipIndex = -1)
+    {
+        if (!ValidatePlayback(cue, audioSource))
             return -1;
 
         if (cue.stopPrevious)
             audioSource.Stop();
 
-        float vol = Random.Range(cue.minVolume, cue.maxVolume) * cue.volumeMultiplier;
-        int clipIndex;
-
+        float volume = CalculateVolume(cue, audioSource);
         if (!cue.dontAdjustVolume)
-            audioSource.volume = vol;
-        else vol = audioSource.volume;
+            audioSource.volume = volume;
 
         audioSource.pitch = Random.Range(cue.minPitch, cue.maxPitch);
 
-        clipIndex = Random.Range(0, cue.clips.Length);
+        if (cue.playAllClips)
+        {
+            PlayAllClips(cue, audioSource, volume);
+            return 0;
+        }
+        else
+        {
+            int clipIndex = SelectClipIndex(cue, previousClipIndex);
+            if (clipIndex < 0)
+                return -1;
 
-        if (clipIndex == _previousClip)
-            clipIndex++;
+            PlaySingleClip(cue, audioSource, clipIndex, volume);
+            return clipIndex;
+        }
+    }
 
-        if (clipIndex >= cue.clips.Length)
-            clipIndex = 0;
+    private static bool ValidatePlayback(AudioCue cue, AudioSource audioSource)
+    {
+        if (cue == null)
+        {
+            Debug.LogWarning("AudioCuePlayer: Cannot play - AudioCue is null.");
+            return false;
+        }
 
-        if (cue.clips[clipIndex] == null)
-            return -1;
+        if (audioSource == null)
+        {
+            Debug.LogWarning("AudioCuePlayer: Cannot play - AudioSource is null.");
+            return false;
+        }
+
+        if (!audioSource.isActiveAndEnabled)
+        {
+            Debug.LogWarning("AudioCuePlayer: Cannot play - AudioSource is not active or enabled.");
+            return false;
+        }
+
+        if (cue.clips == null || cue.clips.Length == 0)
+        {
+            Debug.LogWarning($"AudioCuePlayer: Cannot play '{cue.name}' - no clips assigned.");
+            return false;
+        }
+
+        return true;
+    }
+
+    private static float CalculateVolume(AudioCue cue, AudioSource audioSource)
+    {
+        if (cue.dontAdjustVolume)
+            return audioSource.volume;
+
+        return Random.Range(cue.minVolume, cue.maxVolume) * cue.volumeMultiplier;
+    }
+
+    private static int SelectClipIndex(AudioCue cue, int previousClipIndex)
+    {
+        if (cue.randomize)
+        {
+            int clipIndex = Random.Range(0, cue.clips.Length);
+
+            if (clipIndex == previousClipIndex && cue.clips.Length > 1)
+            {
+                clipIndex = (clipIndex + 1) % cue.clips.Length;
+            }
+
+            return clipIndex;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    private static void PlayAllClips(AudioCue cue, AudioSource audioSource, float volume)
+    {
+        if (cue.loop)
+        {
+            audioSource.loop = true;
+            audioSource.clip = cue.clips[0];
+            audioSource.volume = volume;
+            audioSource.Play();
+
+            for (int i = 1; i < cue.clips.Length; i++)
+            {
+                if (cue.clips[i] != null)
+                    audioSource.PlayOneShot(cue.clips[i], volume);
+            }
+        }
+        else
+        {
+            foreach (AudioClip clip in cue.clips)
+            {
+                if (clip != null)
+                    audioSource.PlayOneShot(clip, volume);
+            }
+        }
+
+        PlayOverlayClips(cue, audioSource);
+    }
+
+    private static void PlaySingleClip(AudioCue cue, AudioSource audioSource, int clipIndex, float volume)
+    {
+        AudioClip clip = cue.clips[clipIndex];
+        if (clip == null)
+        {
+            Debug.LogWarning($"AudioCuePlayer: Clip at index {clipIndex} is null in '{cue.name}'.");
+            return;
+        }
 
         if (cue.loop)
         {
             audioSource.loop = true;
-            audioSource.clip = cue.clips[clipIndex];
+            audioSource.clip = clip;
+            audioSource.volume = volume;
             audioSource.Play();
         }
         else
         {
-            audioSource.PlayOneShot(cue.clips[clipIndex]);
-
-            if (cue.overlayClips.Length > 0)
-                audioSource.PlayOneShot(cue.overlayClips[Random.Range(0, cue.overlayClips.Length)]);
+            audioSource.PlayOneShot(clip, volume);
+            PlayOverlayClips(cue, audioSource);
         }
-        return clipIndex;
+    }
+
+    private static void PlayOverlayClips(AudioCue cue, AudioSource audioSource)
+    {
+        if (cue.loop || cue.overlayClips == null || cue.overlayClips.Length == 0)
+            return;
+
+        float overlayVolume = Random.Range(cue.ovrMinVolume, cue.ovrMaxVolume) * cue.volumeMultiplier;
+
+        if (cue.playAllOverlayClips)
+        {
+            foreach (AudioClip overlayClip in cue.overlayClips)
+            {
+                if (overlayClip != null)
+                    audioSource.PlayOneShot(overlayClip, overlayVolume);
+            }
+        }
+        else
+        {
+            AudioClip selectedOverlay = cue.overlayClips[Random.Range(0, cue.overlayClips.Length)];
+            if (selectedOverlay != null)
+                audioSource.PlayOneShot(selectedOverlay, overlayVolume);
+        }
     }
 
     public static void Stop(AudioCue cue, AudioSource audioSource)
     {
+        if (audioSource == null)
+            return;
+
         audioSource.loop = false;
         audioSource.Stop();
     }
 
     public static bool IsPlaying(AudioSource audioSource)
     {
-        return audioSource.isPlaying;
+        return audioSource != null && audioSource.isPlaying;
     }
 }

@@ -45,6 +45,12 @@ public class AudioService : IAudioService
             return;
         }
 
+        // Lazy initialization of activeSounds dictionary
+        if (activeSounds == null)
+        {
+            Initialize();
+        }
+
         // Initialize the list for the sound type if it doesn't exist.
         if (!activeSounds.ContainsKey(data.soundType))
         {
