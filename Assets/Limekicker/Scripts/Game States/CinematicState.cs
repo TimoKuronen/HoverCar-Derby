@@ -7,8 +7,10 @@ public class CinematicState : IGameState
 
     private string playerLayerName = "Car";
 
-    private int playerLayer;
+    private readonly int playerLayer;
     private float timer;
+    private const float stateDuration = 3f;
+    public float GetStateDuration() => stateDuration;
 
     public CinematicState(GameManager manager)
     {
@@ -27,7 +29,7 @@ public class CinematicState : IGameState
     {
         timer += Time.deltaTime;
 
-        if (timer > 3)
+        if (timer > stateDuration)
         {
             manager.ChangeState(new CountdownState(manager));
         }

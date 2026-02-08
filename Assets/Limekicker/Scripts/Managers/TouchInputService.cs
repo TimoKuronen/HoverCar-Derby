@@ -24,7 +24,7 @@ public class TouchInputService : IInputService, ITickable
     public void Tick()
     {
 #if UNITY_EDITOR || UNITY_STANDALONE
-        HandleMouseInput();
+        HandlePCInput();
 #else
         HandleTouchInput();
 #endif
@@ -32,7 +32,7 @@ public class TouchInputService : IInputService, ITickable
     }
 
     // Editor / PC builds
-    private void HandleMouseInput()
+    private void HandlePCInput()
     {
         var mouse = Mouse.current;
         var keyboard = Keyboard.current;

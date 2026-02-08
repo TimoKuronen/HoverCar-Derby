@@ -3,6 +3,8 @@ using TMPro;
 using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
+using UnityEngine.UI;
+using System.Threading.Tasks;
 
 public class MainMenu : MonoBehaviour
 {
@@ -10,7 +12,8 @@ public class MainMenu : MonoBehaviour
     [SerializeField] private TMP_Text queueTimerText;
     [SerializeField] private TMP_Text findMatchButtonText;
     [SerializeField] private TMP_InputField joinCodeField;
-    [SerializeField] private UnityEngine.UI.Toggle spawnBotToggle;
+    [SerializeField] private Toggle spawnBotToggle;
+    [SerializeField] private Toggle skipCountdownToggle;
 
     private bool isMatchmaking;
     private bool isCanceling;
@@ -21,6 +24,7 @@ public class MainMenu : MonoBehaviour
 
     private const string LastJoinCodeKey = "LastJoinCode";
     private const string SpawnBotKey = "SpawnBotForTesting";
+    private const string SkipCountdownKey = "SkipCountdownForTesting";
 
     private void Start()
     {
@@ -42,12 +46,13 @@ public class MainMenu : MonoBehaviour
         }
 
         // Load bot spawn toggle state
-        if (spawnBotToggle != null)
-        {
-            bool spawnBot = PlayerPrefs.GetInt(SpawnBotKey, 0) == 1;
-            spawnBotToggle.isOn = spawnBot;
-            spawnBotToggle.onValueChanged.AddListener(OnSpawnBotToggleChanged);
-        }
+        bool spawnBot = PlayerPrefs.GetInt(SpawnBotKey, 0) == 1;
+        spawnBotToggle.isOn = spawnBot;
+        spawnBotToggle.onValueChanged.AddListener(OnSpawnBotToggleChanged);
+        
+        bool ignoreCountdown = PlayerPrefs.GetInt(SkipCountdownKey, 0) == 1;
+        skipCountdownToggle.isOn = ignoreCountdown;
+        skipCountdownToggle.onValueChanged.AddListener(OnSkipCountdownToggleChanged);
     }
 
     private void Update()
@@ -122,7 +127,8 @@ public class MainMenu : MonoBehaviour
 
     public async void StartHost()
     {
-        if (isBusy) { return; }
+        if (isBusy) 
+            return;
 
         isBusy = true;
 
@@ -133,7 +139,8 @@ public class MainMenu : MonoBehaviour
 
     public async void StartClient()
     {
-        if (isBusy) { return; }
+        if (isBusy) 
+            return;
 
         isBusy = true;
 
@@ -157,7 +164,7 @@ public class MainMenu : MonoBehaviour
     }
 
     /// <summary>Quick joins the first available lobby without needing a join code.</summary>
-    public async System.Threading.Tasks.Task QuickJoinFirstLobby()
+    public async Task QuickJoinFirstLobby()
     {
         try
         {
@@ -186,7 +193,7 @@ public class MainMenu : MonoBehaviour
     }
 
     /// <summary>Internal method to join a lobby (returns Task for awaitable operations).</summary>
-    private async System.Threading.Tasks.Task JoinLobbyAsync(Lobby lobby)
+    private async Task JoinLobbyAsync(Lobby lobby)
     {
         if (isBusy)
             return;
@@ -227,6 +234,7 @@ public class MainMenu : MonoBehaviour
         isBusy = false;
     }
 
+    #region Development Testing Methods
     private void OnSpawnBotToggleChanged(bool value)
     {
         PlayerPrefs.SetInt(SpawnBotKey, value ? 1 : 0);
@@ -234,9 +242,28 @@ public class MainMenu : MonoBehaviour
         Debug.Log($"[MainMenu] Spawn bot toggle changed to: {value}");
     }
 
+    private void OnSkipCountdownToggleChanged(bool value)
+    {
+        PlayerPrefs.SetInt(SkipCountdownKey, value ? 1 : 0);
+        PlayerPrefs.Save();
+        Debug.Log($"[MainMenu] Skip countdown toggle changed to: {value}");
+    }
+
     /// <summary>Gets whether bot spawning is enabled for testing.</summary>
     public static bool IsSpawnBotEnabled()
     {
         return PlayerPrefs.GetInt(SpawnBotKey, 0) == 1;
+    }
+
+    public static bool IsSkipCountdownEnabled()
+    {
+        return PlayerPrefs.GetInt(SkipCountdownKey, 0) == 1;
+    }
+    #endregion
+
+    private void OnDestroy()
+    {
+        spawnBotToggle.onValueChanged.RemoveListener(OnSpawnBotToggleChanged);
+        skipCountdownToggle.onValueChanged.RemoveListener(OnSkipCountdownToggleChanged);
     }
 }

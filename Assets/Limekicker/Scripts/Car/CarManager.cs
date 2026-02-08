@@ -78,6 +78,7 @@ public class CarManager : NetworkBehaviour
         yield return new WaitForSeconds(0.5f);
 
         hoverCarControl.ToggleHovering(true);
+        StartCoroutine(GameHUD.Instance.AnimateGoText());
     }
 
     public void CollectItem(CollisionCollectible collectible)

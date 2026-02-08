@@ -3,7 +3,7 @@ using System.Text;
 using TMPro;
 using UnityEngine;
 
-internal class CountdownState : IGameState
+public class CountdownState : IGameState
 {
     private readonly GameManager gameManager;
     private TextMeshProUGUI countdownText;
@@ -51,14 +51,15 @@ internal class CountdownState : IGameState
         yield return AnimateCountdown(3);
         yield return AnimateCountdown(2);
         yield return AnimateCountdown(1);
-        
+
+        countdownText.gameObject.SetActive(false);
+
         yield return GameHUD.Instance.AnimateGoText();
         RaiseCountdownEvent("GO", 0);
 
         gameManager.ChangeState(new PlayState());
 
         yield return new WaitForSeconds(POST_GO_DELAY);
-        countdownText.gameObject.SetActive(false);
     }
 
     private IEnumerator AnimateCountdown(int countdownNumber)

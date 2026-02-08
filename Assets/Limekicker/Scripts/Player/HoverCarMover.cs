@@ -16,6 +16,7 @@ public class HoverCarMover : NetworkBehaviour
 
     private IInputService inputService;
     private EventBinding<GameStateChangeEvent> gameStateChangeEvent;
+
     private float currentThrust;
     private float currentTurn;
     private float originalAccelerationValue;
@@ -55,7 +56,7 @@ public class HoverCarMover : NetworkBehaviour
             return;
         }
 
-        if (!IsServer && inputService == null)
+        if (!isBot && IsOwner && inputService == null)
         {
             TryConstructFromContainer();
         }
@@ -76,6 +77,20 @@ public class HoverCarMover : NetworkBehaviour
 
         gameStateChangeEvent = new EventBinding<GameStateChangeEvent>(HandleGameStateChange);
         EventBus<GameStateChangeEvent>.Register(gameStateChangeEvent);
+        
+        // Check if game is already in PlayState (handles race condition where Start() is called after state change)
+        var gameManager = FindFirstObjectByType<GameManager>();
+        if (gameManager != null && gameManager.CurrentGameState is PlayState)
+        {
+            isReady = true;
+        }
+        
+        // Fallback: Try to construct input service if it wasn't done in OnNetworkSpawn
+        // This handles cases where Start() is called before OnNetworkSpawn or if construction failed
+        if (!isBot && IsOwner && inputService == null)
+        {
+            TryConstructFromContainer();
+        }
     }
     #endregion
 
@@ -106,6 +121,9 @@ public class HoverCarMover : NetworkBehaviour
     private void FixedUpdate()
     {
         if ((!IsOwner && !isBot) || !isReady || inputService == null)
+            return;
+
+        if (rig == null || carManager == null || carManager.CarData == null)
             return;
 
         rig.maxAngularVelocity = maxAngularVelocity;

@@ -42,15 +42,28 @@ public class GameManager : MonoBehaviour, IGameManager
 
     private IEnumerator Initialize()
     {
+        bool skipCountodown = MainMenu.IsSkipCountdownEnabled(); 
         Debug.Log("GameManager Initialization Started.");
-        // Start in Cinematic State
-        // ChangeState(new CinematicState(this));
 
-        yield return new WaitForSeconds(1);
-        // For now, start directly in Play State
-        Context.raceCamera.Priority = 20;
+        // Start in Cinematic State
+        if (!skipCountodown)
+        {
+            CinematicState cinematicState = new CinematicState(this);
+            ChangeState(cinematicState);
+
+            yield return new WaitForSeconds(cinematicState.GetStateDuration());
+
+            timerCoroutine = StartCoroutine(UpdateGameTimer());
+
+            yield break;
+        }
+
+        // If skipping countdown, directly transition to PlayState after a brief delay
+        yield return new WaitForSeconds(1f);
 
         timerCoroutine = StartCoroutine(UpdateGameTimer());
+
+        Context.raceCamera.Priority = 20;
 
         ChangeState(new PlayState());
     }

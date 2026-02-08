@@ -5,15 +5,10 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer;
 
-public enum InfoTextType
-{
-    None,
-    GameState
-}
-
 public class GameHUD : MonoBehaviour
 {
     public static GameHUD Instance { get; private set; }
+
     public TextMeshProUGUI startCounterText;
     public TextMeshProUGUI GoText;
     public TextMeshProUGUI infoText;
@@ -25,7 +20,6 @@ public class GameHUD : MonoBehaviour
     [Inject]
     public void Construct(IGameManager gameManager)
     {
-        Debug.Log("GameHUD Constructed");
         this.gameManager = gameManager;
     }
 
@@ -36,6 +30,7 @@ public class GameHUD : MonoBehaviour
             Destroy(this.gameObject);
             return;
         }
+
         Instance = this;
     }
 
@@ -43,7 +38,7 @@ public class GameHUD : MonoBehaviour
     {
         UpdateInfoText();
 
-        if(Keyboard.current.iKey.wasPressedThisFrame)
+        if (Keyboard.current.iKey.wasPressedThisFrame)
         {
             Debug.Log(gameManager.CurrentGameState.ToString());
         }
@@ -74,6 +69,7 @@ public class GameHUD : MonoBehaviour
     public IEnumerator AnimateGoText()
     {
         GoText.gameObject.SetActive(true);
+
         float timer = 0f;
         while (true)
         {
@@ -90,4 +86,10 @@ public class GameHUD : MonoBehaviour
         GoText.gameObject.SetActive(false);
         GoText.transform.localScale = Vector3.one;
     }
+}
+
+public enum InfoTextType
+{
+    None,
+    GameState
 }
