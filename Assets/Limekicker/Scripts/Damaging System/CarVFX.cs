@@ -62,11 +62,7 @@ public class CarVFX : NetworkBehaviour
             return;
 
         // Stop all VFX
-        if (fireVFX != null)
-        {
-            fireVFX.Stop();
-            fireVFX.gameObject.SetActive(false);
-        }
+        StopFireEffect();
         if (damageSmokeVFXs != null)
         {
             foreach (var smokeVFX in damageSmokeVFXs)
@@ -76,6 +72,58 @@ public class CarVFX : NetworkBehaviour
                     smokeVFX.Stop();
                 }
             }
+        }
+    }
+
+    public void EnableFireEffect()
+    {
+        if (fireVFX != null)
+        {
+            fireVFX.gameObject.SetActive(true);
+            fireVFX.Play();
+            
+            // Sync to clients if on server
+            if (IsServer)
+            {
+                EnableFireEffectClientRpc();
+            }
+        }
+    }
+
+    [ClientRpc]
+    private void EnableFireEffectClientRpc()
+    {
+        // Only play on clients (server already played locally)
+        if (!IsServer && fireVFX != null)
+        {
+            fireVFX.gameObject.SetActive(true);
+            fireVFX.Play();
+        }
+    }
+
+    public void StopFireEffect()
+    {
+        if (fireVFX != null)
+        {
+            fireVFX.Stop();
+            fireVFX.gameObject.SetActive(false);
+            
+            // Sync to clients if on server
+            if (IsServer)
+            {
+                StopFireEffectClientRpc();
+            }
+        }
+    }
+
+    [ClientRpc]
+    private void StopFireEffectClientRpc()
+    {
+        // Only stop on clients (server already stopped locally)
+        if (!IsServer && fireVFX != null)
+        {
+            fireVFX.Stop();
+            fireVFX.gameObject.SetActive(false);
         }
     }
 

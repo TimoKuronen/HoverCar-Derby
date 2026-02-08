@@ -132,6 +132,10 @@ public class HoverCarMover : NetworkBehaviour
 
     private void ApplyMovement()
     {
+        // Don't allow movement if car is destroyed
+        if (carManager.DamageManager != null && carManager.DamageManager.IsDestroyed)
+            return;
+
         currentThrust = inputService.IsGasPressed ? forwardAcceleration : 0f;
         if (currentThrust != 0)
         {

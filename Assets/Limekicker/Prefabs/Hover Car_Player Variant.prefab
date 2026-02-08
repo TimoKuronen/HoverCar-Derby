@@ -3711,6 +3711,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 11400000, guid: 08421187555d2804ab715aa4a7f2b1c4, type: 2}
     - target: {fileID: -8266341070008308358, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
+      propertyPath: hopHeight
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: -8266341070008308358, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       propertyPath: <CarData>k__BackingField
       value: 
       objectReference: {fileID: 11400000, guid: 08421187555d2804ab715aa4a7f2b1c4, type: 2}

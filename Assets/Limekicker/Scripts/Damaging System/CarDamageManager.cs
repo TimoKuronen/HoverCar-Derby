@@ -19,6 +19,7 @@ public class CarDamageManager : NetworkBehaviour
     public PlayerController PlayerController { get; private set; }
     public float CarHealthPercentage => currentCarHealth.Value / maxCarHealth * 100f;
     public float CurrentCarHealth => currentCarHealth.Value;
+    public bool IsDestroyed => currentCarHealth.Value <= 0f;
 
     // Currently not in use
     public Dictionary<CarPartType, CarPart> CarParts { get; private set; } = new Dictionary<CarPartType, CarPart>();

@@ -17,6 +17,7 @@ public class SimpleHoverChaseCam : MonoBehaviour
 
     private EventBinding<GameStateChangeEvent> gameStateChangeEvent;
     private EventBinding<PlayerSpawnedEvent> playerSpawnedEvent;
+    private EventBinding<PlayerTeleportedEvent> playerTeleportedEvent;
 
     public void Start()
     {
@@ -25,6 +26,9 @@ public class SimpleHoverChaseCam : MonoBehaviour
 
         playerSpawnedEvent = new EventBinding<PlayerSpawnedEvent>(HandlePlayerSpawnFromManager);
         EventBus<PlayerSpawnedEvent>.Register(playerSpawnedEvent);
+
+        playerTeleportedEvent = new EventBinding<PlayerTeleportedEvent>(HandlePlayerTeleported);
+        EventBus<PlayerTeleportedEvent>.Register(playerTeleportedEvent);
     }
 
     private void HandleGameStateChange(GameStateChangeEvent @event)
@@ -62,6 +66,18 @@ public class SimpleHoverChaseCam : MonoBehaviour
         }
     }
 
+    private void HandlePlayerTeleported(PlayerTeleportedEvent @event)
+    {
+        if (@event.NetworkObject == null)
+            return;
+
+        // Only update camera if this is the target we're following
+        if (target != null && @event.NetworkObject.transform == target)
+        {
+            ForceUpdatePosition();
+        }
+    }
+
     private void AssignTarget(Transform newTarget, Rigidbody newRigidbody)
     {
         if (newTarget == null)
@@ -69,6 +85,41 @@ public class SimpleHoverChaseCam : MonoBehaviour
 
         target = newTarget;
         targetRigidbody = newRigidbody != null ? newRigidbody : newTarget.GetComponent<Rigidbody>();
+    }
+
+    /// <summary>
+    /// Forces the camera to immediately snap to the target's position (used after teleportation)
+    /// </summary>
+    public void ForceUpdatePosition()
+    {
+        if (target == null)
+            return;
+
+        Rigidbody rb = target.GetComponent<Rigidbody>();
+        float speed = rb != null ? rb.velocity.magnitude : 0f;
+
+        // Define camera target position (behind & above the car)
+        Vector3 targetPosition = target.position - target.forward * distance + Vector3.up * height;
+
+        // Apply look-ahead effect if moving fast
+        if (speed > 2f)
+        {
+            targetPosition += target.forward * (speed * 0.1f);
+        }
+
+        // Immediately snap to position (no smoothing)
+        transform.position = targetPosition;
+
+        // Update rotation immediately as well
+        Vector3 lookDir = Vector3.ProjectOnPlane(target.position - transform.position, Vector3.up);
+        Quaternion targetRotation = Quaternion.LookRotation(lookDir.normalized);
+        float speedFactor = rb != null ? Mathf.Clamp01(rb.velocity.magnitude / maxSpeedForTilt) : 0f;
+        float currentTiltAngle = Mathf.Lerp(minTiltAngle, maxTiltAngle, speedFactor);
+        Quaternion tiltRotation = Quaternion.Euler(currentTiltAngle, targetRotation.eulerAngles.y, 0);
+        transform.rotation = tiltRotation;
+
+        // Reset velocity for smooth damping to work properly after snap
+        velocity = Vector3.zero;
     }
 
     void LateUpdate()
@@ -115,5 +166,6 @@ public class SimpleHoverChaseCam : MonoBehaviour
     {
         EventBus<GameStateChangeEvent>.Unregister(gameStateChangeEvent);
         EventBus<PlayerSpawnedEvent>.Unregister(playerSpawnedEvent);
+        EventBus<PlayerTeleportedEvent>.Unregister(playerTeleportedEvent);
     }
 }

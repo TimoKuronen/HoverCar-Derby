@@ -26,3 +26,8 @@ public struct CollectibleCollectedEvent : IEvent
     public ulong PlayerNetworkObjectId;
     public CollectibleType CollectibleType;
 }
+
+public struct PlayerTeleportedEvent : IEvent
+{
+    public NetworkObject NetworkObject;
+}

@@ -21,6 +21,8 @@ public class HoverCarControl : MonoBehaviour
     public void ToggleHovering(bool value)
     {
         isHovering = value;
+        if (value == true)
+            Debug.Break();
     }
 
     void FixedUpdate()
@@ -30,6 +32,10 @@ public class HoverCarControl : MonoBehaviour
 
     private void ApplyHoverForce()
     {
+        // Only apply hover force if hovering is enabled
+        if (!isHovering)
+            return;
+
         for (int i = 0; i < hoverPoints.Length; i++)
         {
             var hoverPoint = hoverPoints[i];
