@@ -42,8 +42,6 @@ GameObject:
   - component: {fileID: 5143992880067152615}
   - component: {fileID: 8272829142089560974}
   - component: {fileID: 2526545187613604929}
-  - component: {fileID: 1044891384741340466}
-  - component: {fileID: 2833721185373939256}
   - component: {fileID: 2047756161947855130}
   m_Layer: 3
   m_Name: CarPart_SidePanel_Left
@@ -117,49 +115,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &1044891384741340466
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 475256342094874095}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 88599206047420942810e0ffc437d844, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxHealth: 100
-  CurrentHealth:
-    m_InternalValue: 0
---- !u!114 &2833721185373939256
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 475256342094874095}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 82079181a5cb7eb45849a5acb5a79313, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  carPartStates:
-  - carPartState: 0
-    stateHealth: 100
-    stateObject: {fileID: 0}
-  - carPartState: 1
-    stateHealth: 75
-    stateObject: {fileID: 0}
-  - carPartState: 2
-    stateHealth: 40
-    stateObject: {fileID: 0}
-  - carPartState: 3
-    stateHealth: 20
-    stateObject: {fileID: 0}
-  - carPartState: 4
-    stateHealth: -20
-    stateObject: {fileID: 0}
 --- !u!114 &2047756161947855130
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -256,8 +211,6 @@ GameObject:
   - component: {fileID: 1114738613530142298}
   - component: {fileID: 2604260826516887217}
   - component: {fileID: 3959261888214547911}
-  - component: {fileID: 6228435964824971616}
-  - component: {fileID: 216531051001965429}
   - component: {fileID: 1800553442818969296}
   m_Layer: 3
   m_Name: CarPart_SidePanel_Right
@@ -331,49 +284,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &6228435964824971616
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 664606013087963392}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 88599206047420942810e0ffc437d844, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxHealth: 100
-  CurrentHealth:
-    m_InternalValue: 0
---- !u!114 &216531051001965429
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 664606013087963392}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 82079181a5cb7eb45849a5acb5a79313, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  carPartStates:
-  - carPartState: 0
-    stateHealth: 100
-    stateObject: {fileID: 0}
-  - carPartState: 1
-    stateHealth: 75
-    stateObject: {fileID: 0}
-  - carPartState: 2
-    stateHealth: 40
-    stateObject: {fileID: 0}
-  - carPartState: 3
-    stateHealth: 20
-    stateObject: {fileID: 0}
-  - carPartState: 4
-    stateHealth: -20
-    stateObject: {fileID: 0}
 --- !u!114 &1800553442818969296
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -398,8 +308,6 @@ GameObject:
   - component: {fileID: 9142406385445794548}
   - component: {fileID: 1715170118925980964}
   - component: {fileID: 4557570750801591986}
-  - component: {fileID: 2903899002478452656}
-  - component: {fileID: 8243828016514225246}
   - component: {fileID: 2205592936458414418}
   m_Layer: 3
   m_Name: CarPart_SidePanel_Right
@@ -473,49 +381,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &2903899002478452656
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 935610633659610625}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 88599206047420942810e0ffc437d844, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxHealth: 100
-  CurrentHealth:
-    m_InternalValue: 0
---- !u!114 &8243828016514225246
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 935610633659610625}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 82079181a5cb7eb45849a5acb5a79313, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  carPartStates:
-  - carPartState: 0
-    stateHealth: 100
-    stateObject: {fileID: 0}
-  - carPartState: 1
-    stateHealth: 75
-    stateObject: {fileID: 0}
-  - carPartState: 2
-    stateHealth: 40
-    stateObject: {fileID: 0}
-  - carPartState: 3
-    stateHealth: 20
-    stateObject: {fileID: 0}
-  - carPartState: 4
-    stateHealth: -20
-    stateObject: {fileID: 0}
 --- !u!114 &2205592936458414418
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -573,8 +438,6 @@ GameObject:
   - component: {fileID: 4229419460606986058}
   - component: {fileID: 8526538203278119407}
   - component: {fileID: 3990231515825915677}
-  - component: {fileID: 9053517304883424910}
-  - component: {fileID: 3548734185982383392}
   - component: {fileID: 6682926220517017232}
   m_Layer: 3
   m_Name: CarPart_Hull
@@ -648,49 +511,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &9053517304883424910
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1411276844075961905}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ba4ed3ef03332064c82f71bd5b85a143, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxHealth: 100
-  CurrentHealth:
-    m_InternalValue: 0
---- !u!114 &3548734185982383392
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1411276844075961905}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 82079181a5cb7eb45849a5acb5a79313, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  carPartStates:
-  - carPartState: 0
-    stateHealth: 100
-    stateObject: {fileID: 0}
-  - carPartState: 1
-    stateHealth: 75
-    stateObject: {fileID: 0}
-  - carPartState: 2
-    stateHealth: 40
-    stateObject: {fileID: 0}
-  - carPartState: 3
-    stateHealth: 20
-    stateObject: {fileID: 0}
-  - carPartState: 4
-    stateHealth: -20
-    stateObject: {fileID: 0}
 --- !u!114 &6682926220517017232
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -715,8 +535,6 @@ GameObject:
   - component: {fileID: 1032475085527980913}
   - component: {fileID: 3392386601524491474}
   - component: {fileID: 6514294407391504785}
-  - component: {fileID: 784994633527507876}
-  - component: {fileID: 1612292553373269352}
   - component: {fileID: 838673120177238063}
   m_Layer: 3
   m_Name: CarPart_FrontBumber
@@ -790,49 +608,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &784994633527507876
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1724901390024139321}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b9dccaffc465c404c8e8289e9a0415d5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxHealth: 100
-  CurrentHealth:
-    m_InternalValue: 0
---- !u!114 &1612292553373269352
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1724901390024139321}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 82079181a5cb7eb45849a5acb5a79313, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  carPartStates:
-  - carPartState: 0
-    stateHealth: 100
-    stateObject: {fileID: 0}
-  - carPartState: 1
-    stateHealth: 75
-    stateObject: {fileID: 0}
-  - carPartState: 2
-    stateHealth: 40
-    stateObject: {fileID: 0}
-  - carPartState: 3
-    stateHealth: 20
-    stateObject: {fileID: 0}
-  - carPartState: 4
-    stateHealth: -20
-    stateObject: {fileID: 0}
 --- !u!114 &838673120177238063
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1147,8 +922,6 @@ GameObject:
   - component: {fileID: 6293795042460115225}
   - component: {fileID: 6385290284678100611}
   - component: {fileID: 8240293189311494724}
-  - component: {fileID: 1804629253150122162}
-  - component: {fileID: 4075547633674106101}
   - component: {fileID: 5370872155317477834}
   m_Layer: 3
   m_Name: CarPart_BackBumper
@@ -1222,49 +995,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &1804629253150122162
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3712424318224257861}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 682ffa621e37a4c4eb84b595a6dca8c1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxHealth: 100
-  CurrentHealth:
-    m_InternalValue: 0
---- !u!114 &4075547633674106101
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3712424318224257861}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 82079181a5cb7eb45849a5acb5a79313, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  carPartStates:
-  - carPartState: 0
-    stateHealth: 100
-    stateObject: {fileID: 0}
-  - carPartState: 1
-    stateHealth: 75
-    stateObject: {fileID: 0}
-  - carPartState: 2
-    stateHealth: 40
-    stateObject: {fileID: 0}
-  - carPartState: 3
-    stateHealth: 20
-    stateObject: {fileID: 0}
-  - carPartState: 4
-    stateHealth: -20
-    stateObject: {fileID: 0}
 --- !u!114 &5370872155317477834
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1948,8 +1678,6 @@ GameObject:
   - component: {fileID: 8615213834628816380}
   - component: {fileID: 4537758237349235386}
   - component: {fileID: 3014184161249090429}
-  - component: {fileID: 3317379374023058839}
-  - component: {fileID: 7513993273656522964}
   - component: {fileID: 5487182286634308140}
   m_Layer: 3
   m_Name: CarPart_Hull
@@ -2023,49 +1751,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &3317379374023058839
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5337946739219481039}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ba4ed3ef03332064c82f71bd5b85a143, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxHealth: 100
-  CurrentHealth:
-    m_InternalValue: 0
---- !u!114 &7513993273656522964
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5337946739219481039}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 82079181a5cb7eb45849a5acb5a79313, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  carPartStates:
-  - carPartState: 0
-    stateHealth: 100
-    stateObject: {fileID: 0}
-  - carPartState: 1
-    stateHealth: 75
-    stateObject: {fileID: 0}
-  - carPartState: 2
-    stateHealth: 40
-    stateObject: {fileID: 0}
-  - carPartState: 3
-    stateHealth: 20
-    stateObject: {fileID: 0}
-  - carPartState: 4
-    stateHealth: -20
-    stateObject: {fileID: 0}
 --- !u!114 &5487182286634308140
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2284,8 +1969,6 @@ GameObject:
   - component: {fileID: 4250512837225317646}
   - component: {fileID: 5309612247627268120}
   - component: {fileID: 8544678976232952424}
-  - component: {fileID: 8054344056409946398}
-  - component: {fileID: 950769940649807269}
   - component: {fileID: 396337473299730910}
   m_Layer: 3
   m_Name: CarPart_SidePanel_Left
@@ -2359,49 +2042,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &8054344056409946398
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5898341142517915318}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 88599206047420942810e0ffc437d844, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxHealth: 100
-  CurrentHealth:
-    m_InternalValue: 0
---- !u!114 &950769940649807269
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5898341142517915318}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 82079181a5cb7eb45849a5acb5a79313, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  carPartStates:
-  - carPartState: 0
-    stateHealth: 100
-    stateObject: {fileID: 0}
-  - carPartState: 1
-    stateHealth: 75
-    stateObject: {fileID: 0}
-  - carPartState: 2
-    stateHealth: 40
-    stateObject: {fileID: 0}
-  - carPartState: 3
-    stateHealth: 20
-    stateObject: {fileID: 0}
-  - carPartState: 4
-    stateHealth: -20
-    stateObject: {fileID: 0}
 --- !u!114 &396337473299730910
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3132,8 +2772,6 @@ GameObject:
   - component: {fileID: 1426248043232367226}
   - component: {fileID: 7005212672382614014}
   - component: {fileID: 4217288583523463543}
-  - component: {fileID: 4453267578821562570}
-  - component: {fileID: 3560769304711891394}
   - component: {fileID: 2300818041766067140}
   m_Layer: 3
   m_Name: CarPart_FrontBumber
@@ -3207,49 +2845,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &4453267578821562570
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8556749946579501032}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b9dccaffc465c404c8e8289e9a0415d5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxHealth: 100
-  CurrentHealth:
-    m_InternalValue: 0
---- !u!114 &3560769304711891394
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8556749946579501032}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 82079181a5cb7eb45849a5acb5a79313, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  carPartStates:
-  - carPartState: 0
-    stateHealth: 100
-    stateObject: {fileID: 0}
-  - carPartState: 1
-    stateHealth: 75
-    stateObject: {fileID: 0}
-  - carPartState: 2
-    stateHealth: 40
-    stateObject: {fileID: 0}
-  - carPartState: 3
-    stateHealth: 20
-    stateObject: {fileID: 0}
-  - carPartState: 4
-    stateHealth: -20
-    stateObject: {fileID: 0}
 --- !u!114 &2300818041766067140
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3274,8 +2869,6 @@ GameObject:
   - component: {fileID: 5497002226750359389}
   - component: {fileID: 5337276224983372205}
   - component: {fileID: 6069031462123156544}
-  - component: {fileID: 804988896387065377}
-  - component: {fileID: 6108651032450164981}
   - component: {fileID: 9024420440279498067}
   m_Layer: 3
   m_Name: CarPart_BackBumper
@@ -3349,49 +2942,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &804988896387065377
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8977105131773119513}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 682ffa621e37a4c4eb84b595a6dca8c1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxHealth: 100
-  CurrentHealth:
-    m_InternalValue: 0
---- !u!114 &6108651032450164981
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8977105131773119513}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 82079181a5cb7eb45849a5acb5a79313, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  carPartStates:
-  - carPartState: 0
-    stateHealth: 100
-    stateObject: {fileID: 0}
-  - carPartState: 1
-    stateHealth: 75
-    stateObject: {fileID: 0}
-  - carPartState: 2
-    stateHealth: 40
-    stateObject: {fileID: 0}
-  - carPartState: 3
-    stateHealth: 20
-    stateObject: {fileID: 0}
-  - carPartState: 4
-    stateHealth: -20
-    stateObject: {fileID: 0}
 --- !u!114 &9024420440279498067
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3747,10 +3297,6 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 7162346691966386540}
     - target: {fileID: -1202630498088015474, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
-      propertyPath: damageImpactEffect
-      value: 
-      objectReference: {fileID: 1070149193313365840}
-    - target: {fileID: -1202630498088015474, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       propertyPath: heavyDamageSmokeColor.b
       value: 0.19544323
       objectReference: {fileID: 0}
@@ -3874,6 +3420,10 @@ PrefabInstance:
       propertyPath: m_Center.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 11400000, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
+      propertyPath: enableOptimizations
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 285690158835427978, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.57
@@ -3980,6 +3530,7 @@ PrefabInstance:
     - {fileID: 5419934743143684181, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
     - {fileID: 6963147264468241915, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
     - {fileID: 8171062744423987147, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
+    - {fileID: 2346089136248644561, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 400014, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
       insertIndex: -1
@@ -4033,11 +3584,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2797310366717062959, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
   m_PrefabInstance: {fileID: 3339160355484095969}
   m_PrefabAsset: {fileID: 0}
---- !u!198 &1070149193313365840 stripped
-ParticleSystem:
-  m_CorrespondingSourceObject: {fileID: 2346089136234920625, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
-  m_PrefabInstance: {fileID: 3339160355484095969}
-  m_PrefabAsset: {fileID: 0}
 --- !u!114 &2530770372775442587 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: -8266341070008308358, guid: 7e4a584875960cb48b2b0b6205b6dbcc, type: 3}
@@ -4071,7 +3617,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 729521266
+  GlobalObjectIdHash: 1794067039
   InScenePlacedSourceGlobalObjectIdHash: 729521266
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1

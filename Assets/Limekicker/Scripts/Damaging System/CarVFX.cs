@@ -1,3 +1,4 @@
+using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -7,14 +8,18 @@ public class CarVFX : NetworkBehaviour
     #region Fields
     [Header("Damage Effects")]
     [SerializeField] private ParticleSystem[] damageSmokeVFXs;
-    [SerializeField] private ParticleSystem damageImpactEffect;
     [SerializeField] private ParticleSystem fireVFX;
 
     [SerializeField] private Color normalDamageSmokeColor;
     [SerializeField] private Color heavyDamageSmokeColor;
 
+    [Header("Pool Settings")]
+    [SerializeField] private bool useImpactPool = true;
+    [SerializeField] private float impactEffectDuration = 2f; // Estimated duration for auto-return to pool
+
     private CarDamageManager carDamageManager;
     private EventBinding<PlayerSpawnedEvent> playerSpawnedEvent;
+    private bool isVFXWarmedUp = false;
     #endregion
 
     #region Public Methods
@@ -25,6 +30,47 @@ public class CarVFX : NetworkBehaviour
 
         playerSpawnedEvent = new EventBinding<PlayerSpawnedEvent>(ResetVFX);
         EventBus<PlayerSpawnedEvent>.Register(playerSpawnedEvent);
+
+        // Pre-warm all VFX to eliminate first-hit lag spikes
+        WarmupVFX();
+    }
+
+    /// <summary>
+    /// Pre-warms all particle systems to compile shaders and initialize buffers.
+    /// This eliminates lag spikes when effects are first played.
+    /// </summary>
+    public void WarmupVFX()
+    {
+        if (isVFXWarmedUp) return;
+
+        // Pre-warm smoke effects
+        if (damageSmokeVFXs != null)
+        {
+            foreach (var smoke in damageSmokeVFXs)
+            {
+                if (smoke != null && !smoke.gameObject.activeSelf)
+                {
+                    smoke.gameObject.SetActive(true);
+                    smoke.Play();
+                    smoke.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+                    smoke.Clear();
+                    // Keep active but stopped - ready for instant playback
+                }
+            }
+        }
+
+        // Pre-warm fire effect
+        if (fireVFX != null && !fireVFX.gameObject.activeSelf)
+        {
+            fireVFX.gameObject.SetActive(true);
+            fireVFX.Play();
+            fireVFX.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+            fireVFX.Clear();
+            fireVFX.gameObject.SetActive(false); // Fire starts disabled
+        }
+
+        isVFXWarmedUp = true;
+        Debug.Log("[CarVFX] VFX pre-warmed successfully.");
     }
 
     public void ResetVFX(PlayerSpawnedEvent playerSpawnedEvent)
@@ -135,11 +181,15 @@ public class CarVFX : NetworkBehaviour
 
     private void PlayDamageVFXLocal(Vector3 damagePosition, float healthPercentage)
     {
-        if (damageImpactEffect != null)
+        // Use pooled impact effect if available, otherwise fall back to direct reference
+        if (useImpactPool && VFXImpactPool.Instance != null)
         {
-            damageImpactEffect.gameObject.SetActive(true);
-            damageImpactEffect.transform.position = damagePosition;
-            damageImpactEffect.Play();
+            ParticleSystem impactEffect = VFXImpactPool.Instance.GetImpactEffect();
+            impactEffect.transform.position = damagePosition;
+            impactEffect.Play();
+            
+            // Return to pool after estimated duration
+            VFXImpactPool.Instance.ReturnToPoolAfterDelay(impactEffect, impactEffectDuration);
         }
 
         if (damageSmokeVFXs == null || damageSmokeVFXs.Length < 3)

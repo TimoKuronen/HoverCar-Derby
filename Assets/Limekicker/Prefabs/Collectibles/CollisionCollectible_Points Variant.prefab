@@ -80,7 +80,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 1452047236
+  GlobalObjectIdHash: 457949971
   InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -101,6 +101,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa55d698bbe38a64e9ccad9c0ebdd36d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  collectibleType: 2
   visuals: {fileID: 9000356074160345444}
   pointsAwared: 20
 --- !u!1 &9000356074160345444 stripped

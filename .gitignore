@@ -78,3 +78,6 @@ crashlytics-build.properties
 !/Assets/Limekicker/
 !/Assets/JMO Assets/
 !/Assets/RPGPP_LT/
+
+*.md
+*.md.meta
