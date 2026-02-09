@@ -4,6 +4,7 @@ using UnityEngine;
 [RequireComponent(typeof(NetworkObject))]
 public class CarVFX : NetworkBehaviour
 {
+    #region Fields
     [Header("Damage Effects")]
     [SerializeField] private ParticleSystem[] damageSmokeVFXs;
     [SerializeField] private ParticleSystem damageImpactEffect;
@@ -14,44 +15,20 @@ public class CarVFX : NetworkBehaviour
 
     private CarDamageManager carDamageManager;
     private EventBinding<PlayerSpawnedEvent> playerSpawnedEvent;
+    #endregion
 
+    #region Public Methods
     public void Initialize(CarDamageManager carDamageManager)
     {
         this.carDamageManager = carDamageManager;
-
         carDamageManager.OnCarDamaged += HandleCarDamageVFX;
 
         playerSpawnedEvent = new EventBinding<PlayerSpawnedEvent>(ResetVFX);
         EventBus<PlayerSpawnedEvent>.Register(playerSpawnedEvent);
     }
 
-    private void HandleCarDamageVFX(Vector3 damagePosition)
-    {
-        float healthPercentage = carDamageManager.CarHealthPercentage;
-
-        // Play effects locally on server
-        PlayDamageVFXLocal(damagePosition, healthPercentage);
-
-        // If we're on the server, sync to all clients
-        if (IsServer)
-        {
-            PlayDamageVFXClientRpc(damagePosition, healthPercentage);
-        }
-    }
-
-    [ClientRpc]
-    private void PlayDamageVFXClientRpc(Vector3 damagePosition, float healthPercentage)
-    {
-        // Only play on clients (server already played locally)
-        if (!IsServer)
-        {
-            PlayDamageVFXLocal(damagePosition, healthPercentage);
-        }
-    }
-
     public void ResetVFX(PlayerSpawnedEvent playerSpawnedEvent)
     {
-        // Safety checks to prevent null reference exceptions
         if (playerSpawnedEvent.NetworkObject == null)
             return;
 
@@ -61,7 +38,6 @@ public class CarVFX : NetworkBehaviour
         if (playerSpawnedEvent.NetworkObject != carDamageManager.PlayerController.NetworkObject)
             return;
 
-        // Stop all VFX
         StopFireEffect();
         if (damageSmokeVFXs != null)
         {
@@ -82,22 +58,10 @@ public class CarVFX : NetworkBehaviour
             fireVFX.gameObject.SetActive(true);
             fireVFX.Play();
             
-            // Sync to clients if on server
             if (IsServer)
             {
                 EnableFireEffectClientRpc();
             }
-        }
-    }
-
-    [ClientRpc]
-    private void EnableFireEffectClientRpc()
-    {
-        // Only play on clients (server already played locally)
-        if (!IsServer && fireVFX != null)
-        {
-            fireVFX.gameObject.SetActive(true);
-            fireVFX.Play();
         }
     }
 
@@ -108,18 +72,60 @@ public class CarVFX : NetworkBehaviour
             fireVFX.Stop();
             fireVFX.gameObject.SetActive(false);
             
-            // Sync to clients if on server
             if (IsServer)
             {
                 StopFireEffectClientRpc();
             }
         }
     }
+    #endregion
+
+    #region Network Lifecycle
+    public override void OnNetworkDespawn()
+    {
+        base.OnNetworkDespawn();
+
+        if (carDamageManager != null)
+            carDamageManager.OnCarDamaged -= HandleCarDamageVFX;
+
+        EventBus<PlayerSpawnedEvent>.Unregister(playerSpawnedEvent);
+    }
+    #endregion
+
+    #region Private Methods
+    private void HandleCarDamageVFX(Vector3 damagePosition)
+    {
+        float healthPercentage = carDamageManager.CarHealthPercentage;
+        PlayDamageVFXLocal(damagePosition, healthPercentage);
+
+        if (IsServer)
+        {
+            PlayDamageVFXClientRpc(damagePosition, healthPercentage);
+        }
+    }
+
+    [ClientRpc]
+    private void PlayDamageVFXClientRpc(Vector3 damagePosition, float healthPercentage)
+    {
+        if (!IsServer)
+        {
+            PlayDamageVFXLocal(damagePosition, healthPercentage);
+        }
+    }
+
+    [ClientRpc]
+    private void EnableFireEffectClientRpc()
+    {
+        if (!IsServer && fireVFX != null)
+        {
+            fireVFX.gameObject.SetActive(true);
+            fireVFX.Play();
+        }
+    }
 
     [ClientRpc]
     private void StopFireEffectClientRpc()
     {
-        // Only stop on clients (server already stopped locally)
         if (!IsServer && fireVFX != null)
         {
             fireVFX.Stop();
@@ -136,7 +142,6 @@ public class CarVFX : NetworkBehaviour
             damageImpactEffect.Play();
         }
 
-        // Check if smoke VFX array is valid
         if (damageSmokeVFXs == null || damageSmokeVFXs.Length < 3)
         {
             Debug.LogWarning($"[CarVFX] damageSmokeVFXs array is null or has insufficient elements ({damageSmokeVFXs?.Length ?? 0})");
@@ -176,14 +181,5 @@ public class CarVFX : NetworkBehaviour
                 break;
         }
     }
-
-    public override void OnNetworkDespawn()
-    {
-        base.OnNetworkDespawn();
-
-        if (carDamageManager != null)
-            carDamageManager.OnCarDamaged -= HandleCarDamageVFX;
-
-        EventBus<PlayerSpawnedEvent>.Unregister(playerSpawnedEvent);
-    }
+    #endregion
 }

@@ -1,11 +1,12 @@
 using System.Collections;
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
-using System.Collections.Generic;
 
 [RequireComponent(typeof(Rigidbody), typeof(PlayerController))]
 public class ServerPhysicsCollisionHandler : NetworkBehaviour
 {
+    #region Fields
     [Header("Impact Settings")]
     [SerializeField] private float minImpactForce = 5f;
     [SerializeField] private float explosiveForceMultiplier = 1f;
@@ -23,13 +24,17 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
     private CarDamageManager damageManager;
     private float lastCollisionTime;
     private static HashSet<ulong> globalRecentCollisions = new HashSet<ulong>();
+    #endregion
 
+    #region Network Lifecycle
     public override void OnNetworkSpawn()
     {
         if (!IsServer) 
             enabled = false;
     }
+    #endregion
 
+    #region Unity Lifecycle
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -52,12 +57,10 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
         ulong thisId = thisIsBot ? NetworkObjectId : OwnerClientId;
         ulong otherId = otherIsBot ? otherPlayer.NetworkObjectId : otherPlayer.OwnerClientId;
 
-        // Ensure same ID regardless of who detects first
         ulong collisionKey = thisId < otherId ? (thisId << 32) | otherId : (otherId << 32) | thisId;
 
         if (globalRecentCollisions.Contains(collisionKey)) return;
 
-        // Process only on the instance with the lower ID
         if (thisId > otherId) 
             return;
 
@@ -75,7 +78,9 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
         lastCollisionTime = Time.time;
         StartCoroutine(RemoveFromRecentCollisions(collisionKey, collisionCooldown));
     }
+    #endregion
 
+    #region Private Methods
     private IEnumerator RemoveFromRecentCollisions(ulong collisionKey, float delay)
     {
         yield return new WaitForSeconds(delay);
@@ -90,8 +95,6 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
 
         Vector3 hitNormal = collision.contacts[0].normal;
 
-        // Use Dot product to check if the front of the car is facing the collision normal
-        // 0.7f is roughly a 45-degree cone
         bool thisIsFrontBumper = Vector3.Dot(transform.forward, -hitNormal) > 0.7f;
         bool otherIsFrontBumper = Vector3.Dot(otherPlayer.transform.forward, hitNormal) > 0.7f;
 
@@ -103,7 +106,6 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
 
         if (isHeadOn)
         {
-            // Head-on: Reduce total damage to 50%, then split 60/40 based on speed
             float totalDamage = baseDamage * 0.5f;
             float thisSpeed = rb.velocity.magnitude;
             float otherSpeed = otherRb.velocity.magnitude;
@@ -121,19 +123,16 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
         }
         else
         {
-            // If I hit with bumper and they didn't, I am the attacker (No damage to me)
             if (thisIsFrontBumper)
             {
                 damageToThis = 0f;
                 damageToOther = baseDamage;
             }
-            // If they hit me with their bumper and I didn't hit with mine
             else if (otherIsFrontBumper)
             {
                 damageToThis = baseDamage;
                 damageToOther = 0f;
             }
-            // Side-swipes or rear-ends where neither used bumper effectively
             else
             {
                 damageToThis = baseDamage * 0.5f;
@@ -141,7 +140,6 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
             }
         }
 
-        // Apply Results
         if (damageToThis > 0) 
             ApplyDamageToCar(otherPlayer, collision, damageToThis);
 
@@ -158,12 +156,8 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
         if (damageManager == null) 
             return;
 
-        // When we take damage, the attacker is the other player
-        // Pass their ID as attackerClientId - DamageNumberPool in AttackerOnly mode will filter this out
-        // (we won't see it because we're not the attacker)
         ulong? attackerId = otherPlayer.IsBot ? otherPlayer.NetworkObjectId : otherPlayer.OwnerClientId;
-
-        damageManager.ApplyDamageToPart(CarPartType.FrontBumper, damage, collision.contacts[0].point, attackerId);
+        damageManager.ApplyDamage(damage, collision.contacts[0].point, attackerId);
         Debug.Log($"[ServerPhysicsCollisionHandler] Applied {damage} damage to {playerController.PlayerName.Value} from collision.");
     }
 
@@ -172,10 +166,8 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
         CarDamageManager otherDM = otherPlayer.DamageManager;
         if (otherDM != null)
         {
-            // When we deal damage to others, pass our client ID as the attacker
-            // DamageNumberPool in AttackerOnly mode will show this to us (the attacker)
             ulong attackerId = playerController.IsBot ? NetworkObjectId : OwnerClientId;
-            otherDM.ApplyDamageToPart(CarPartType.FrontBumper, damage, collision.contacts[0].point, attackerId);
+            otherDM.ApplyDamage(damage, collision.contacts[0].point, attackerId);
             Debug.Log($"[ServerPhysicsCollisionHandler] Applied {damage} damage to {otherPlayer.PlayerName.Value} from collision with {playerController.PlayerName.Value}.");
         }
     }
@@ -206,4 +198,5 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
         if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(id2, out var obj2))
             obj2.GetComponent<Rigidbody>()?.AddForceAtPosition(dir2 * force, point, ForceMode.Impulse);
     }
+    #endregion
 }

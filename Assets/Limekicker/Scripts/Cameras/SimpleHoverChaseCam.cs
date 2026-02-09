@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class SimpleHoverChaseCam : MonoBehaviour
 {
+    #region Fields
     [Header("Settings")]
     public float distance = 8;
     public float height = 3;
@@ -12,13 +13,16 @@ public class SimpleHoverChaseCam : MonoBehaviour
 
     private Transform target;
     private Rigidbody targetRigidbody;
-
-    public int TryAssignLocalPlayer { get; private set; }
-
     private EventBinding<GameStateChangeEvent> gameStateChangeEvent;
     private EventBinding<PlayerSpawnedEvent> playerSpawnedEvent;
     private EventBinding<PlayerTeleportedEvent> playerTeleportedEvent;
+    #endregion
 
+    #region Properties
+    public int TryAssignLocalPlayer { get; private set; }
+    #endregion
+
+    #region Unity Lifecycle
     public void Start()
     {
         gameStateChangeEvent = new EventBinding<GameStateChangeEvent>(HandleGameStateChange);
@@ -31,6 +35,48 @@ public class SimpleHoverChaseCam : MonoBehaviour
         EventBus<PlayerTeleportedEvent>.Register(playerTeleportedEvent);
     }
 
+    void LateUpdate()
+    {
+        MoveCamera();
+    }
+
+    private void OnDestroy()
+    {
+        EventBus<GameStateChangeEvent>.Unregister(gameStateChangeEvent);
+        EventBus<PlayerSpawnedEvent>.Unregister(playerSpawnedEvent);
+        EventBus<PlayerTeleportedEvent>.Unregister(playerTeleportedEvent);
+    }
+    #endregion
+
+    #region Public Methods
+    public void ForceUpdatePosition()
+    {
+        if (target == null)
+            return;
+
+        Rigidbody rb = target.GetComponent<Rigidbody>();
+        float speed = rb != null ? rb.velocity.magnitude : 0f;
+
+        Vector3 targetPosition = target.position - target.forward * distance + Vector3.up * height;
+
+        if (speed > 2f)
+        {
+            targetPosition += target.forward * (speed * 0.1f);
+        }
+
+        transform.position = targetPosition;
+
+        Vector3 lookDir = Vector3.ProjectOnPlane(target.position - transform.position, Vector3.up);
+        Quaternion targetRotation = Quaternion.LookRotation(lookDir.normalized);
+        float speedFactor = rb != null ? Mathf.Clamp01(rb.velocity.magnitude / maxSpeedForTilt) : 0f;
+        float currentTiltAngle = Mathf.Lerp(minTiltAngle, maxTiltAngle, speedFactor);
+        Quaternion tiltRotation = Quaternion.Euler(currentTiltAngle, targetRotation.eulerAngles.y, 0);
+        transform.rotation = tiltRotation;
+        velocity = Vector3.zero;
+    }
+    #endregion
+
+    #region Private Methods
     private void HandleGameStateChange(GameStateChangeEvent @event)
     {
         if (@event.NewState is not PlayState)
@@ -54,7 +100,6 @@ public class SimpleHoverChaseCam : MonoBehaviour
         if (playerSpawnedEvent.NetworkObject == null)
             return;
             
-        // Don't follow bots - only follow real players that we own
         var playerController = playerSpawnedEvent.NetworkObject.GetComponent<PlayerController>();
         if (playerController != null && playerController.IsBot)
             return;
@@ -62,7 +107,6 @@ public class SimpleHoverChaseCam : MonoBehaviour
         if (playerSpawnedEvent.NetworkObject.IsOwner)
         {
             AssignTarget(playerSpawnedEvent.NetworkObject.transform, playerSpawnedEvent.NetworkObject.GetComponent<Rigidbody>());
-            //Debug.Log($"[SimpleHoverChaseCam] Assigned target from PlayerSpawnManager: {netObj.name}");
         }
     }
 
@@ -71,7 +115,6 @@ public class SimpleHoverChaseCam : MonoBehaviour
         if (@event.NetworkObject == null)
             return;
 
-        // Only update camera if this is the target we're following
         if (target != null && @event.NetworkObject.transform == target)
         {
             ForceUpdatePosition();
@@ -87,46 +130,6 @@ public class SimpleHoverChaseCam : MonoBehaviour
         targetRigidbody = newRigidbody != null ? newRigidbody : newTarget.GetComponent<Rigidbody>();
     }
 
-    /// <summary>
-    /// Forces the camera to immediately snap to the target's position (used after teleportation)
-    /// </summary>
-    public void ForceUpdatePosition()
-    {
-        if (target == null)
-            return;
-
-        Rigidbody rb = target.GetComponent<Rigidbody>();
-        float speed = rb != null ? rb.velocity.magnitude : 0f;
-
-        // Define camera target position (behind & above the car)
-        Vector3 targetPosition = target.position - target.forward * distance + Vector3.up * height;
-
-        // Apply look-ahead effect if moving fast
-        if (speed > 2f)
-        {
-            targetPosition += target.forward * (speed * 0.1f);
-        }
-
-        // Immediately snap to position (no smoothing)
-        transform.position = targetPosition;
-
-        // Update rotation immediately as well
-        Vector3 lookDir = Vector3.ProjectOnPlane(target.position - transform.position, Vector3.up);
-        Quaternion targetRotation = Quaternion.LookRotation(lookDir.normalized);
-        float speedFactor = rb != null ? Mathf.Clamp01(rb.velocity.magnitude / maxSpeedForTilt) : 0f;
-        float currentTiltAngle = Mathf.Lerp(minTiltAngle, maxTiltAngle, speedFactor);
-        Quaternion tiltRotation = Quaternion.Euler(currentTiltAngle, targetRotation.eulerAngles.y, 0);
-        transform.rotation = tiltRotation;
-
-        // Reset velocity for smooth damping to work properly after snap
-        velocity = Vector3.zero;
-    }
-
-    void LateUpdate()
-    {
-        MoveCamera();
-    }
-
     private void MoveCamera()
     {
         if (!target)
@@ -135,10 +138,8 @@ public class SimpleHoverChaseCam : MonoBehaviour
         Rigidbody rb = target.GetComponent<Rigidbody>();
         float speed = rb.velocity.magnitude;
 
-        // Define camera target position (behind & above the car)
         Vector3 targetPosition = target.position - target.forward * distance + Vector3.up * height;
 
-        // Apply look-ahead effect if moving fast
         if (speed > 2f)
         {
             targetPosition += target.forward * (speed * 0.1f);
@@ -157,15 +158,8 @@ public class SimpleHoverChaseCam : MonoBehaviour
         Quaternion targetRotation = Quaternion.LookRotation(lookDir.normalized);
         Quaternion tiltRotation = Quaternion.Euler(currentTiltAngle, targetRotation.eulerAngles.y, 0);
 
-        // Faster rotation follow
-        float rotSpeed = rotationSpeed * (1f + turnBoost * 2f);  // boost when turning
+        float rotSpeed = rotationSpeed * (1f + turnBoost * 2f);
         transform.rotation = Quaternion.Slerp(transform.rotation, tiltRotation, rotSpeed * Time.deltaTime);
     }
-
-    private void OnDestroy()
-    {
-        EventBus<GameStateChangeEvent>.Unregister(gameStateChangeEvent);
-        EventBus<PlayerSpawnedEvent>.Unregister(playerSpawnedEvent);
-        EventBus<PlayerTeleportedEvent>.Unregister(playerTeleportedEvent);
-    }
+    #endregion
 }
