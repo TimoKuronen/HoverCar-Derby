@@ -41,36 +41,27 @@ public class CarVFX : NetworkBehaviour
     /// </summary>
     public void WarmupVFX()
     {
-        if (isVFXWarmedUp) return;
+        if (isVFXWarmedUp) 
+            return;
 
-        // Pre-warm smoke effects
-        if (damageSmokeVFXs != null)
+        float warmupTime = 0.01f;
+
+        foreach (var smoke in damageSmokeVFXs)
         {
-            foreach (var smoke in damageSmokeVFXs)
-            {
-                if (smoke != null && !smoke.gameObject.activeSelf)
-                {
-                    smoke.gameObject.SetActive(true);
-                    smoke.Play();
-                    smoke.Stop(true, ParticleSystemStopBehavior.StopEmitting);
-                    smoke.Clear();
-                    // Keep active but stopped - ready for instant playback
-                }
-            }
+            if (smoke == null) 
+                continue;
+
+            smoke.gameObject.SetActive(true);
+
+            // Simulate forces the internal engine state to update immediately
+            smoke.Simulate(warmupTime, true, true, true);
+            smoke.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         }
 
-        // Pre-warm fire effect
-        if (fireVFX != null && !fireVFX.gameObject.activeSelf)
-        {
-            fireVFX.gameObject.SetActive(true);
-            fireVFX.Play();
-            fireVFX.Stop(true, ParticleSystemStopBehavior.StopEmitting);
-            fireVFX.Clear();
-            fireVFX.gameObject.SetActive(false); // Fire starts disabled
-        }
+        fireVFX.Simulate(warmupTime, true, true, true);
+        fireVFX.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
 
         isVFXWarmedUp = true;
-        Debug.Log("[CarVFX] VFX pre-warmed successfully.");
     }
 
     public void ResetVFX(PlayerSpawnedEvent playerSpawnedEvent)
