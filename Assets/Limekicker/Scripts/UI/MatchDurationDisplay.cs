@@ -2,26 +2,19 @@ using System;
 using System.Text;
 using TMPro;
 using UnityEngine;
-using VContainer;
 
 public class MatchDurationDisplay : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI matchDurationText;
-
-    private IGameManager gameManager;
+    [SerializeField] private IntVariable matchDurationLeft;
 
     private EventBinding<GameStateChangeEvent> gameStateChangeEvent;
-
-    [Inject]
-    public void Construct(IGameManager gameManager)
-    {
-        this.gameManager = gameManager;
-        this.gameManager.OnGameTimerUpdated += UpdateTimeDisplay;
-    }
+    private static readonly StringBuilder sb = new();
 
     private void Start()
     {
-        UpdateTimeDisplay(gameManager.Context.roundDurationInSeconds);
+        matchDurationLeft.OnValueChanged += UpdateTimeDisplay;
+        UpdateTimeDisplay(matchDurationLeft.Value);
         matchDurationText.gameObject.SetActive(false);
 
         gameStateChangeEvent = new EventBinding<GameStateChangeEvent>(HandleGameStateChange);
@@ -30,7 +23,7 @@ public class MatchDurationDisplay : MonoBehaviour
 
     private void HandleGameStateChange(GameStateChangeEvent @event)
     {
-        if(@event.NewState is PlayState || @event.NewState is CountdownState)
+        if (@event.NewState is PlayState || @event.NewState is CountdownState)
         {
             matchDurationText.gameObject.SetActive(true);
         }
@@ -42,16 +35,16 @@ public class MatchDurationDisplay : MonoBehaviour
 
     private void UpdateTimeDisplay(int obj)
     {
-        StringBuilder sb = new();
         int minutes = obj / 60;
         int seconds = obj % 60;
         sb.AppendFormat("{0:00}:{1:00}", minutes, seconds);
         matchDurationText.text = sb.ToString();
+        sb.Clear();
     }
 
     private void OnDestroy()
     {
-        gameManager.OnGameTimerUpdated -= UpdateTimeDisplay;
+        matchDurationLeft.OnValueChanged -= UpdateTimeDisplay;
         EventBus<GameStateChangeEvent>.Unregister(gameStateChangeEvent);
     }
 }

@@ -83,7 +83,7 @@ public class PlayerSpawnManager : IDisposable
             }
         }
     }
-    private void HandleCarRespawn(CarManager obj)
+    private void HandleCarRespawn(CarManager obj, System.Action onTeleportComplete)
     {
         // Get another player's NetworkObject to avoid spawning at their location
         // For real players, use OwnerClientId; for bots, we need to find any other player
@@ -104,10 +104,11 @@ public class PlayerSpawnManager : IDisposable
 
         // Use OwnerClientId for real players, NetworkObjectId for bots (matching TeleportAfterSpawn signature)
         ulong clientId = obj.PlayerController.IsBot ? obj.PlayerController.NetworkObjectId : obj.PlayerController.OwnerClientId;
-        TeleportAfterSpawn(
+        CoroutineMonoBehavior.Instance.StartCoroutine(TeleportAfterSpawn(
             obj.PlayerController.NetworkObject,
             spawnData,
-            clientId);
+            clientId,
+            onTeleportComplete));
     }
 
     private INetworkServer ResolveNetworkServer()
@@ -311,13 +312,16 @@ public class PlayerSpawnManager : IDisposable
     /// This ensures the spawn position is correctly applied for client-authoritative transforms.
     /// For client-authoritative transforms, we also send a ClientRPC to have the client teleport itself.
     /// </summary>
-    private IEnumerator TeleportAfterSpawn(NetworkObject networkObject, SpawnPointData spawnData, ulong clientId)
+    private IEnumerator TeleportAfterSpawn(NetworkObject networkObject, SpawnPointData spawnData, ulong clientId, System.Action onTeleportComplete = null)
     {
         // Wait a frame for NetworkTransform to fully initialize
         yield return null;
 
         if (networkObject == null || spawnData == null)
+        {
+            onTeleportComplete?.Invoke();
             yield break;
+        }
 
         // First, teleport on the server side (this works for server-authoritative and helps with host)
         if (networkObject.TryGetComponent<Unity.Netcode.Components.NetworkTransform>(out var networkTransform))
@@ -351,6 +355,9 @@ public class PlayerSpawnManager : IDisposable
                 Debug.Log($"[PlayerSpawnManager] Sent ClientRPC to teleport client {clientId} to spawn point: {spawnData.Position}");
             }
         }
+
+        // Invoke callback when teleport is complete
+        onTeleportComplete?.Invoke();
     }
 
     public void Dispose()

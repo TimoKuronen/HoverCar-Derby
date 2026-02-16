@@ -24,7 +24,7 @@ public class CarManager : NetworkBehaviour
     #endregion
 
     #region Events
-    public static event Action<CarManager> OnCarRespawned;
+    public static event Action<CarManager, Action> OnCarRespawned;
     #endregion
 
     #region Unity Lifecycle
@@ -109,20 +109,19 @@ public class CarManager : NetworkBehaviour
 
     private IEnumerator Respawn()
     {
+        // Wait a moment to allow destruction effects to play out and prevent immediate re-destruction
         yield return new WaitForSeconds(2f);
 
-        Vector3 positionBeforeTeleport = transform.position;
-        OnCarRespawned?.Invoke(this);
+        bool teleportComplete = false;
 
-        float teleportWaitTime = 0f;
-        float maxTeleportWait = 1.5f;
-        while (Vector3.Distance(transform.position, positionBeforeTeleport) < 0.5f && teleportWaitTime < maxTeleportWait)
-        {
-            yield return new WaitForSeconds(0.1f);
-            teleportWaitTime += 0.1f;
-        }
+        // Invoke respawn event with callback that will be called when teleport finishes
+        OnCarRespawned?.Invoke(this, () => teleportComplete = true);
 
-        yield return new WaitForSeconds(0.3f);
+        // Wait for teleport to complete 
+        yield return new WaitUntil(() => teleportComplete);
+
+        // Small delay to ensure teleport is fully applied
+        yield return new WaitForSeconds(0.1f);
 
         if (IsOwner)
         {
@@ -131,10 +130,10 @@ public class CarManager : NetworkBehaviour
 
         DamageManager.Repair(100f);
         carVFX.StopFireEffect();
-        yield return StartCoroutine(HopCarIntoAir());
-        hoverCarControl.ToggleHovering(true);
 
-        StartCoroutine(GameHUD.Instance.AnimateGoText());
+        yield return StartCoroutine(HopCarIntoAir());
+
+        hoverCarControl.ToggleHovering(true);
     }
 
     private IEnumerator HopCarIntoAir()
@@ -150,8 +149,6 @@ public class CarManager : NetworkBehaviour
 
         bool wasKinematic = carRigidbody.isKinematic;
         carRigidbody.isKinematic = true;
-        carRigidbody.velocity = Vector3.zero;
-        carRigidbody.angularVelocity = Vector3.zero;
 
         float elapsedTime = 0f;
         while (elapsedTime < hopDuration)
@@ -171,6 +168,7 @@ public class CarManager : NetworkBehaviour
         carRigidbody.isKinematic = wasKinematic;
         carRigidbody.velocity = Vector3.zero;
         carRigidbody.angularVelocity = Vector3.zero;
+
         Physics.SyncTransforms();
     }
 

@@ -1,18 +1,12 @@
-﻿using System.Collections;
-using System.Text;
-using TMPro;
+using System.Collections;
 using UnityEngine;
 
 public class CountdownState : IGameState
 {
     private readonly GameManager gameManager;
-    private TextMeshProUGUI countdownText;
-    private readonly StringBuilder stringBuilder = new StringBuilder(4);
     
-    private const float START_FONT_SIZE = 256f;
-    private const float END_FONT_SIZE = 384f;
-    private const float ANIMATION_DURATION = 0.75f;
-    private const float POST_GO_DELAY = 0.5f;
+    private const float countdownInterval = 0.75f;
+    private const float goDelay = 0.5f;
 
     public CountdownState(GameManager manager)
     {
@@ -21,79 +15,36 @@ public class CountdownState : IGameState
 
     public void Enter()
     {
-        if (GameHUD.Instance != null)
-        {
-            countdownText = GameHUD.Instance.startCounterText;
-        }
-
+        gameManager.Context.raceCamera.Priority = 20;
         CoroutineMonoBehavior.Instance.StartCoroutine(CountdownCoroutine());
     }
 
     public void Exit() 
     {
-        stringBuilder.Clear();
+        // Reset countdown to invalid value to hide display
+        gameManager.CountdownValue.Value = -1;
     }
 
     public void Update() { }
 
     private IEnumerator CountdownCoroutine()
     {
-        if (countdownText == null)
-        {
-            Debug.LogError("CountdownState: countdownText is null. Cannot display countdown.");
-            gameManager.ChangeState(new PlayState());
-            yield break;
-        }
+        // Wait a frame to ensure CountdownDisplay has subscribed to the variable
+        yield return null;
 
-        gameManager.Context.raceCamera.Priority = 20;
-        countdownText.gameObject.SetActive(true);
+        // Countdown: 3, 2, 1, then 0 for GO
+        gameManager.CountdownValue.Value = 3;
+        yield return new WaitForSeconds(countdownInterval);
 
-        yield return AnimateCountdown(3);
-        yield return AnimateCountdown(2);
-        yield return AnimateCountdown(1);
+        gameManager.CountdownValue.Value = 2;
+        yield return new WaitForSeconds(countdownInterval);
 
-        countdownText.gameObject.SetActive(false);
+        gameManager.CountdownValue.Value = 1;
+        yield return new WaitForSeconds(countdownInterval);
 
-        yield return GameHUD.Instance.AnimateGoText();
-        RaiseCountdownEvent("GO", 0);
+        gameManager.CountdownValue.Value = 0;
+        yield return new WaitForSeconds(goDelay);
 
         gameManager.ChangeState(new PlayState());
-
-        yield return new WaitForSeconds(POST_GO_DELAY);
-    }
-
-    private IEnumerator AnimateCountdown(int countdownNumber)
-    {
-        if (countdownText == null)
-            yield break;
-
-        stringBuilder.Clear();
-        stringBuilder.Append(countdownNumber);
-        string countdownString = stringBuilder.ToString();
-
-        countdownText.text = countdownString;
-        RaiseCountdownEvent(countdownString, countdownNumber);
-
-        float elapsedTime = 0f;
-        countdownText.fontSize = START_FONT_SIZE;
-
-        while (elapsedTime < ANIMATION_DURATION)
-        {
-            elapsedTime += Time.deltaTime;
-            float lerpValue = elapsedTime / ANIMATION_DURATION;
-            countdownText.fontSize = Mathf.Lerp(START_FONT_SIZE, END_FONT_SIZE, lerpValue);
-            yield return null;
-        }
-
-        countdownText.fontSize = END_FONT_SIZE;
-    }
-
-    private void RaiseCountdownEvent(string countdownValue, int countdownNumber)
-    {
-        EventBus<CountdownEvent>.Raise(new CountdownEvent
-        {
-            CountdownValue = countdownValue,
-            CountdownNumber = countdownNumber
-        });
     }
 }

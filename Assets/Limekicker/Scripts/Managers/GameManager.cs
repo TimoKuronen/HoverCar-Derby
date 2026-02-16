@@ -9,21 +9,22 @@ public class GameManager : MonoBehaviour, IGameManager
 {
     [Header("References")]
     [SerializeField] private RaceContext context;
+    [SerializeField] private IntVariable gameTimerValue;
+    [SerializeField] private IntVariable countdownValue;
+
+    public IntVariable CountdownValue => countdownValue;
 
     private IGameState currentState;
     private IGameState previousState;
+
     private IScoreManager scoreManager;
 
     private PlayerSpawnManager playerSpawnManager;
     private Coroutine timerCoroutine;
-    private int gameTimer = 0;
 
     public PlayerTracker PlayerTracker { get; private set; }
     public IGameState CurrentGameState => currentState;
     public RaceContext Context => context;
-    public float GameTimeLeft => gameTimer;
-
-    public event Action<int> OnGameTimerUpdated;
 
     [Inject]
     public void Construct(IScoreManager scoreManager, IInputService inputService)
@@ -40,9 +41,13 @@ public class GameManager : MonoBehaviour, IGameManager
         StartCoroutine(playerSpawnManager.Initialize());
     }
 
+
     private IEnumerator Initialize()
     {
-        bool skipCountodown = MainMenu.IsSkipCountdownEnabled(); 
+        bool skipCountodown = MainMenu.IsSkipCountdownEnabled();
+        gameTimerValue.Value = Context.roundDurationInSeconds;
+        countdownValue.Value = -1; // Ensure countdown starts hidden
+
         Debug.Log("GameManager Initialization Started.");
 
         // Start in Cinematic State
@@ -71,11 +76,6 @@ public class GameManager : MonoBehaviour, IGameManager
     private void Update()
     {
         currentState?.Update();
-
-        if (Keyboard.current.f1Key.wasPressedThisFrame)
-        {
-            gameTimer = Context.roundDurationInSeconds;
-        }
     }
 
     private IEnumerator UpdateGameTimer()
@@ -88,10 +88,9 @@ public class GameManager : MonoBehaviour, IGameManager
             {
                 yield return new WaitForSeconds(1f);
 
-                gameTimer += 1;
-                OnGameTimerUpdated?.Invoke(Context.roundDurationInSeconds - gameTimer);
+                gameTimerValue.Value--;
 
-                if (gameTimer >= Context.roundDurationInSeconds)
+                if (gameTimerValue.Value >= Context.roundDurationInSeconds)
                 {
                     ChangeState(new RaceCompletionState(this));
                 }

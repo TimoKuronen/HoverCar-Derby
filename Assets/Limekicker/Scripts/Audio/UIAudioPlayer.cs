@@ -10,8 +10,10 @@ public class UIAudioPlayer : MonoBehaviour
     [Header("Audio Source")]
     [SerializeField] private AudioSource audioSource;
 
+    [Header("Countdown Variable")]
+    [SerializeField] private IntVariable countdownValue;
+
     private IAudioService audioService;
-    private EventBinding<CountdownEvent> countdownEventBinding;
 
     [Inject]
     public void Construct(IAudioService audioService)
@@ -26,22 +28,31 @@ public class UIAudioPlayer : MonoBehaviour
             audioSource = gameObject.AddComponent<AudioSource>();
             audioSource.playOnAwake = false;
         }
+    }
 
-        countdownEventBinding = new EventBinding<CountdownEvent>(OnCountdownChanged);
-        EventBus<CountdownEvent>.Register(countdownEventBinding);
+    private void Start()
+    {
+        if (countdownValue != null)
+        {
+            countdownValue.OnValueChanged += OnCountdownValueChanged;
+        }
     }
 
     private void OnDestroy()
     {
-        if (countdownEventBinding != null)
+        if (countdownValue != null)
         {
-            EventBus<CountdownEvent>.Unregister(countdownEventBinding);
+            countdownValue.OnValueChanged -= OnCountdownValueChanged;
         }
     }
 
-    private void OnCountdownChanged(CountdownEvent countdownEvent)
+    private void OnCountdownValueChanged(int countdownNumber)
     {
-        AudioCue cueToPlay = GetAudioCueForCountdown(countdownEvent.CountdownNumber);
+        // Only play audio for valid countdown values (0-3)
+        if (countdownNumber < 0 || countdownNumber > 3)
+            return;
+
+        AudioCue cueToPlay = GetAudioCueForCountdown(countdownNumber);
         
         if (cueToPlay != null && audioSource != null && audioService != null)
         {

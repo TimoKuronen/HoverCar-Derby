@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
+using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
@@ -11,7 +12,9 @@ public class ScoreManager : IScoreManager, IDisposable, IStartable
     public event Action<PlayerData> OnScoreChanged;
     public event Action<PlayerData> OnPlayerAdded; // for UI
 
-    private List<PlayerData> players = new();
+    // SOAP: Track IntVariable SOs per player for score values
+    private Dictionary<ulong, IntVariable> playerScoreVariables = new Dictionary<ulong, IntVariable>();
+    private Dictionary<ulong, PlayerData> playerDataByClientId = new Dictionary<ulong, PlayerData>();
 
     private EventBinding<PlayerSpawnedEvent> playerSpawnedEvent;
 
@@ -19,6 +22,11 @@ public class ScoreManager : IScoreManager, IDisposable, IStartable
     public void Construct()
     {
         playerSpawnedEvent = new EventBinding<PlayerSpawnedEvent>(AddPlayerToScoreBoard);
+    }
+
+    public IntVariable GetPlayerScoreVariable(ulong clientId)
+    {
+        return playerScoreVariables.TryGetValue(clientId, out var variable) ? variable : null;
     }
 
     public void Start()
@@ -42,7 +50,12 @@ public class ScoreManager : IScoreManager, IDisposable, IStartable
             Points = 0
         };
 
-        players.Add(playerData);
+        // SOAP: Create IntVariable SO for this player's score
+        IntVariable scoreVariable = ScriptableObject.CreateInstance<IntVariable>();
+        scoreVariable.Value = 0;
+        playerScoreVariables[clientId] = scoreVariable;
+        playerDataByClientId[clientId] = playerData;
+
         OnPlayerAdded?.Invoke(playerData);
     }
 
@@ -51,12 +64,20 @@ public class ScoreManager : IScoreManager, IDisposable, IStartable
         // Bots use NetworkObjectId, real players use OwnerClientId (matching collision system)
         ulong clientId = data.IsBot ? data.NetworkObjectId : data.OwnerClientId;
         
-        OnScoreChanged?.Invoke(new PlayerData
+        // SOAP: Update IntVariable SO (this will trigger OnValueChanged for UI)
+        if (playerScoreVariables.TryGetValue(clientId, out var scoreVariable))
         {
-            PlayerName = data.PlayerName.Value,
-            ClientId = clientId,
-            Points = scoreToAdd
-        });
+            scoreVariable.Value += scoreToAdd;
+            
+            // Update PlayerData
+            if (playerDataByClientId.TryGetValue(clientId, out var playerData))
+            {
+                playerData.Points = scoreVariable.Value;
+                playerDataByClientId[clientId] = playerData;
+            }
+            
+            OnScoreChanged?.Invoke(playerDataByClientId[clientId]);
+        }
     }
 
     public PlayerData GetLeadingPlayer()
