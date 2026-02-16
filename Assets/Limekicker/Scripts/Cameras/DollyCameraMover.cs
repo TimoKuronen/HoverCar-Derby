@@ -16,6 +16,9 @@ public class DollyCameraMover : MonoBehaviour
         dolly = vcam.GetCinemachineComponent<CinemachineTrackedDolly>();
     }
 
+    /// <summary>
+    /// Toggles dolly camera movement on/off. Resets path position and adjusts camera priority.
+    /// </summary>
     public void ToggleMovement()
     {
         moving = !moving;

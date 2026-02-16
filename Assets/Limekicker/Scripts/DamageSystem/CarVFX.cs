@@ -31,7 +31,6 @@ public class CarVFX : NetworkBehaviour
         playerSpawnedEvent = new EventBinding<PlayerSpawnedEvent>(ResetVFX);
         EventBus<PlayerSpawnedEvent>.Register(playerSpawnedEvent);
 
-        // Pre-warm all VFX to eliminate first-hit lag spikes
         WarmupVFX();
     }
 
@@ -179,7 +178,6 @@ public class CarVFX : NetworkBehaviour
             impactEffect.transform.position = damagePosition;
             impactEffect.Play();
             
-            // Return to pool after estimated duration
             VFXImpactPool.Instance.ReturnToPoolAfterDelay(impactEffect, impactEffectDuration);
         }
 

@@ -56,7 +56,6 @@ public abstract class CollisionCollectible : NetworkBehaviour
 
     private void OnEnable()
     {
-        // Reset processed state on enable (server only)
         if (IsServer)
         {
             isProcessed.Value = false;
@@ -68,9 +67,11 @@ public abstract class CollisionCollectible : NetworkBehaviour
             triggerCollider.enabled = true;
     }
 
+    /// <summary>
+    /// Handles collision with vehicles. Only processes on server and requires minimum impact velocity.
+    /// </summary>
     private void OnCollisionEnter(Collision collidingCar)
     {
-        // Only process on server to prevent duplicate collections
         if (!IsServer || isProcessed.Value || !collidingCar.gameObject.CompareTag("Vehicle"))
             return;
 
@@ -81,6 +82,9 @@ public abstract class CollisionCollectible : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Processes collectible collection: marks as processed, applies effect to car, and notifies clients.
+    /// </summary>
     private void ProcessItem(Collision collidingCar)
     {
         if (!IsServer)

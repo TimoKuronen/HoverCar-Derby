@@ -11,6 +11,10 @@ public class RaceCompletionState : IGameState
         this.gameManager = gameManager;
     }
 
+    /// <summary>
+    /// Sets up the victory cinematic by positioning the dolly track at the winner's location
+    /// and configuring the camera to follow them.
+    /// </summary>
     public void Enter()
     {
         Transform winningPlayer = gameManager.GetLeadingPlayer().transform;

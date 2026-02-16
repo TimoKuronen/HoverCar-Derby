@@ -107,20 +107,20 @@ public class CarManager : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Handles car respawn sequence: waits for destruction effects, teleports to spawn point,
+    /// repairs health, stops fire VFX, performs hop animation, and re-enables hovering.
+    /// </summary>
     private IEnumerator Respawn()
     {
-        // Wait a moment to allow destruction effects to play out and prevent immediate re-destruction
         yield return new WaitForSeconds(2f);
 
         bool teleportComplete = false;
 
-        // Invoke respawn event with callback that will be called when teleport finishes
         OnCarRespawned?.Invoke(this, () => teleportComplete = true);
 
-        // Wait for teleport to complete 
         yield return new WaitUntil(() => teleportComplete);
 
-        // Small delay to ensure teleport is fully applied
         yield return new WaitForSeconds(0.1f);
 
         if (IsOwner)
@@ -136,6 +136,10 @@ public class CarManager : NetworkBehaviour
         hoverCarControl.ToggleHovering(true);
     }
 
+    /// <summary>
+    /// Animates car hopping into the air after respawn. Uses easing for smooth motion.
+    /// Temporarily makes rigidbody kinematic to control position directly.
+    /// </summary>
     private IEnumerator HopCarIntoAir()
     {
         if (carRigidbody == null)
@@ -150,6 +154,7 @@ public class CarManager : NetworkBehaviour
         bool wasKinematic = carRigidbody.isKinematic;
         carRigidbody.isKinematic = true;
 
+        // Animate hop with easing (ease-out cubic)
         float elapsedTime = 0f;
         while (elapsedTime < hopDuration)
         {
@@ -188,6 +193,9 @@ public class CarManager : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Processes collectible collision based on type. Handles repair and damage collectibles.
+    /// </summary>
     private void ProcessCollectible(CollisionCollectible collectible)
     {
         switch (collectible)

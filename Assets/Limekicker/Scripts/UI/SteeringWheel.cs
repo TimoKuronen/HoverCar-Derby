@@ -22,6 +22,9 @@ public class SteeringWheel : MonoBehaviour
         UpdateSteeringWheelVisual(inputService.Steering);
     }
 
+    /// <summary>
+    /// Updates steering wheel UI rotation to match input. Uses smooth interpolation for visual feedback.
+    /// </summary>
     private void UpdateSteeringWheelVisual(float steerInput)
     {
         steerInput = Mathf.Clamp(steerInput, -1f, 1f);

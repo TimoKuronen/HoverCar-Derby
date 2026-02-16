@@ -49,7 +49,6 @@ public class BotPlayerController : NetworkBehaviour
         if (!IsServer || botInputService == null)
             return;
 
-        // Update bot AI input service (Tick is called by VContainer, but we call it manually for bots)
         botInputService.Tick();
     }
 

@@ -19,6 +19,9 @@ public class CinematicState : IGameState
         mainCamera = Camera.main;
     }
 
+    /// <summary>
+    /// Hides player layer from camera and starts intro dolly camera movement.
+    /// </summary>
     public void Enter()
     {
         mainCamera.cullingMask &= ~(1 << playerLayer);
@@ -35,6 +38,9 @@ public class CinematicState : IGameState
         }
     }
 
+    /// <summary>
+    /// Stops dolly camera and restores player layer visibility.
+    /// </summary>
     public void Exit()
     {
         manager.Context.endingDollyCamera.ToggleMovement();

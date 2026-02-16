@@ -49,6 +49,9 @@ public class SimpleHoverChaseCam : MonoBehaviour
     #endregion
 
     #region Public Methods
+    /// <summary>
+    /// Instantly snaps camera to target position and rotation. Used after teleport events.
+    /// </summary>
     public void ForceUpdatePosition()
     {
         if (target == null)
@@ -130,6 +133,10 @@ public class SimpleHoverChaseCam : MonoBehaviour
         targetRigidbody = newRigidbody != null ? newRigidbody : newTarget.GetComponent<Rigidbody>();
     }
 
+    /// <summary>
+    /// Smoothly follows the target car with dynamic positioning and rotation.
+    /// Camera speed increases during sharp turns, and tilt angle increases with speed.
+    /// </summary>
     private void MoveCamera()
     {
         if (!target)
@@ -138,19 +145,23 @@ public class SimpleHoverChaseCam : MonoBehaviour
         Rigidbody rb = target.GetComponent<Rigidbody>();
         float speed = rb.velocity.magnitude;
 
+        // Base position behind and above the car
         Vector3 targetPosition = target.position - target.forward * distance + Vector3.up * height;
 
+        // Push camera forward slightly when moving fast for better visibility
         if (speed > 2f)
         {
             targetPosition += target.forward * (speed * 0.1f);
         }
 
+        // Adjust smoothing based on turn sharpness - faster response during sharp turns
         float turnSharpness = rb ? rb.angularVelocity.magnitude : 0f;
         float turnBoost = Mathf.Clamp01(turnSharpness / 2f);
         float smoothTime = Mathf.Lerp(0.03f, 0.1f, 1f - turnBoost);
 
         transform.position = Vector3.SmoothDamp(transform.position, targetPosition, ref velocity, smoothTime);
 
+        // Tilt camera down more at higher speeds
         float speedFactor = Mathf.Clamp01(speed / maxSpeedForTilt);
         float currentTiltAngle = Mathf.Lerp(minTiltAngle, maxTiltAngle, speedFactor);
 
@@ -158,6 +169,7 @@ public class SimpleHoverChaseCam : MonoBehaviour
         Quaternion targetRotation = Quaternion.LookRotation(lookDir.normalized);
         Quaternion tiltRotation = Quaternion.Euler(currentTiltAngle, targetRotation.eulerAngles.y, 0);
 
+        // Rotate faster during sharp turns
         float rotSpeed = rotationSpeed * (1f + turnBoost * 2f);
         transform.rotation = Quaternion.Slerp(transform.rotation, tiltRotation, rotSpeed * Time.deltaTime);
     }

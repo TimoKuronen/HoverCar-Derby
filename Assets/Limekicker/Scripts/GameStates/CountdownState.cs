@@ -29,10 +29,8 @@ public class CountdownState : IGameState
 
     private IEnumerator CountdownCoroutine()
     {
-        // Wait a frame to ensure CountdownDisplay has subscribed to the variable
         yield return null;
 
-        // Countdown: 3, 2, 1, then 0 for GO
         gameManager.CountdownValue.Value = 3;
         yield return new WaitForSeconds(countdownInterval);
 

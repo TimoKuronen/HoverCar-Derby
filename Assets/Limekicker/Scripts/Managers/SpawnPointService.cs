@@ -20,6 +20,10 @@ public class SpawnPointService
         usedSpawnPoints.Clear();
     }
 
+    /// <summary>
+    /// Gets a random unused spawn point for a network object. If all spawn points are used,
+    /// resets the used set to allow reuse. Marks spawn point as used immediately to prevent race conditions.
+    /// </summary>
     public SpawnPointData GetRandomUnusedSpawnPoint(NetworkObject networkObject)
     {
         if (allSpawnPoints == null || allSpawnPoints.Length == 0)
@@ -48,10 +52,8 @@ public class SpawnPointService
             unusedSpawnPoints = allSpawnPoints;
         }
 
-        // Pick a random unused spawn point
         var selectedSpawnPoint = unusedSpawnPoints[Random.Range(0, unusedSpawnPoints.Length)];
 
-        // Mark as used IMMEDIATELY to prevent race conditions
         usedSpawnPoints.Add(selectedSpawnPoint);
 
         var spawnData = new SpawnPointData
@@ -71,12 +73,15 @@ public class SpawnPointService
         return spawnData;
     }
 
+    /// <summary>
+    /// Gets the spawn point furthest from the given network object. Returns existing assignment if available.
+    /// </summary>
     public SpawnPointData GetFurthestSpawnpoint(NetworkObject networkObject)
     {
         int furthestWaypointIndex = -1;
+        float furthestDistance = 0f;
         for (int i = 0; i < allSpawnPoints.Length; i++)
         {
-            float furthestDistance = 0f;
             float distance = Vector3.Distance(allSpawnPoints[i].transform.position, networkObject.transform.position);
             if (distance > furthestDistance)
             {

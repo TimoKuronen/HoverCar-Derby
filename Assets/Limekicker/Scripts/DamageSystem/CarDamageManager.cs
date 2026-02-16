@@ -34,6 +34,10 @@ public class CarDamageManager : NetworkBehaviour
         this.PlayerController = playerController;
     }
 
+    /// <summary>
+    /// Applies damage to this car. Must be called on server. Updates health, triggers VFX,
+    /// displays damage numbers, and raises damage events for scoring.
+    /// </summary>
     public void ApplyDamage(float damage, Vector3 damagePosition, ulong? attackerClientId = null)
     {
         if (!IsServer)
@@ -112,6 +116,9 @@ public class CarDamageManager : NetworkBehaviour
     #endregion
 
     #region Private Methods
+    /// <summary>
+    /// Called when health NetworkVariable changes. Triggers destruction event when health reaches zero.
+    /// </summary>
     private void OnHealthChanged(float oldValue, float newValue)
     {
         if (oldValue > 0 && newValue <= 0)

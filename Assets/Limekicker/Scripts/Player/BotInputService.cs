@@ -40,9 +40,6 @@ public class BotInputService : IInputService
             behaviorTimer = 0f;
             ChangeBehavior();
         }
-
-        // Staying in place for now
-        // UpdateInputs(); 
     }
 
     private void ChangeBehavior()

@@ -21,7 +21,6 @@ public class PlayerNameDisplay : MonoBehaviour
 
     private void OnDestroy()
     {
-        // Unsubscribe from NetworkVariable events to prevent memory leaks
         if (playerController != null && playerController.PlayerName != null)
         {
             try
@@ -30,7 +29,6 @@ public class PlayerNameDisplay : MonoBehaviour
             }
             catch (System.Exception e)
             {
-                // NetworkVariable might be destroyed during shutdown - this is expected
                 Debug.LogWarning($"[PlayerNameDisplay] Failed to unsubscribe from PlayerName (expected during shutdown): {e.Message}");
             }
         }

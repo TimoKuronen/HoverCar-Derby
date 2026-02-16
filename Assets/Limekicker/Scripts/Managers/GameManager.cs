@@ -46,11 +46,10 @@ public class GameManager : MonoBehaviour, IGameManager
     {
         bool skipCountodown = MainMenu.IsSkipCountdownEnabled();
         gameTimerValue.Value = Context.roundDurationInSeconds;
-        countdownValue.Value = -1; // Ensure countdown starts hidden
+        countdownValue.Value = -1;
 
         Debug.Log("GameManager Initialization Started.");
 
-        // Start in Cinematic State
         if (!skipCountodown)
         {
             CinematicState cinematicState = new CinematicState(this);
@@ -63,7 +62,6 @@ public class GameManager : MonoBehaviour, IGameManager
             yield break;
         }
 
-        // If skipping countdown, directly transition to PlayState after a brief delay
         yield return new WaitForSeconds(1f);
 
         timerCoroutine = StartCoroutine(UpdateGameTimer());
@@ -78,6 +76,10 @@ public class GameManager : MonoBehaviour, IGameManager
         currentState?.Update();
     }
 
+    /// <summary>
+    /// Coroutine that updates the game timer. Only decrements when in PlayState.
+    /// Transitions to RaceCompletionState when timer reaches or exceeds round duration.
+    /// </summary>
     private IEnumerator UpdateGameTimer()
     {
         while (true)
@@ -90,6 +92,7 @@ public class GameManager : MonoBehaviour, IGameManager
 
                 gameTimerValue.Value--;
 
+                // Check if timer has expired (using >= to handle edge cases)
                 if (gameTimerValue.Value >= Context.roundDurationInSeconds)
                 {
                     ChangeState(new RaceCompletionState(this));
@@ -97,13 +100,18 @@ public class GameManager : MonoBehaviour, IGameManager
             }
             else
             {
-                yield return null; // Wait for the next frame and re-check
+                yield return null;
             }
         }
     }
 
+    /// <summary>
+    /// Changes the current game state. Preserves previous state unless entering/exiting pause.
+    /// Stops timer coroutine when entering completion state.
+    /// </summary>
     public void ChangeState(IGameState newState)
     {
+        // Don't overwrite previous state when pausing/unpausing
         if (newState is not PauseState && previousState is not PauseState)
             previousState = currentState;
 
@@ -113,6 +121,7 @@ public class GameManager : MonoBehaviour, IGameManager
 
         EventBus<GameStateChangeEvent>.Raise(new GameStateChangeEvent { NewState = currentState });
 
+        // Stop timer when race completes
         if (newState is RaceCompletionState)
         {
             if (timerCoroutine != null)

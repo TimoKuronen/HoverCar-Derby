@@ -32,7 +32,6 @@ public class CarColorPainter : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
-        // Unsubscribe from NetworkVariable events to prevent memory leaks
         try
         {
             colorIndex.OnValueChanged -= OnColorChanged;
@@ -44,6 +43,9 @@ public class CarColorPainter : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Assigns a color index to this car. Server-authoritative - clients must use ServerRpc.
+    /// </summary>
     public void AssignColor(int index)
     {
         if (IsServer)
@@ -67,6 +69,10 @@ public class CarColorPainter : NetworkBehaviour
         ApplyColor(newIndex);
     }
 
+    /// <summary>
+    /// Applies color scheme to car based on index. Activates appropriate car body variant
+    /// and applies colors to all part renderers.
+    /// </summary>
     private void ApplyColor(int index)
     {
         // Validate index and carBody array
@@ -90,7 +96,6 @@ public class CarColorPainter : NetworkBehaviour
             return;
         }
 
-        // Clamp index to valid palette range (assuming max 8 colors, adjust if needed)
         int paletteIndex = Mathf.Clamp(index, 0, 7);
         CarColors selectedColors = carColorPalette.GetCarColors(paletteIndex);
 

@@ -21,6 +21,9 @@ public class TouchInputService : IInputService, ITickable
 
     public void SetGasPressed(bool value) => gasPressed = value;
 
+    /// <summary>
+    /// Updates input handling each frame. Routes to PC or touch input based on platform.
+    /// </summary>
     public void Tick()
     {
 #if UNITY_EDITOR || UNITY_STANDALONE
@@ -47,11 +50,10 @@ public class TouchInputService : IInputService, ITickable
 
             if (steer != 0)
             {
-                targetSteer = steer;     // overrides mouse drag while keys held
+                targetSteer = steer;
             }
             else if (!mouse?.leftButton.isPressed ?? true)
             {
-                // only reset if mouse isn't dragging
                 targetSteer = 0f;
             }
         }
@@ -63,7 +65,6 @@ public class TouchInputService : IInputService, ITickable
         {
             var pos = mouse.position.ReadValue();
 
-            // Only register steering if pressed in steering region
             if (pos.x < Screen.width * steeringScreenRegion)
             {
                 startPos = pos;
@@ -106,12 +107,9 @@ public class TouchInputService : IInputService, ITickable
             return;
         }
 
-        // Only check for ended touches if we already have an active touch
         bool activeTouchExists = false;
         bool activeTouchEnded = false;
 
-        // First, check all touches (including ended ones) to detect if our active touch ended
-        // Only do this check if we already have an active touch
         if (activeTouchId != -1)
         {
             foreach (var touch in touchscreen.touches)
@@ -119,12 +117,10 @@ public class TouchInputService : IInputService, ITickable
                 var phase = touch.phase.ReadValue();
                 var id = touch.touchId.ReadValue();
 
-                // Check if this is our active touch
                 if (id == activeTouchId)
                 {
                     activeTouchExists = true;
 
-                    // If our active touch has ended or been canceled, reset immediately
                     if (phase == UnityEngine.InputSystem.TouchPhase.Ended ||
                         phase == UnityEngine.InputSystem.TouchPhase.Canceled)
                     {
@@ -134,22 +130,18 @@ public class TouchInputService : IInputService, ITickable
                 }
             }
 
-            // If active touch ended, reset and return
             if (activeTouchEnded)
             {
                 ResetTouchState();
                 return;
             }
 
-            // If active touch no longer exists in the touches list, reset it
-            // This handles cases where touch was lost during scene transitions or system events
             if (!activeTouchExists)
             {
                 ResetTouchState();
             }
         }
 
-        // Now process active touches for steering input
         foreach (var touch in touchscreen.touches)
         {
             if (!touch.press.isPressed)
@@ -171,7 +163,6 @@ public class TouchInputService : IInputService, ITickable
                     activeTouchExists = true;
                 }
             }
-            // Start a new steering touch only if in steering region and we don't have one
             else if (phase == UnityEngine.InputSystem.TouchPhase.Began &&
                      activeTouchId == -1 &&
                      pos.x < Screen.width * steeringScreenRegion)
@@ -179,7 +170,7 @@ public class TouchInputService : IInputService, ITickable
                 activeTouchId = id;
                 startPos = pos;
                 targetSteer = 0f;
-                activeTouchExists = true; // Mark as existing since we just assigned it
+                activeTouchExists = true;
             }
         }
 
@@ -198,6 +189,9 @@ public class TouchInputService : IInputService, ITickable
         startPos = Vector2.zero;
     }
 
+    /// <summary>
+    /// Smoothly interpolates steering input to prevent sudden direction changes.
+    /// </summary>
     private void SmoothSteering()
     {
         currentSteer = Mathf.Lerp(currentSteer, targetSteer, Time.deltaTime * smoothing);

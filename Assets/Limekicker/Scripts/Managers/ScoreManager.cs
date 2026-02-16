@@ -58,6 +58,10 @@ public class ScoreManager : IScoreManager, IDisposable
         OnPlayerAdded?.Invoke(playerData);
     }
 
+    /// <summary>
+    /// Handles damage dealt events and awards points to the attacker. Searches through all players
+    /// to find the attacker by matching their ID (NetworkObjectId for bots, OwnerClientId for real players).
+    /// </summary>
     private void HandleDamageDealt(DamageDealtEvent @event)
     {
         if (@event.DamageAmount <= 0 || @event.AttackerClientId == ulong.MaxValue)
@@ -65,6 +69,7 @@ public class ScoreManager : IScoreManager, IDisposable
 
         NetworkObject attackerObject = null;
         
+        // Find the attacker by matching IDs - bots use NetworkObjectId, real players use OwnerClientId
         foreach (var player in PlayerTracker.players.Values)
         {
             if (!player.TryGetComponent<PlayerController>(out var controller))
@@ -87,12 +92,14 @@ public class ScoreManager : IScoreManager, IDisposable
         }
     }
 
+    /// <summary>
+    /// Increases score for a player. Updates both the ScriptableObject (for UI binding) and PlayerData.
+    /// </summary>
     public void IncreaseScore(PlayerController data, int scoreToAdd)
     {
         // Bots use NetworkObjectId, real players use OwnerClientId (matching collision system)
         ulong clientId = data.IsBot ? data.NetworkObjectId : data.OwnerClientId;
         
-        // SOAP: Update IntVariable SO (this will trigger OnValueChanged for UI)
         if (playerScoreVariables.TryGetValue(clientId, out var scoreVariable))
         {
             scoreVariable.Value += scoreToAdd;

@@ -50,6 +50,10 @@ public class CollectibleSpawner : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Spawns a collectible at a random position away from players and other collectibles.
+    /// Ensures different type than previously spawned to add variety.
+    /// </summary>
     private void SpawnCollectible()
     {
         Vector3 spawnPosition = GetPointOutOfReach();
@@ -59,7 +63,7 @@ public class CollectibleSpawner : MonoBehaviour
 
         // Raycast down to find the ground
         spawnPosition = Physics.Raycast(spawnPosition + Vector3.up * 50f, Vector3.down, out RaycastHit hitInfo, 100f) ? hitInfo.point : spawnPosition;
-        spawnPosition += Vector3.up * 1.5f; // Slightly above ground
+        spawnPosition += Vector3.up * 1.5f;
 
         CollisionCollectible prefabToSpawn;
         while (true)
@@ -78,6 +82,10 @@ public class CollectibleSpawner : MonoBehaviour
         activeCollectibles.Add(spawnedCollectible.GetComponent<CollisionCollectible>());
     }
 
+    /// <summary>
+    /// Finds a random spawn position that is far enough from all players and existing collectibles.
+    /// Uses rejection sampling with a maximum attempt limit.
+    /// </summary>
     private Vector3 GetPointOutOfReach()
     {
         List<Vector3> existingPositions = new List<Vector3>();
@@ -94,6 +102,7 @@ public class CollectibleSpawner : MonoBehaviour
         Vector3 randomPoint;
         int attempts = 0;
 
+        // Try to find a valid spawn point
         while (true)
         {
             randomPoint = UnityEngine.Random.insideUnitSphere * spawnRadius;

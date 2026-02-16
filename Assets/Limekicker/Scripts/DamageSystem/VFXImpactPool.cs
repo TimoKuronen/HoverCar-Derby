@@ -136,7 +136,6 @@ public class VFXImpactPool : MonoBehaviour
             return;
         }
 
-        // Pre-warm first instance to compile shaders and initialize systems
         ParticleSystem warmup = pool.Dequeue();
         warmup.gameObject.SetActive(true);
         warmup.Play();

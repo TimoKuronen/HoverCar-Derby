@@ -78,15 +78,12 @@ public class HoverCarMover : NetworkBehaviour
         gameStateChangeEvent = new EventBinding<GameStateChangeEvent>(HandleGameStateChange);
         EventBus<GameStateChangeEvent>.Register(gameStateChangeEvent);
         
-        // Check if game is already in PlayState (handles race condition where Start() is called after state change)
         var gameManager = FindFirstObjectByType<GameManager>();
         if (gameManager != null && gameManager.CurrentGameState is PlayState)
         {
             isReady = true;
         }
         
-        // Fallback: Try to construct input service if it wasn't done in OnNetworkSpawn
-        // This handles cases where Start() is called before OnNetworkSpawn or if construction failed
         if (!isBot && IsOwner && inputService == null)
         {
             TryConstructFromContainer();
@@ -130,24 +127,30 @@ public class HoverCarMover : NetworkBehaviour
         ApplyMovement();
     }
 
+    /// <summary>
+    /// Applies movement forces based on input. Uses acceleration for forward movement and torque for turning.
+    /// Clamps velocity to max speed, accounting for car data multipliers.
+    /// </summary>
     private void ApplyMovement()
     {
-        // Don't allow movement if car is destroyed
         if (carManager.DamageManager != null && carManager.DamageManager.IsDestroyed)
             return;
 
+        // Apply forward acceleration
         currentThrust = inputService.IsGasPressed ? forwardAcceleration : 0f;
         if (currentThrust != 0)
         {
             rig.AddForce(carManager.CarData.GetAccelerationMultiplier() * currentThrust * transform.forward, ForceMode.Acceleration);
         }
 
+        // Apply turning torque
         currentTurn = inputService.Steering * turnStrength;
         if (Mathf.Abs(currentTurn) > 0.01f)
         {
             rig.AddTorque(Vector3.up * currentTurn, ForceMode.Acceleration);
         }
 
+        // Clamp speed to max, accounting for car-specific multipliers
         if (rig.velocity.magnitude > maxSpeed)
         {
             rig.velocity = carManager.CarData.GetMaxSpeedMultiplier() * maxSpeed * rig.velocity.normalized;

@@ -33,7 +33,6 @@ public class ApplicationData
         return PlayerPrefs.GetInt(k_QueryPortCmd);
     }
 
-    //Ensure this gets instantiated Early on
     public ApplicationData()
     {
         SetIP("127.0.0.1");

@@ -142,8 +142,6 @@ public class PlayerController : NetworkBehaviour
     /// </summary>
     private IEnumerator TeleportToPositionCoroutine(Vector3 position, Quaternion rotation)
     {
-        // Give the client a moment to finish its internal 'Spawn' handshake
-        // If you teleport too fast, the NetworkTransform might not be ready to 'Commit'
         yield return new WaitForSeconds(0.05f);
 
         if (!IsOwner) 

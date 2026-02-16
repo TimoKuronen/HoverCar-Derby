@@ -12,8 +12,8 @@ public class PlayerSpawnManager : IDisposable
     private readonly IGameManager gameManager;
 
     private SpawnPointService spawnPointService = new();
-    private HashSet<ulong> spawnedClientIds = new(); // Track spawned clientIds to prevent duplicates
-    private bool botSpawned = false; // Track if bot has been spawned
+    private HashSet<ulong> spawnedClientIds = new();
+    private bool botSpawned = false;
 
     public PlayerSpawnManager(IInputService inputService, IGameManager gameManager)
     {
@@ -28,41 +28,34 @@ public class PlayerSpawnManager : IDisposable
 
         yield return new WaitUntil(() => NetworkManager.Singleton != null);
 
-        // Server/host path: Initialize server-side spawn management
         if (NetworkManager.Singleton.IsServer || NetworkManager.Singleton.IsHost)
         {
             yield return new WaitUntil(() => ResolveNetworkServer() != null);
 
             networkServer = ResolveNetworkServer();
             
-            // Process existing users FIRST (before subscribing to events)
-            // This handles users that joined before PlayerSpawnManager was created
             foreach (var existing in networkServer.GetConnectedUsers())
             {
                 HandleUserJoined(existing);
             }
             
-            // NOW subscribe to events (so we don't process the same users twice)
             networkServer.OnUserJoined += HandleUserJoined;
             networkServer.OnUserLeft += HandleUserLeft;
 
             yield return new WaitForSeconds(1);
 
-            // Spawn bot for testing if enabled
             if (MainMenu.IsSpawnBotEnabled())
             {
-                yield return new WaitForSeconds(0.5f); // Small delay to ensure everything is initialized
+                yield return new WaitForSeconds(0.5f);
                 SpawnBotPlayer();
             }
         }
         else
         {
-            // Client path: Wait for local player object to spawn, then mark session loaded
             Debug.Log("[PlayerSpawnManager] Client mode - waiting for local player to spawn...");
 
             yield return new WaitUntil(() => NetworkManager.Singleton != null && NetworkManager.Singleton.IsConnectedClient);
 
-            // Wait for local player object to be spawned
             NetworkObject localPlayer = null;
             yield return new WaitUntil(() =>
             {
@@ -75,34 +68,30 @@ public class PlayerSpawnManager : IDisposable
 
             Debug.Log("[PlayerSpawnManager] Local player spawned on client - firing OnPlayerSpawned event and marking session loaded.");
 
-            // Fire OnPlayerSpawned event for clients so SimpleHoverChaseCam can attach
-            // UserData is null on clients, but netObj is what we need
             if (localPlayer != null)
             {
                 EventBus<PlayerSpawnedEvent>.Raise(new PlayerSpawnedEvent { UserData = null, NetworkObject = localPlayer });
             }
         }
     }
+    /// <summary>
+    /// Handles car respawn by finding a spawn point away from other players and teleporting.
+    /// </summary>
     private void HandleCarRespawn(CarManager obj, System.Action onTeleportComplete)
     {
-        // Get another player's NetworkObject to avoid spawning at their location
-        // For real players, use OwnerClientId; for bots, we need to find any other player
         NetworkObject otherPlayer = null;
         if (obj.PlayerController.IsBot)
         {
-            // For bots, find any other player (real or bot) that's not this one
             var allPlayers = gameManager.PlayerTracker.GetAllPlayers();
             otherPlayer = allPlayers.FirstOrDefault(p => p != obj.PlayerController.NetworkObject);
         }
         else
         {
-            // For real players, find a player with different OwnerClientId
             otherPlayer = gameManager.PlayerTracker.GetOtherPlayerByID(obj.PlayerController.OwnerClientId);
         }
 
         var spawnData = spawnPointService.GetRandomUnusedSpawnPoint(otherPlayer);
 
-        // Use OwnerClientId for real players, NetworkObjectId for bots (matching TeleportAfterSpawn signature)
         ulong clientId = obj.PlayerController.IsBot ? obj.PlayerController.NetworkObjectId : obj.PlayerController.OwnerClientId;
         CoroutineMonoBehavior.Instance.StartCoroutine(TeleportAfterSpawn(
             obj.PlayerController.NetworkObject,
@@ -116,6 +105,9 @@ public class PlayerSpawnManager : IDisposable
         return NetworkSession.GetNetworkServer();
     }
 
+    /// <summary>
+    /// Spawns a player when they join. Prevents duplicate spawns and handles spawn point assignment.
+    /// </summary>
     private void HandleUserJoined(UserData userData)
     {
         if (!NetworkManager.Singleton.IsServer)
@@ -134,31 +126,25 @@ public class PlayerSpawnManager : IDisposable
             return;
         }
 
-        // Check if we've already spawned this clientId (prevents race conditions)
         if (spawnedClientIds.Contains(clientId))
         {
             Debug.Log($"[PlayerSpawnManager] Player for {userData.userName} (Client ID: {clientId}) already spawned, skipping.");
             return;
         }
 
-        // Also check if player already exists in NetworkManager (backup check)
         if (NetworkManager.Singleton.SpawnManager != null && 
             NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(clientId) != null)
         {
             Debug.Log($"[PlayerSpawnManager] Player for {userData.userName} (Client ID: {clientId}) already exists, skipping spawn.");
-            spawnedClientIds.Add(clientId); // Mark as spawned even though we didn't spawn it
+            spawnedClientIds.Add(clientId);
             return;
         }
 
-        // Mark as spawned BEFORE spawning to prevent race conditions
         spawnedClientIds.Add(clientId);
 
-        // Get a random unused spawn point first (we'll assign the network object after spawn)
-        // Create instance first to get a reference for assignment
         var instance = UnityEngine.Object.Instantiate(server.PlayerPrefab);
         instance.gameObject.SetActive(false);
 
-        // Get a random unused spawn point and assign it to the network object
         var spawnData = spawnPointService.GetRandomUnusedSpawnPoint(instance);
         if (spawnData == null)
         {
@@ -167,18 +153,11 @@ public class PlayerSpawnManager : IDisposable
             return;
         }
 
-        // Set position and rotation before spawning
         instance.transform.SetPositionAndRotation(spawnData.Position, spawnData.Rotation);
-
-        // Now spawn the network object
         instance.gameObject.SetActive(true);
         instance.SpawnAsPlayerObject(clientId);
 
-        // Use NetworkTransform Teleport to force position update (works for client-authoritative transforms)
-        // Wait a frame for NetworkTransform to fully initialize before teleporting
         CoroutineMonoBehavior.Instance.StartCoroutine(TeleportAfterSpawn(instance, spawnData, clientId));
-
-        int playerIndex = instance.NetworkManager.ConnectedClients.Count - 1;
 
         if (instance.TryGetComponent<PlayerController>(out PlayerController controller))
         {
@@ -190,15 +169,10 @@ public class PlayerSpawnManager : IDisposable
         }
 
         EventBus<PlayerSpawnedEvent>.Raise(new PlayerSpawnedEvent { UserData = userData, NetworkObject = instance });
-
-        //Debug.Log($"[PlayerSpawnManager] Spawned player object for {userData.userName} at {spawnData.Position}");
     }
 
     private void HandleUserLeft(UserData userData)
     {
-        //Debug.Log($"[PlayerSpawnManager] Player {userData.userName} left.");
-
-        // Release the spawn point if we can find the player's network object
         var server = ResolveNetworkServer();
         if (server != null && server.TryGetClientIdForUser(userData, out var clientId))
         {
@@ -212,13 +186,14 @@ public class PlayerSpawnManager : IDisposable
         }
     }
 
-    /// <summary>Spawns a bot player for testing collisions.</summary>
+    /// <summary>
+    /// Spawns a bot player for testing. Bots use NetworkObjectId instead of OwnerClientId.
+    /// </summary>
     private void SpawnBotPlayer()
     {
         if (!NetworkManager.Singleton.IsServer)
             return;
 
-        // Prevent duplicate bot spawns
         if (botSpawned)
         {
             Debug.LogWarning("[PlayerSpawnManager] Bot already spawned, skipping duplicate call.");
@@ -231,24 +206,19 @@ public class PlayerSpawnManager : IDisposable
         if (server == null || server.PlayerPrefab == null)
         {
             Debug.LogWarning("[PlayerSpawnManager] Cannot spawn bot: NetworkServer or PlayerPrefab is null.");
-            botSpawned = false; // Reset on error
+            botSpawned = false;
             return;
         }
 
-        // Count all existing players (including bots) to get unique index
         int totalPlayerCount = CountAllPlayersIncludingBots();
 
-        // Instantiate bot player
         var botInstance = UnityEngine.Object.Instantiate(server.PlayerPrefab);
 
-        // Add BotPlayerController component BEFORE spawning (so it's recognized as a bot)
         if (!botInstance.TryGetComponent<BotPlayerController>(out BotPlayerController botController))
         {
             botController = botInstance.gameObject.AddComponent<BotPlayerController>();
         }
 
-        // Get a random unused spawn point and assign it to the bot network object
-        // Do this BEFORE spawning to ensure the spawn point is marked as used
         var spawnData = spawnPointService.GetRandomUnusedSpawnPoint(botInstance);
         if (spawnData == null)
         {
@@ -257,39 +227,20 @@ public class PlayerSpawnManager : IDisposable
             return;
         }
 
-        // Set position and rotation before spawning
         botInstance.transform.SetPositionAndRotation(spawnData.Position, spawnData.Rotation);
-
-        // Spawn as a network object (not as a player object, since bots don't have a client)
         botInstance.SpawnWithOwnership(NetworkManager.ServerClientId);
 
-        // Use NetworkTransform Teleport to force position update (works for client-authoritative transforms)
-        // Wait a frame for NetworkTransform to fully initialize before teleporting
-        // Bots are server-controlled, so we don't need ClientRPC
         CoroutineMonoBehavior.Instance.StartCoroutine(TeleportAfterSpawn(botInstance, spawnData, NetworkManager.ServerClientId));
 
-        // Initialize PlayerController for the bot AFTER spawning
         if (botInstance.TryGetComponent<PlayerController>(out PlayerController controller))
         {
-            // Use the total player count as the bot's index to ensure unique colors
-            // This includes all real players and any previously spawned bots
             controller.Initialize(totalPlayerCount);
-
-            // Set bot name
             controller.PlayerName.Value = new Unity.Collections.FixedString32Bytes("Bot Player " + (totalPlayerCount + 1));
         }
 
-        // Raise PlayerSpawnedEvent for bots so they can be added to score system
-        // UserData is null for bots since they don't have user authentication
         EventBus<PlayerSpawnedEvent>.Raise(new PlayerSpawnedEvent { UserData = null, NetworkObject = botInstance });
-
-        //Debug.Log($"[PlayerSpawnManager] Spawned bot player at {spawnData.Position} with index {totalPlayerCount}");
     }
 
-    /// <summary>
-    /// Counts all players in the game, including both real players and bots.
-    /// This is used to assign unique color indices.
-    /// </summary>
     private int CountAllPlayersIncludingBots()
     {
         if (NetworkManager.Singleton == null || NetworkManager.Singleton.SpawnManager == null)
@@ -308,13 +259,11 @@ public class PlayerSpawnManager : IDisposable
     }
 
     /// <summary>
-    /// Coroutine to teleport a NetworkObject after it has been spawned and NetworkTransform is initialized.
-    /// This ensures the spawn position is correctly applied for client-authoritative transforms.
-    /// For client-authoritative transforms, we also send a ClientRPC to have the client teleport itself.
+    /// Teleports a NetworkObject to spawn position after NetworkTransform initializes.
+    /// For client-authoritative transforms, also sends ClientRPC to have client teleport itself.
     /// </summary>
     private IEnumerator TeleportAfterSpawn(NetworkObject networkObject, SpawnPointData spawnData, ulong clientId, System.Action onTeleportComplete = null)
     {
-        // Wait a frame for NetworkTransform to fully initialize
         yield return null;
 
         if (networkObject == null || spawnData == null)
@@ -323,40 +272,30 @@ public class PlayerSpawnManager : IDisposable
             yield break;
         }
 
-        // First, teleport on the server side (this works for server-authoritative and helps with host)
         if (networkObject.TryGetComponent<Unity.Netcode.Components.NetworkTransform>(out var networkTransform))
         {
             networkTransform.Teleport(spawnData.Position, spawnData.Rotation, Vector3.one);
-            //Debug.Log($"[PlayerSpawnManager] Server teleported {networkObject.name} to spawn point: {spawnData.Position}");
         }
         else
         {
-            // Fallback if NetworkTransform not found
             networkObject.transform.SetPositionAndRotation(spawnData.Position, spawnData.Rotation);
             Debug.LogWarning($"[PlayerSpawnManager] NetworkTransform not found on {networkObject.name}, using direct transform set");
         }
 
-        // For client-authoritative transforms, we need the client to also teleport itself
-        // Check if this is a player (not a bot) with client-authoritative transform
+        // For client-authoritative transforms, client must also teleport itself
         if (networkObject.TryGetComponent<PlayerController>(out var controller) && 
             !controller.IsBot &&
             networkObject.OwnerClientId == clientId &&
             clientId != NetworkManager.ServerClientId)
         {
-            // Check if NetworkTransform is client-authoritative (ClientNetworkTransform)
             if (networkObject.TryGetComponent<ClientNetworkTransform>(out _))
             {
-                // Wait a bit more to ensure the client has received the spawn
                 yield return new WaitForSeconds(0.1f);
-                
-                // Send ClientRPC to have the client teleport itself
-                // The RPC will only execute on the owner client, so it's safe to send for both host and pure clients
                 controller.TeleportToSpawnPositionClientRpc(spawnData.Position, spawnData.Rotation);
                 Debug.Log($"[PlayerSpawnManager] Sent ClientRPC to teleport client {clientId} to spawn point: {spawnData.Position}");
             }
         }
 
-        // Invoke callback when teleport is complete
         onTeleportComplete?.Invoke();
     }
 

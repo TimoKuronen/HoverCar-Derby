@@ -36,6 +36,10 @@ public class NameplateManager : MonoBehaviour
         StartCoroutine(UpdatePosition(plate, playerObject.transform));
     }
 
+    /// <summary>
+    /// Continuously updates nameplate screen position to follow target transform.
+    /// Positions nameplate above the target using world-to-screen conversion.
+    /// </summary>
     private IEnumerator UpdatePosition(RectTransform plate, Transform target)
     {
         while (target != null)
