@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
+using Unity.Netcode;
 using UnityEngine;
 using VContainer;
-using VContainer.Unity;
 
-public class ScoreManager : IScoreManager, IDisposable, IStartable
+public class ScoreManager : IScoreManager, IDisposable
 {
     public Dictionary<PlayerData, int> PlayerScores { get; private set; } = new Dictionary<PlayerData, int>();
 
@@ -17,21 +17,20 @@ public class ScoreManager : IScoreManager, IDisposable, IStartable
     private Dictionary<ulong, PlayerData> playerDataByClientId = new Dictionary<ulong, PlayerData>();
 
     private EventBinding<PlayerSpawnedEvent> playerSpawnedEvent;
+    private EventBinding<DamageDealtEvent> damageDealtEvent;
 
     [Inject]
     public void Construct()
     {
         playerSpawnedEvent = new EventBinding<PlayerSpawnedEvent>(AddPlayerToScoreBoard);
+        damageDealtEvent = new EventBinding<DamageDealtEvent>(HandleDamageDealt);
+        EventBus<PlayerSpawnedEvent>.Register(playerSpawnedEvent);
+        EventBus<DamageDealtEvent>.Register(damageDealtEvent);
     }
 
     public IntVariable GetPlayerScoreVariable(ulong clientId)
     {
         return playerScoreVariables.TryGetValue(clientId, out var variable) ? variable : null;
-    }
-
-    public void Start()
-    {
-        EventBus<PlayerSpawnedEvent>.Register(playerSpawnedEvent);
     }
 
     private void AddPlayerToScoreBoard(PlayerSpawnedEvent playerSpawnedEvent)
@@ -57,6 +56,35 @@ public class ScoreManager : IScoreManager, IDisposable, IStartable
         playerDataByClientId[clientId] = playerData;
 
         OnPlayerAdded?.Invoke(playerData);
+    }
+
+    private void HandleDamageDealt(DamageDealtEvent @event)
+    {
+        if (@event.DamageAmount <= 0 || @event.AttackerClientId == ulong.MaxValue)
+            return;
+
+        NetworkObject attackerObject = null;
+        
+        foreach (var player in PlayerTracker.players.Values)
+        {
+            if (!player.TryGetComponent<PlayerController>(out var controller))
+                continue;
+
+            bool isBot = controller.IsBot;
+            ulong playerId = isBot ? player.NetworkObjectId : player.OwnerClientId;
+            
+            if (playerId == @event.AttackerClientId)
+            {
+                attackerObject = player;
+                break;
+            }
+        }
+
+        if (attackerObject != null && attackerObject.TryGetComponent<PlayerController>(out var attackerController))
+        {
+            int pointsToAdd = Mathf.RoundToInt(@event.DamageAmount);
+            IncreaseScore(attackerController, pointsToAdd);
+        }
     }
 
     public void IncreaseScore(PlayerController data, int scoreToAdd)
@@ -100,6 +128,7 @@ public class ScoreManager : IScoreManager, IDisposable, IStartable
     public void Dispose()
     {
         EventBus<PlayerSpawnedEvent>.Unregister(playerSpawnedEvent);
+        EventBus<DamageDealtEvent>.Unregister(damageDealtEvent);
     }
 }
 

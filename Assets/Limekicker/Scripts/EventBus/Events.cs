@@ -31,3 +31,9 @@ public struct PlayerTeleportedEvent : IEvent
 {
     public NetworkObject NetworkObject;
 }
+
+public struct DamageDealtEvent : IEvent
+{
+    public ulong AttackerClientId;
+    public float DamageAmount;
+}

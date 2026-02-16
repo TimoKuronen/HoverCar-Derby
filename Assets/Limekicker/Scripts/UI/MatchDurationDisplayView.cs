@@ -1,0 +1,37 @@
+using TMPro;
+using UnityEngine;
+
+public class MatchDurationDisplayView : MonoBehaviour, IMatchDurationDisplayView
+{
+    [SerializeField] private TextMeshProUGUI matchDurationText;
+    [SerializeField] private IntVariable matchDurationLeft;
+
+    private MatchDurationPresenter presenter;
+
+    private void Start()
+    {
+        presenter = new MatchDurationPresenter(this, matchDurationLeft);
+        presenter.Initialize();
+        Hide();
+    }
+
+    public void SetTime(string timeString)
+    {
+        matchDurationText.text = timeString;
+    }
+
+    public void Show()
+    {
+        matchDurationText.gameObject.SetActive(true);
+    }
+
+    public void Hide()
+    {
+        matchDurationText.gameObject.SetActive(false);
+    }
+
+    private void OnDestroy()
+    {
+        presenter?.Dispose();
+    }
+}

@@ -56,6 +56,15 @@ public class CarDamageManager : NetworkBehaviour
         OnCarDamaged.Invoke(damagePosition);
         Debug.Log($"[CarDamageManager] Car took {damage} damage");
         DamageNumberPool.Instance.ShowDamageNumber(damagePosition, damage, attackerId, victimId);
+
+        if (attackerId != ulong.MaxValue && damage > 0)
+        {
+            EventBus<DamageDealtEvent>.Raise(new DamageDealtEvent
+            {
+                AttackerClientId = attackerId,
+                DamageAmount = damage
+            });
+        }
     }
 
     [ServerRpc(RequireOwnership = false)]

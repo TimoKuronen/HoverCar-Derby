@@ -145,11 +145,10 @@ GameObject:
   - component: {fileID: 3403030807544158156}
   - component: {fileID: 6797770576849395707}
   - component: {fileID: 3539576036926809982}
-  - component: {fileID: 1909514303695403927}
   - component: {fileID: 3229446734444028994}
   - component: {fileID: -6484189622070671668}
   - component: {fileID: 757624661384511266}
-  - component: {fileID: -7319176871706487538}
+  - component: {fileID: 5558510347982454424}
   m_Layer: 0
   m_Name: GameHUD
   m_TagString: Untagged
@@ -185,7 +184,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 946475667
+  GlobalObjectIdHash: 1082018045
   InScenePlacedSourceGlobalObjectIdHash: 946475667
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 0
@@ -209,21 +208,6 @@ MonoBehaviour:
   leaderboardEntityHolder: {fileID: 1436870504064101766}
   leaderboardEntityPrefab: {fileID: -1442852012619041807, guid: 88a1fff0b1e75a34e97e6d4ef4b54d44, type: 3}
   entitiesToDispaly: 6
---- !u!114 &1909514303695403927
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 216951266313414739}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 71be9901188ccc14c830b44a7bbe2e38, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  infoText: {fileID: 1544696648611546752}
-  debugInfoToDisplay: 1
-  pauseMenu: {fileID: 1778918927532906983}
 --- !u!114 &3229446734444028994
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -351,7 +335,7 @@ MonoBehaviour:
   countdownGoCue: {fileID: 11400000, guid: 00b4941b10a20d945ae95f4a08706fe6, type: 2}
   audioSource: {fileID: -6484189622070671668}
   countdownValue: {fileID: 11400000, guid: 0f5f89f1eb17ba043af148b074c8ea80, type: 2}
---- !u!114 &-7319176871706487538
+--- !u!114 &5558510347982454424
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -360,11 +344,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 216951266313414739}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a6ce763a9fbbba24dbcacda5544a388b, type: 3}
+  m_Script: {fileID: 11500000, guid: 33d3f185dfa3e4e48999c7f33549e4dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  countdownText: {fileID: 2836231645781518523}
-  countdownValue: {fileID: 11400000, guid: 0f5f89f1eb17ba043af148b074c8ea80, type: 2}
+  infoText: {fileID: 1544696648611546752}
+  debugInfoToDisplay: 1
+  pauseMenu: {fileID: 1778918927532906983}
 --- !u!1 &591038301938316842
 GameObject:
   m_ObjectHideFlags: 0
@@ -853,6 +838,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6578213573816066952}
   - component: {fileID: 7020190095100671303}
+  - component: {fileID: 6598461835143911927}
   m_Layer: 5
   m_Name: CountdownPanel
   m_TagString: Untagged
@@ -888,6 +874,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1599207033199755103}
   m_CullTransparentMesh: 1
+--- !u!114 &6598461835143911927
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1599207033199755103}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7514dc7c7ccebe4296e502e0b2f6ade, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  countdownText: {fileID: 2836231645781518523}
+  countdownValue: {fileID: 11400000, guid: 0f5f89f1eb17ba043af148b074c8ea80, type: 2}
 --- !u!1 &1778918927532906983
 GameObject:
   m_ObjectHideFlags: 0
@@ -1201,7 +1201,7 @@ GameObject:
   - component: {fileID: 7896216559522379156}
   - component: {fileID: 5341379848371740973}
   - component: {fileID: 5910632705391413536}
-  - component: {fileID: 8927628549143208261}
+  - component: {fileID: 7682242763196216940}
   m_Layer: 5
   m_Name: TimePanel
   m_TagString: Untagged
@@ -1267,7 +1267,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &8927628549143208261
+--- !u!114 &7682242763196216940
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1276,7 +1276,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 3212117909910636251}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7a3101e15d93da94a97880b68bb834ee, type: 3}
+  m_Script: {fileID: 11500000, guid: 04956e34f1dbaae48a725a2824ac6600, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   matchDurationText: {fileID: 6012685446960134769}
@@ -1293,7 +1293,7 @@ GameObject:
   - component: {fileID: 1378915057906058100}
   - component: {fileID: 7967790510220699308}
   - component: {fileID: 8815699457446538735}
-  - component: {fileID: 1975283763579146329}
+  - component: {fileID: 750675064577566821}
   m_Layer: 5
   m_Name: ScorePanel
   m_TagString: Untagged
@@ -1384,7 +1384,7 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
---- !u!114 &1975283763579146329
+--- !u!114 &750675064577566821
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1393,7 +1393,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 3868839279125659431}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f021f75bfce7e7349bb9f4a3232eac41, type: 3}
+  m_Script: {fileID: 11500000, guid: c57535d324864f744ae03de2a779cb4f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   leaderboardEntityPrefab: {fileID: -1442852012619041807, guid: 88a1fff0b1e75a34e97e6d4ef4b54d44, type: 3}
@@ -2467,7 +2467,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1909514303695403927}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: GameHUD, Assembly-CSharp
         m_MethodName: LeaveGame
         m_Mode: 1
