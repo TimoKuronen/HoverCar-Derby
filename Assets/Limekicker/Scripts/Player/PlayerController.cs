@@ -4,6 +4,7 @@ using System.Collections;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerController : NetworkBehaviour
 {
@@ -182,4 +183,20 @@ public class PlayerController : NetworkBehaviour
         }
     }
     #endregion
+
+    // temporary point giver to bot 
+    private void Update()
+    {
+        if (!IsBot)
+            return;
+
+        if (Keyboard.current != null && Keyboard.current.uKey.wasPressedThisFrame)
+        {
+            EventBus<DamageDealtEvent>.Raise(new DamageDealtEvent
+            {
+                AttackerClientId = NetworkObjectId,
+                DamageAmount = 10f
+            });
+        }
+    }
 }

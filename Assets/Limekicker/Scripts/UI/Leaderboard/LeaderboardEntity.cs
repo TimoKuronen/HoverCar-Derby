@@ -26,6 +26,11 @@ public class LeaderboardEntity : MonoBehaviour
         UpdatePoints(points);
     }
 
+    public void Initialise(ulong clientId, string playerName, int points)
+    {
+        Initialise(clientId, new FixedString32Bytes(playerName), points);
+    }
+
     public void UpdatePoints(int points)
     {
         Points = points;

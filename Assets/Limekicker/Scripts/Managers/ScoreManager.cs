@@ -117,19 +117,24 @@ public class ScoreManager : IScoreManager, IDisposable
 
     public PlayerData GetLeadingPlayer()
     {
-        PlayerData leadingPlayer = new PlayerData();
-        int highestScore = -1;
+        var ranked = GetRankedPlayersByScore();
+        return ranked.Count > 0 ? ranked[0] : default;
+    }
 
-        foreach (var playerScore in PlayerScores)
+    public IReadOnlyList<PlayerData> GetRankedPlayersByScore()
+    {
+        var list = new List<PlayerData>();
+        foreach (var kvp in playerDataByClientId)
         {
-            if (playerScore.Value > highestScore)
+            if (playerScoreVariables.TryGetValue(kvp.Key, out var scoreVar))
             {
-                highestScore = playerScore.Value;
-                leadingPlayer = playerScore.Key;
+                var data = kvp.Value;
+                data.Points = scoreVar.Value;
+                list.Add(data);
             }
         }
-
-        return leadingPlayer;
+        list.Sort((a, b) => b.Points.CompareTo(a.Points));
+        return list;
     }
 
     public void Dispose()

@@ -40,6 +40,17 @@ public class PlayerTracker
     }
 
     /// <summary>
+    /// Gets a player by the ID used in scoring (OwnerClientId for real players, NetworkObjectId for bots).
+    /// Use this when resolving the leading player from ScoreManager for victory cinematic.
+    /// </summary>
+    public NetworkObject GetPlayerByScoreClientId(ulong scoreClientId)
+    {
+        var byOwner = GetPlayerByID(scoreClientId);
+        if (byOwner != null) return byOwner;
+        return GetPlayerByNetworkObjectId(scoreClientId);
+    }
+
+    /// <summary>
     /// Gets a player NetworkObject that is NOT owned by the given clientId.
     /// Note: This works for real players. For bots, use GetPlayerByNetworkObjectId instead.
     /// </summary>

@@ -15,6 +15,10 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
     [Header("Damage Settings")]
     [SerializeField] private float damageMultiplier = 1f;
     [SerializeField] private float minDamageThreshold = 5f;
+    
+    [Header("Velocity Thresholds")]
+    [SerializeField] private float idleSpeedThreshold = 2f; // Speed below which car is considered idle
+    [SerializeField] private float decentSpeedThreshold = 8f; // Speed above which car is considered to have decent velocity
 
     [Header("Collision Cooldown")]
     [SerializeField] private float collisionCooldown = 0.5f;
@@ -42,6 +46,10 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
         damageManager = playerController.DamageManager;
     }
 
+    /// <summary>
+    /// Handles car-to-car collisions on the server. Uses a global collision tracking system
+    /// to prevent duplicate damage from the same collision event.
+    /// </summary>
     private void OnCollisionEnter(Collision collision)
     {
         if (!IsServer || Time.time - lastCollisionTime < collisionCooldown) 
@@ -51,12 +59,14 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
         if (otherPlayer == null) 
             return;
 
+        // Bots use NetworkObjectId, real players use OwnerClientId for collision tracking
         bool thisIsBot = playerController.IsBot;
         bool otherIsBot = otherPlayer.IsBot;
 
         ulong thisId = thisIsBot ? NetworkObjectId : OwnerClientId;
         ulong otherId = otherIsBot ? otherPlayer.NetworkObjectId : otherPlayer.OwnerClientId;
 
+        // Create a symmetric collision key to ensure both cars see the same collision as the same event
         ulong collisionKey = thisId < otherId ? (thisId << 32) | otherId : (otherId << 32) | thisId;
 
         if (globalRecentCollisions.Contains(collisionKey)) return;
@@ -87,6 +97,11 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
         globalRecentCollisions.Remove(collisionKey);
     }
 
+    /// <summary>
+    /// Processes collision damage and physics forces based on collision type, velocities, and impact angles.
+    /// Damage distribution follows rules: front bumper hits deal full damage, head-on collisions split damage,
+    /// and side hits require majority velocity to deal damage.
+    /// </summary>
     private void ProcessCarCollision(PlayerController otherPlayer, Vector3 collisionPoint, Vector3 direction, float impactForce, Collision collision)
     {
         Rigidbody otherRb = otherPlayer.GetComponent<Rigidbody>();
@@ -95,46 +110,126 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
 
         Vector3 hitNormal = collision.contacts[0].normal;
 
+        // Determine collision angles - front bumper hits are more damaging
         bool thisIsFrontBumper = Vector3.Dot(transform.forward, -hitNormal) > 0.7f;
         bool otherIsFrontBumper = Vector3.Dot(otherPlayer.transform.forward, hitNormal) > 0.7f;
+        // Check if hitting with side (not front bumper, and hit normal aligns with side direction)
+        // Using absolute value since we're checking alignment with either left or right side
+        bool thisIsSide = !thisIsFrontBumper && Mathf.Abs(Vector3.Dot(transform.right, -hitNormal)) > 0.5f;
+        bool otherIsSide = !otherIsFrontBumper && Mathf.Abs(Vector3.Dot(otherPlayer.transform.right, hitNormal)) > 0.5f;
 
         bool isHeadOn = thisIsFrontBumper && otherIsFrontBumper;
         float baseDamage = impactForce * damageMultiplier;
+
+        float thisSpeed = rb.velocity.magnitude;
+        float otherSpeed = otherRb.velocity.magnitude;
+        bool thisIsIdle = thisSpeed < idleSpeedThreshold;
+        bool otherIsIdle = otherSpeed < idleSpeedThreshold;
+        bool thisHasDecentSpeed = thisSpeed >= decentSpeedThreshold;
+        bool otherHasDecentSpeed = otherSpeed >= decentSpeedThreshold;
 
         float damageToThis = 0f;
         float damageToOther = 0f;
 
         if (isHeadOn)
         {
+            // Front-to-front collision: split based on velocity difference
             float totalDamage = baseDamage * 0.5f;
-            float thisSpeed = rb.velocity.magnitude;
-            float otherSpeed = otherRb.velocity.magnitude;
-
-            if (thisSpeed >= otherSpeed)
+            float speedDifference = Mathf.Abs(thisSpeed - otherSpeed);
+            float totalSpeed = thisSpeed + otherSpeed;
+            
+            if (totalSpeed < 0.01f)
             {
-                damageToOther = totalDamage * 0.6f;
-                damageToThis = totalDamage * 0.4f;
+                // Both essentially idle - minimal damage split evenly
+                damageToThis = totalDamage * 0.5f;
+                damageToOther = totalDamage * 0.5f;
             }
             else
             {
-                damageToOther = totalDamage * 0.4f;
-                damageToThis = totalDamage * 0.6f;
+                // Split damage based on velocity difference
+                float thisRatio = thisSpeed / totalSpeed;
+                float otherRatio = otherSpeed / totalSpeed;
+                
+                damageToThis = totalDamage * otherRatio;
+                damageToOther = totalDamage * thisRatio;
             }
         }
-        else
+        else if (thisIsFrontBumper)
         {
-            if (thisIsFrontBumper)
+            // This car hits with front bumper
+            if (thisIsIdle)
             {
+                // Idle car shouldn't deal much damage even with front bumper
+                damageToThis = 0f;
+                damageToOther = baseDamage * 0.1f; // Minimal damage from idle car
+            }
+            else if (otherIsIdle || !otherHasDecentSpeed)
+            {
+                // This car has velocity, other is idle/slow - this car deals damage
+                float velocityMultiplier = Mathf.Clamp01(thisSpeed / decentSpeedThreshold);
+                damageToThis = 0f;
+                damageToOther = baseDamage * velocityMultiplier;
+            }
+            else
+            {
+                // Both have decent velocity - front bumper deals all damage
                 damageToThis = 0f;
                 damageToOther = baseDamage;
             }
-            else if (otherIsFrontBumper)
+        }
+        else if (otherIsFrontBumper)
+        {
+            // Other car hits with front bumper
+            if (otherIsIdle)
             {
-                damageToThis = baseDamage;
+                // Idle car shouldn't deal much damage even with front bumper
+                damageToThis = baseDamage * 0.1f; // Minimal damage from idle car
+                damageToOther = 0f;
+            }
+            else if (thisIsIdle || !thisHasDecentSpeed)
+            {
+                // Other car has velocity, this is idle/slow - other car deals damage
+                float velocityMultiplier = Mathf.Clamp01(otherSpeed / decentSpeedThreshold);
+                damageToThis = baseDamage * velocityMultiplier;
                 damageToOther = 0f;
             }
             else
             {
+                // Both have decent velocity - front bumper deals all damage
+                damageToThis = baseDamage;
+                damageToOther = 0f;
+            }
+        }
+        else
+        {
+            // Sideways collision - check for majority velocity
+            // A car with majority velocity hitting with its side should deal damage if the other is idle/slow
+            bool thisHasMajorityVelocity = thisSpeed > otherSpeed * 1.5f; // This car has significantly more velocity
+            bool otherHasMajorityVelocity = otherSpeed > thisSpeed * 1.5f; // Other car has significantly more velocity
+            
+            if (thisHasMajorityVelocity && thisIsSide && (otherIsIdle || !otherHasDecentSpeed))
+            {
+                // This car has majority velocity, hits with side, other is idle/slow - this car gets points
+                float velocityMultiplier = Mathf.Clamp01((thisSpeed - otherSpeed) / decentSpeedThreshold);
+                damageToThis = 0f;
+                damageToOther = baseDamage * velocityMultiplier * 0.7f; // Side hits deal less damage
+            }
+            else if (otherHasMajorityVelocity && otherIsSide && (thisIsIdle || !thisHasDecentSpeed))
+            {
+                // Other car has majority velocity, hits with side, this is idle/slow - other car gets points
+                float velocityMultiplier = Mathf.Clamp01((otherSpeed - thisSpeed) / decentSpeedThreshold);
+                damageToThis = baseDamage * velocityMultiplier * 0.7f; // Side hits deal less damage
+                damageToOther = 0f;
+            }
+            else if (thisIsIdle && otherIsIdle)
+            {
+                // Both idle - minimal damage split evenly
+                damageToThis = baseDamage * 0.1f;
+                damageToOther = baseDamage * 0.1f;
+            }
+            else
+            {
+                // Neither has clear majority or both moving - split damage
                 damageToThis = baseDamage * 0.5f;
                 damageToOther = baseDamage * 0.5f;
             }
@@ -172,17 +267,24 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Applies physics forces to both cars involved in the collision. The car that was hit takes less force
+    /// than the car doing the hitting. Also applies upward force for a "pop" effect.
+    /// </summary>
     private void ApplyPhysicsForces(PlayerController otherPlayer, Vector3 collisionPoint, Vector3 direction, float impactForce)
     {
         float force = impactForce * explosiveForceMultiplier;
         Rigidbody otherRb = otherPlayer.GetComponent<Rigidbody>();
 
+        // This car receives less force (was hit) and gets pushed backward
         rb.AddForceAtPosition(-direction * (force * 0.5f), collisionPoint, ForceMode.Impulse);
         rb.AddForce(Vector3.up * force * upwardModifier, ForceMode.Impulse);
 
+        // Other car receives full force (was doing the hitting) and gets pushed forward
         otherRb.AddForceAtPosition(direction * force, collisionPoint, ForceMode.Impulse);
         otherRb.AddForce(Vector3.up * force * upwardModifier, ForceMode.Impulse);
 
+        // Sync physics to clients for visual consistency
         SyncPhysicsForceClientRpc(NetworkObjectId, otherPlayer.NetworkObjectId, collisionPoint, -direction, direction, force);
     }
 

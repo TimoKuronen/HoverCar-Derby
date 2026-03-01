@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 public interface IScoreManager
 {
@@ -8,4 +9,5 @@ public interface IScoreManager
     event Action<PlayerData> OnPlayerAdded;
 
     PlayerData GetLeadingPlayer();
+    IReadOnlyList<PlayerData> GetRankedPlayersByScore();
 }

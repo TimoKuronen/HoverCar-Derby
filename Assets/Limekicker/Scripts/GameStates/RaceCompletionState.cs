@@ -17,7 +17,20 @@ public class RaceCompletionState : IGameState
     /// </summary>
     public void Enter()
     {
-        Transform winningPlayer = gameManager.GetLeadingPlayer().transform;
+        if (gameManager == null)
+        {
+            Debug.LogError("GameManager reference is null in RaceCompletionState.");
+            return;
+        }
+
+        var leadingPlayer = gameManager.GetLeadingPlayer();
+        if (leadingPlayer == null)
+        {
+            Debug.LogError("Leading player is null in RaceCompletionState. Cannot set up victory cinematic.");
+            return;
+        }
+
+        Transform winningPlayer = leadingPlayer.transform;
 
         // move victory dolly track to winner position
         gameManager.Context.victoryDollyTrack.transform.position = winningPlayer.position + dollyTrackOffset;

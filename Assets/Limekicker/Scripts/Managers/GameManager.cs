@@ -12,16 +12,14 @@ public class GameManager : MonoBehaviour, IGameManager
     [SerializeField] private IntVariable gameTimerValue;
     [SerializeField] private IntVariable countdownValue;
 
-    public IntVariable CountdownValue => countdownValue;
-
     private IGameState currentState;
     private IGameState previousState;
-
     private IScoreManager scoreManager;
 
     private PlayerSpawnManager playerSpawnManager;
     private Coroutine timerCoroutine;
 
+    public IntVariable CountdownValue => countdownValue;
     public PlayerTracker PlayerTracker { get; private set; }
     public IGameState CurrentGameState => currentState;
     public RaceContext Context => context;
@@ -40,7 +38,6 @@ public class GameManager : MonoBehaviour, IGameManager
         StartCoroutine(Initialize());
         StartCoroutine(playerSpawnManager.Initialize());
     }
-
 
     private IEnumerator Initialize()
     {
@@ -74,6 +71,11 @@ public class GameManager : MonoBehaviour, IGameManager
     private void Update()
     {
         currentState?.Update();
+
+        if (Keyboard.current.yKey.wasPressedThisFrame)
+        {
+            gameTimerValue.Value = 2;
+        }
     }
 
     /// <summary>
@@ -92,8 +94,7 @@ public class GameManager : MonoBehaviour, IGameManager
 
                 gameTimerValue.Value--;
 
-                // Check if timer has expired (using >= to handle edge cases)
-                if (gameTimerValue.Value >= Context.roundDurationInSeconds)
+                if (gameTimerValue.Value <= 0)
                 {
                     ChangeState(new RaceCompletionState(this));
                 }
@@ -134,8 +135,11 @@ public class GameManager : MonoBehaviour, IGameManager
 
     public NetworkObject GetLeadingPlayer()
     {
+        var ranked = scoreManager.GetRankedPlayersByScore();
+        if (ranked == null || ranked.Count == 0)
+            return null;
         var leadingPlayerId = scoreManager.GetLeadingPlayer().ClientId;
-        return PlayerTracker.GetPlayerByID(leadingPlayerId);
+        return PlayerTracker.GetPlayerByScoreClientId(leadingPlayerId);
     }
 
     public void ReturnToPreviousState()
@@ -146,5 +150,9 @@ public class GameManager : MonoBehaviour, IGameManager
     void OnDestroy()
     {
         playerSpawnManager?.Dispose();
+        if (timerCoroutine != null)
+        {
+            StopCoroutine(timerCoroutine);
+        }
     }
 }
