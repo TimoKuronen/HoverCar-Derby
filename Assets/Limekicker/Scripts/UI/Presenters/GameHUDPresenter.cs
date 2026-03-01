@@ -17,23 +17,54 @@ public class GameHUDPresenter : BasePresenter
         gameStateChangeBinding = new EventBinding<GameStateChangeEvent>(HandleGameStateChange);
         EventBus<GameStateChangeEvent>.Register(gameStateChangeBinding);
 
+        view.OnResumeClicked += HandleResumeClicked;
+        view.OnRestartClicked += HandleRestartClicked;
+        view.OnGoToMenuClicked += HandleGoToMenuClicked;
+
         if (debugInfoType != InfoTextType.None && gameManager.CurrentGameState != null)
-        {
             UpdateDebugText();
-        }
+
+        SyncMenuVisibilityToState();
     }
 
     protected override void UnsubscribeFromModels()
     {
         if (gameStateChangeBinding != null)
-        {
             EventBus<GameStateChangeEvent>.Unregister(gameStateChangeBinding);
-        }
+
+        view.OnResumeClicked -= HandleResumeClicked;
+        view.OnRestartClicked -= HandleRestartClicked;
+        view.OnGoToMenuClicked -= HandleGoToMenuClicked;
     }
 
     private void HandleGameStateChange(GameStateChangeEvent @event)
     {
         UpdateDebugText();
+        SyncMenuVisibilityToState();
+    }
+
+    private void SyncMenuVisibilityToState()
+    {
+        var state = gameManager.CurrentGameState;
+        view.ShowPauseMenu(state is PauseState);
+        view.ShowWinMenu(state is RaceCompletionState);
+    }
+
+    private void HandleResumeClicked()
+    {
+        if (gameManager.CurrentGameState is PauseState)
+            gameManager.ReturnToPreviousState();
+    }
+
+    private void HandleRestartClicked()
+    {
+        UnityEngine.SceneManagement.SceneManager.LoadScene(
+            UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
+    }
+
+    private void HandleGoToMenuClicked()
+    {
+        NetworkSession.LeaveGame();
     }
 
     private void UpdateDebugText()

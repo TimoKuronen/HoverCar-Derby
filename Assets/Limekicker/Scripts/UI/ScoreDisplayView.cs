@@ -6,7 +6,8 @@ using VContainer;
 public class ScoreDisplayView : MonoBehaviour, IScoreDisplayView
 {
     [SerializeField] private LeaderboardEntity leaderboardEntityPrefab;
-    [SerializeField] private Transform container;
+    [SerializeField] private Transform scoreContainer;
+    [SerializeField] private Transform buttonContainer;
     [SerializeField] private RectTransform panelToMove;
 
     private IScoreManager scoreManager;
@@ -30,13 +31,6 @@ public class ScoreDisplayView : MonoBehaviour, IScoreDisplayView
         presenter.Initialize();
     }
 
-    private RectTransform GetPanelRect()
-    {
-        if (panelToMove != null)
-            return panelToMove;
-        return GetComponent<RectTransform>();
-    }
-
     public void AddPlayer(ulong clientId, string playerName, int initialScore)
     {
         if (playerScores.ContainsKey(clientId))
@@ -45,7 +39,7 @@ public class ScoreDisplayView : MonoBehaviour, IScoreDisplayView
             return;
         }
 
-        playerScores.Add(clientId, Instantiate(leaderboardEntityPrefab, container));
+        playerScores.Add(clientId, Instantiate(leaderboardEntityPrefab, scoreContainer));
         playerScores[clientId].Initialise(clientId, playerName, initialScore);
     }
 
@@ -59,24 +53,20 @@ public class ScoreDisplayView : MonoBehaviour, IScoreDisplayView
 
     public void MoveToCenter()
     {
-        RectTransform rect = GetPanelRect();
-        if (rect == null)
-            return;
-
         if (!gamePositionSaved)
         {
-            savedAnchorMin = rect.anchorMin;
-            savedAnchorMax = rect.anchorMax;
-            savedAnchoredPosition = rect.anchoredPosition;
+            savedAnchorMin = panelToMove.anchorMin;
+            savedAnchorMax = panelToMove.anchorMax;
+            savedAnchoredPosition = panelToMove.anchoredPosition;
             gamePositionSaved = true;
         }
 
         SortEntriesByScoreDescending();
 
-        rect.anchorMin = new Vector2(0.5f, 0.5f);
-        rect.anchorMax = new Vector2(0.5f, 0.5f);
-        rect.anchoredPosition = Vector2.zero;
-        rect.pivot = new Vector2(0.5f, 0.5f);
+        panelToMove.anchorMin = new Vector2(0.5f, 0.5f);
+        panelToMove.anchorMax = new Vector2(0.5f, 0.5f);
+        panelToMove.anchoredPosition = Vector2.zero;
+        panelToMove.pivot = new Vector2(0.5f, 0.5f);
     }
 
     public void ResetToGamePosition()
@@ -84,13 +74,11 @@ public class ScoreDisplayView : MonoBehaviour, IScoreDisplayView
         if (!gamePositionSaved)
             return;
 
-        RectTransform rect = GetPanelRect();
-        if (rect != null)
-        {
-            rect.anchorMin = savedAnchorMin;
-            rect.anchorMax = savedAnchorMax;
-            rect.anchoredPosition = savedAnchoredPosition;
-        }
+        panelToMove.anchorMin = savedAnchorMin;
+        panelToMove.anchorMax = savedAnchorMax;
+        panelToMove.anchoredPosition = savedAnchoredPosition;
+
+        buttonContainer.gameObject.SetActive(false);
     }
 
     private void SortEntriesByScoreDescending()
@@ -106,5 +94,10 @@ public class ScoreDisplayView : MonoBehaviour, IScoreDisplayView
     private void OnDestroy()
     {
         presenter?.Dispose();
+    }
+
+    public void DisplayButtons()
+    {
+        buttonContainer.gameObject.SetActive(true);
     }
 }

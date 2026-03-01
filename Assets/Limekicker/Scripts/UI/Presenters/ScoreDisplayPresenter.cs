@@ -120,6 +120,7 @@ public class ScoreDisplayPresenter : BasePresenter
         if (@event.NewState is RaceCompletionState)
         {
             view.MoveToCenter();
+            view.DisplayButtons();
         }
         else
         {

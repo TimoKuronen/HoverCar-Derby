@@ -350,6 +350,11 @@ MonoBehaviour:
   infoText: {fileID: 1544696648611546752}
   debugInfoToDisplay: 1
   pauseMenu: {fileID: 1778918927532906983}
+  winMenu: {fileID: 3868839279125659431}
+  resumeButton: {fileID: 6513968467603376817}
+  goToMenuFromPauseButton: {fileID: 7048127207155245510}
+  restartButton: {fileID: 1266161895406997039}
+  goToMenuFromWinButton: {fileID: 396608890482085805}
 --- !u!1 &591038301938316842
 GameObject:
   m_ObjectHideFlags: 0
@@ -1772,7 +1777,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   leaderboardEntityPrefab: {fileID: -1442852012619041807, guid: 88a1fff0b1e75a34e97e6d4ef4b54d44, type: 3}
-  container: {fileID: 8821536336158152754}
+  scoreContainer: {fileID: 8821536336158152754}
+  buttonContainer: {fileID: 3858141844559755466}
   panelToMove: {fileID: 6068734823548463471}
 --- !u!1 &3875847833874643093
 GameObject:
@@ -3522,7 +3528,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &3858141844559755466
 RectTransform:
   m_ObjectHideFlags: 0

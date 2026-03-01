@@ -4,4 +4,5 @@ public interface IScoreDisplayView
     void UpdatePlayerScore(ulong clientId, int newScore);
     void MoveToCenter();
     void ResetToGamePosition();
+    void DisplayButtons();
 }
