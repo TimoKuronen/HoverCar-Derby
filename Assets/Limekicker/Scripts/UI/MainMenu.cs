@@ -45,14 +45,27 @@ public class MainMenu : MonoBehaviour
             joinCodeField.text = lastJoinCode;
         }
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
         // Load bot spawn toggle state
         bool spawnBot = PlayerPrefs.GetInt(SpawnBotKey, 0) == 1;
-        spawnBotToggle.isOn = spawnBot;
-        spawnBotToggle.onValueChanged.AddListener(OnSpawnBotToggleChanged);
+        if (spawnBotToggle != null)
+        {
+            spawnBotToggle.isOn = spawnBot;
+            spawnBotToggle.onValueChanged.AddListener(OnSpawnBotToggleChanged);
+        }
         
         bool ignoreCountdown = PlayerPrefs.GetInt(SkipCountdownKey, 0) == 1;
-        skipCountdownToggle.isOn = ignoreCountdown;
-        skipCountdownToggle.onValueChanged.AddListener(OnSkipCountdownToggleChanged);
+        if (skipCountdownToggle != null)
+        {
+            skipCountdownToggle.isOn = ignoreCountdown;
+            skipCountdownToggle.onValueChanged.AddListener(OnSkipCountdownToggleChanged);
+        }
+#else
+        if (spawnBotToggle != null)
+            spawnBotToggle.gameObject.SetActive(false);
+        if (skipCountdownToggle != null)
+            skipCountdownToggle.gameObject.SetActive(false);
+#endif
     }
 
     private void Update()
@@ -252,18 +265,30 @@ public class MainMenu : MonoBehaviour
     /// <summary>Gets whether bot spawning is enabled for testing.</summary>
     public static bool IsSpawnBotEnabled()
     {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
         return PlayerPrefs.GetInt(SpawnBotKey, 0) == 1;
+#else
+        return false;
+#endif
     }
 
     public static bool IsSkipCountdownEnabled()
     {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
         return PlayerPrefs.GetInt(SkipCountdownKey, 0) == 1;
+#else
+        return false;
+#endif
     }
     #endregion
 
     private void OnDestroy()
     {
-        spawnBotToggle.onValueChanged.RemoveListener(OnSpawnBotToggleChanged);
-        skipCountdownToggle.onValueChanged.RemoveListener(OnSkipCountdownToggleChanged);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (spawnBotToggle != null)
+            spawnBotToggle.onValueChanged.RemoveListener(OnSpawnBotToggleChanged);
+        if (skipCountdownToggle != null)
+            skipCountdownToggle.onValueChanged.RemoveListener(OnSkipCountdownToggleChanged);
+#endif
     }
 }

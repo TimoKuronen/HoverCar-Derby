@@ -190,6 +190,7 @@ public class PlayerController : NetworkBehaviour
         if (!IsBot)
             return;
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (Keyboard.current != null && Keyboard.current.uKey.wasPressedThisFrame)
         {
             EventBus<DamageDealtEvent>.Raise(new DamageDealtEvent
@@ -198,5 +199,6 @@ public class PlayerController : NetworkBehaviour
                 DamageAmount = 10f
             });
         }
+#endif
     }
 }

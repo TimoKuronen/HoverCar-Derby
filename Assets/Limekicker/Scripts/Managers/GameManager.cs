@@ -41,13 +41,13 @@ public class GameManager : MonoBehaviour, IGameManager
 
     private IEnumerator Initialize()
     {
-        bool skipCountodown = MainMenu.IsSkipCountdownEnabled();
+        bool skipCountdown = MainMenu.IsSkipCountdownEnabled();
         gameTimerValue.Value = Context.roundDurationInSeconds;
         countdownValue.Value = -1;
 
         Debug.Log("GameManager Initialization Started.");
 
-        if (!skipCountodown)
+        if (!skipCountdown)
         {
             CinematicState cinematicState = new CinematicState(this);
             ChangeState(cinematicState);
@@ -72,10 +72,10 @@ public class GameManager : MonoBehaviour, IGameManager
     {
         currentState?.Update();
 
-        if (Keyboard.current.yKey.wasPressedThisFrame)
-        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (Keyboard.current != null && Keyboard.current.yKey.wasPressedThisFrame)
             gameTimerValue.Value = 2;
-        }
+#endif
     }
 
     /// <summary>
