@@ -38,6 +38,9 @@ public class AudioService : IAudioService
             return;
         }
 
+        if (!AudioPreferences.IsSfxEnabled())
+            return;
+
         // UI sounds ignore simultaneous sound constraints.
         if (data.soundType == SoundType.UI)
         {

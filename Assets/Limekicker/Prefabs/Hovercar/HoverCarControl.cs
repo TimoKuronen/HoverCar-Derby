@@ -27,7 +27,7 @@ public class HoverCarControl : MonoBehaviour
     void Start()
     {
         rig = GetComponent<Rigidbody>();
-        layerMask = 1 << LayerMask.NameToLayer("Terrain");
+        layerMask = 1 << LayerMask.NameToLayer("Default");
         
         // Initialize cache
         cachedHits = new RaycastHit[hoverPoints.Length];
