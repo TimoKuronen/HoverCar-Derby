@@ -11,7 +11,6 @@ public class CarDamageManager : NetworkBehaviour
         NetworkVariableWritePermission.Server
     );
     
-    private CarManager carManager;
     private readonly float maxCarHealth = 100f;
     #endregion
 
@@ -28,10 +27,9 @@ public class CarDamageManager : NetworkBehaviour
     #endregion
 
     #region Public Methods
-    public void Initialize(CarManager carManager, PlayerController playerController)
+    public void Initialize(PlayerController playerController)
     {
-        this.carManager = carManager;
-        this.PlayerController = playerController;
+        PlayerController = playerController;
     }
 
     /// <summary>

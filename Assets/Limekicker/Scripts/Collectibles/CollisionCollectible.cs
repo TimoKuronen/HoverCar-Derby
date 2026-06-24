@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -11,14 +12,22 @@ public enum CollectibleType
     SpeedBoost
 }
 
-public abstract class CollisionCollectible : NetworkBehaviour
+[Serializable]
+public struct CollectibleData
 {
-    [SerializeField] private CollectibleType collectibleType;
-    [SerializeField] private GameObject visuals;
+    public CollectibleType Type;
+    public float Magnitude;
+    public float HazardLifetimeSeconds;
+}
 
-    public CollectibleType CollectibleType => collectibleType;
+public class CollisionCollectible : NetworkBehaviour
+{
+    [SerializeField] private CollectibleData collectibleEffectData;
+    [SerializeField] private GameObject visualsContainer;
+    [SerializeField] private Collider triggerCollider;
 
-    private Collider triggerCollider;
+    public CollectibleData CollectibleEffectData => collectibleEffectData;
+
     private NetworkVariable<bool> isProcessed = new NetworkVariable<bool>(
         false,
         NetworkVariableReadPermission.Everyone,
@@ -29,6 +38,11 @@ public abstract class CollisionCollectible : NetworkBehaviour
     {
         base.OnNetworkSpawn();
         isProcessed.OnValueChanged += OnProcessedChanged;
+
+        if (IsServer && collectibleEffectData.HazardLifetimeSeconds > 0f)
+        {
+            StartCoroutine(DestroyAfterLifetime(collectibleEffectData.HazardLifetimeSeconds));
+        }
     }
 
     public override void OnNetworkDespawn()
@@ -39,19 +53,14 @@ public abstract class CollisionCollectible : NetworkBehaviour
 
     private void OnProcessedChanged(bool oldValue, bool newValue)
     {
-        if (newValue)
-        {
-            // Hide visuals when processed
-            if (visuals != null)
-                visuals.SetActive(false);
-            if (triggerCollider != null)
-                triggerCollider.enabled = false;
-        }
-    }
+        if (!newValue)
+            return;
 
-    private void Awake()
-    {
-        triggerCollider = GetComponent<Collider>();
+        if (visualsContainer != null)
+            visualsContainer.SetActive(false);
+
+        if (triggerCollider != null)
+            triggerCollider.enabled = false;
     }
 
     private void OnEnable()
@@ -61,68 +70,86 @@ public abstract class CollisionCollectible : NetworkBehaviour
             isProcessed.Value = false;
         }
 
-        if (visuals != null)
-            visuals.SetActive(true);
+        if (visualsContainer != null)
+            visualsContainer.SetActive(true);
+
         if (triggerCollider != null)
             triggerCollider.enabled = true;
     }
 
-    /// <summary>
-    /// Handles collision with vehicles. Only processes on server and requires minimum impact velocity.
-    /// </summary>
     private void OnCollisionEnter(Collision collidingCar)
     {
         if (!IsServer || isProcessed.Value || !collidingCar.gameObject.CompareTag("Vehicle"))
             return;
 
-        float magnitude = collidingCar.relativeVelocity.magnitude;
-        if (magnitude > 5)
-        {
-            ProcessItem(collidingCar);
-        }
+        if (collidingCar.relativeVelocity.magnitude <= 5f)
+            return;
+
+        ProcessItem(collidingCar);
     }
 
-    /// <summary>
-    /// Processes collectible collection: marks as processed, applies effect to car, and notifies clients.
-    /// </summary>
     private void ProcessItem(Collision collidingCar)
     {
         if (!IsServer)
             return;
 
+        if (!collidingCar.gameObject.TryGetComponent<NetworkObject>(out NetworkObject collectorNetworkObject))
+            return;
+
         isProcessed.Value = true;
 
-        var carManager = collidingCar.gameObject.GetComponent<CarManager>();
-        if (carManager != null)
+        CollectibleCollectedEvent collectedEvent = new CollectibleCollectedEvent
         {
-            CollectItem(this, carManager);
+            CollectorNetworkObjectId = collectorNetworkObject.NetworkObjectId,
+            Type = collectibleEffectData.Type,
+            Magnitude = collectibleEffectData.Magnitude,
+            WorldPosition = transform.position
+        };
 
-            NetworkObject playerNetworkObject = collidingCar.gameObject.GetComponent<NetworkObject>();
-            if (playerNetworkObject != null)
-            {
-                RaiseCollectibleCollectedEventClientRpc(playerNetworkObject.NetworkObjectId, (int)collectibleType);
-            }
-        }
+        EventBus<CollectibleCollectedEvent>.Raise(collectedEvent);
+
+        RaiseCollectibleCollectedEventClientRpc(
+            collectedEvent.CollectorNetworkObjectId,
+            (int)collectedEvent.Type,
+            collectedEvent.Magnitude,
+            collectedEvent.WorldPosition);
 
         StartCoroutine(PlayEffects());
     }
 
     [ClientRpc]
-    private void RaiseCollectibleCollectedEventClientRpc(ulong playerNetworkObjectId, int collectibleTypeInt)
+    private void RaiseCollectibleCollectedEventClientRpc(
+        ulong collectorNetworkObjectId,
+        int collectibleType,
+        float magnitude,
+        Vector3 worldPosition)
     {
+        if (IsServer)
+            return;
+
         EventBus<CollectibleCollectedEvent>.Raise(new CollectibleCollectedEvent
         {
-            PlayerNetworkObjectId = playerNetworkObjectId,
-            CollectibleType = (CollectibleType)collectibleTypeInt
+            CollectorNetworkObjectId = collectorNetworkObjectId,
+            Type = (CollectibleType)collectibleType,
+            Magnitude = magnitude,
+            WorldPosition = worldPosition
         });
     }
 
     private IEnumerator PlayEffects()
     {
-        yield return new WaitForSeconds(2);
+        yield return new WaitForSeconds(2f);
 
         //ReturnToPool();
     }
 
-    protected abstract void CollectItem(CollisionCollectible collectible, CarManager carManager);
+    private IEnumerator DestroyAfterLifetime(float lifetimeSeconds)
+    {
+        yield return new WaitForSeconds(lifetimeSeconds);
+
+        if (IsServer && NetworkObject != null && NetworkObject.IsSpawned)
+        {
+            NetworkObject.Despawn();
+        }
+    }
 }

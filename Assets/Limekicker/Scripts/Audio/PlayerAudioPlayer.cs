@@ -121,7 +121,7 @@ public class PlayerAudioPlayer : NetworkBehaviour
 
     private void OnCollectibleCollected(CollectibleCollectedEvent collectibleEvent)
     {
-        if (collectibleEvent.PlayerNetworkObjectId != NetworkObjectId)
+        if (collectibleEvent.CollectorNetworkObjectId != NetworkObjectId)
             return;
 
         if (collectibleCollectedCue != null && audioSource != null && audioService != null)

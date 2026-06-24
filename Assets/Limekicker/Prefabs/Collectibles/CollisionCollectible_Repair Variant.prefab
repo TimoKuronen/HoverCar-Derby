@@ -91,6 +91,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 268046985027001661, guid: 2dab03ac5a27f9247a42bddcf984cbc1, type: 3}
+      propertyPath: collectibleEffectData.Type
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 268046985027001661, guid: 2dab03ac5a27f9247a42bddcf984cbc1, type: 3}
+      propertyPath: collectibleEffectData.Magnitude
+      value: 25
+      objectReference: {fileID: 0}
     - target: {fileID: 612490644846131966, guid: 2dab03ac5a27f9247a42bddcf984cbc1, type: 3}
       propertyPath: m_Name
       value: CollisionCollectible_Repair Variant
@@ -155,11 +163,8 @@ PrefabInstance:
       addedObject: {fileID: 8542700124459544535}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 612490644846131966, guid: 2dab03ac5a27f9247a42bddcf984cbc1, type: 3}
-      insertIndex: -1
+      insertIndex: 2
       addedObject: {fileID: -3417283374008978018}
-    - targetCorrespondingSourceObject: {fileID: 612490644846131966, guid: 2dab03ac5a27f9247a42bddcf984cbc1, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 4532345708644801455}
   m_SourcePrefab: {fileID: 100100000, guid: 2dab03ac5a27f9247a42bddcf984cbc1, type: 3}
 --- !u!1 &4613181658832161501 stripped
 GameObject:
@@ -178,7 +183,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 1895906872
+  GlobalObjectIdHash: 2748796595
   InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -187,25 +192,6 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
---- !u!114 &4532345708644801455
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4613181658832161501}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1aea53b6157990345b7f7ce04655f081, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  visuals: {fileID: 7204666823088428395}
-  repairAmount: 35
---- !u!1 &7204666823088428395 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3132621826807440712, guid: 2dab03ac5a27f9247a42bddcf984cbc1, type: 3}
-  m_PrefabInstance: {fileID: 5225671702314512419}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &8405383527878147640 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4332668935760301595, guid: 2dab03ac5a27f9247a42bddcf984cbc1, type: 3}

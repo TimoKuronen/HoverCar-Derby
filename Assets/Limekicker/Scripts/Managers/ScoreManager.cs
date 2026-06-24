@@ -18,14 +18,17 @@ public class ScoreManager : IScoreManager, IDisposable
 
     private EventBinding<PlayerSpawnedEvent> playerSpawnedEvent;
     private EventBinding<DamageDealtEvent> damageDealtEvent;
+    private EventBinding<CollectibleCollectedEvent> collectibleCollectedEvent;
 
     [Inject]
     public void Construct()
     {
         playerSpawnedEvent = new EventBinding<PlayerSpawnedEvent>(AddPlayerToScoreBoard);
         damageDealtEvent = new EventBinding<DamageDealtEvent>(HandleDamageDealt);
+        collectibleCollectedEvent = new EventBinding<CollectibleCollectedEvent>(HandleCollectibleCollected);
         EventBus<PlayerSpawnedEvent>.Register(playerSpawnedEvent);
         EventBus<DamageDealtEvent>.Register(damageDealtEvent);
+        EventBus<CollectibleCollectedEvent>.Register(collectibleCollectedEvent);
     }
 
     public IntVariable GetPlayerScoreVariable(ulong clientId)
@@ -92,6 +95,25 @@ public class ScoreManager : IScoreManager, IDisposable
         }
     }
 
+    private void HandleCollectibleCollected(CollectibleCollectedEvent collectedEvent)
+    {
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer)
+            return;
+
+        if (collectedEvent.Type != CollectibleType.Points || collectedEvent.Magnitude <= 0f)
+            return;
+
+        if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(
+                collectedEvent.CollectorNetworkObjectId,
+                out NetworkObject collectorObject))
+            return;
+
+        if (!collectorObject.TryGetComponent<PlayerController>(out PlayerController controller))
+            return;
+
+        IncreaseScore(controller, Mathf.RoundToInt(collectedEvent.Magnitude));
+    }
+
     /// <summary>
     /// Increases score for a player. Updates both the ScriptableObject (for UI binding) and PlayerData.
     /// </summary>
@@ -141,6 +163,7 @@ public class ScoreManager : IScoreManager, IDisposable
     {
         EventBus<PlayerSpawnedEvent>.Unregister(playerSpawnedEvent);
         EventBus<DamageDealtEvent>.Unregister(damageDealtEvent);
+        EventBus<CollectibleCollectedEvent>.Unregister(collectibleCollectedEvent);
     }
 }
 

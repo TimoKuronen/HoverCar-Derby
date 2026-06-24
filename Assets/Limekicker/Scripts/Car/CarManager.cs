@@ -8,7 +8,7 @@ public class CarManager : NetworkBehaviour
 {
     #region Fields
     [field: SerializeField] public CarData CarData { get; private set; }
-    
+
     [Header("Respawn Settings")]
     [SerializeField] private float hopHeight = 3f;
     [SerializeField] private float hopDuration = 1f;
@@ -16,6 +16,7 @@ public class CarManager : NetworkBehaviour
     private HoverCarControl hoverCarControl;
     private CarVFX carVFX;
     private Rigidbody carRigidbody;
+    private EventBinding<CollectibleCollectedEvent> collectibleCollectedEvent;
     #endregion
 
     #region Properties
@@ -28,20 +29,6 @@ public class CarManager : NetworkBehaviour
     #endregion
 
     #region Unity Lifecycle
-    private void Start()
-    {
-        PlayerController = GetComponent<PlayerController>();
-        hoverCarControl = GetComponentInChildren<HoverCarControl>();
-        carRigidbody = GetComponent<Rigidbody>();
-        DamageManager = PlayerController.DamageManager;    
-        DamageManager.OnCarDestroyed += HandleCarDestroyed;
-
-        if (TryGetComponent<CarVFX>(out carVFX))
-        {
-            carVFX.Initialize(DamageManager);
-        }
-    }
-
     private void Update()
     {
         if (Keyboard.current.rKey.wasPressedThisFrame)
@@ -61,34 +48,61 @@ public class CarManager : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-        
-        if (PlayerController != null && DamageManager != null)
+
+        PlayerController = GetComponent<PlayerController>();
+        hoverCarControl = GetComponentInChildren<HoverCarControl>();
+        carRigidbody = GetComponent<Rigidbody>();
+        DamageManager = PlayerController.DamageManager;
+
+        DamageManager.Initialize(PlayerController);
+        DamageManager.OnCarDestroyed += HandleCarDestroyed;
+
+        if (TryGetComponent<CarVFX>(out carVFX))
         {
-            DamageManager.Initialize(this, PlayerController);
+            carVFX.Initialize(DamageManager);
+        }
+
+        if (IsServer)
+        {
+            collectibleCollectedEvent = new EventBinding<CollectibleCollectedEvent>(OnCollectibleCollected);
+            EventBus<CollectibleCollectedEvent>.Register(collectibleCollectedEvent);
         }
     }
 
     public override void OnNetworkDespawn()
     {
+        if (collectibleCollectedEvent != null)
+        {
+            EventBus<CollectibleCollectedEvent>.Unregister(collectibleCollectedEvent);
+        }
+
         DamageManager.OnCarDestroyed -= HandleCarDestroyed;
         base.OnNetworkDespawn();
     }
     #endregion
 
-    #region Public Methods
-    public void CollectItem(CollisionCollectible collectible)
-    {
-        if (!IsServer)
-        {
-            CollectItemServerRpc(collectible.NetworkObjectId);
-            return;
-        }
-
-        ProcessCollectible(collectible);
-    }
-    #endregion
-
     #region Private Methods
+    private void OnCollectibleCollected(CollectibleCollectedEvent collectedEvent)
+    {
+        if (collectedEvent.CollectorNetworkObjectId != NetworkObjectId)
+            return;
+
+        switch (collectedEvent.Type)
+        {
+            case CollectibleType.Repair:
+                DamageManager.Repair(collectedEvent.Magnitude);
+                break;
+
+            case CollectibleType.Damage:
+                DamageManager.ApplyDamage(collectedEvent.Magnitude, collectedEvent.WorldPosition);
+                break;
+
+            case CollectibleType.SpeedBoost:
+                Debug.LogWarning("[CarManager] SpeedBoost collectible is not implemented yet.");
+                break;
+        }
+    }
+
     private void HandleCarDestroyed()
     {
         if (hoverCarControl != null)
@@ -107,10 +121,6 @@ public class CarManager : NetworkBehaviour
         }
     }
 
-    /// <summary>
-    /// Handles car respawn sequence: waits for destruction effects, teleports to spawn point,
-    /// repairs health, stops fire VFX, performs hop animation, and re-enables hovering.
-    /// </summary>
     private IEnumerator Respawn()
     {
         yield return new WaitForSeconds(2f);
@@ -129,17 +139,17 @@ public class CarManager : NetworkBehaviour
         }
 
         DamageManager.Repair(100f);
-        carVFX.StopFireEffect();
+
+        if (carVFX != null)
+        {
+            carVFX.StopFireEffect();
+        }
 
         yield return StartCoroutine(HopCarIntoAir());
 
         hoverCarControl.ToggleHovering(true);
     }
 
-    /// <summary>
-    /// Animates car hopping into the air after respawn. Uses easing for smooth motion.
-    /// Temporarily makes rigidbody kinematic to control position directly.
-    /// </summary>
     private IEnumerator HopCarIntoAir()
     {
         if (carRigidbody == null)
@@ -154,17 +164,16 @@ public class CarManager : NetworkBehaviour
         bool wasKinematic = carRigidbody.isKinematic;
         carRigidbody.isKinematic = true;
 
-        // Animate hop with easing (ease-out cubic)
         float elapsedTime = 0f;
         while (elapsedTime < hopDuration)
         {
             elapsedTime += Time.deltaTime;
             float t = elapsedTime / hopDuration;
             float easedT = 1f - Mathf.Pow(1f - t, 3f);
-            
+
             Vector3 currentPosition = Vector3.Lerp(originalPosition, targetPosition, easedT);
             carRigidbody.position = currentPosition;
-            
+
             yield return null;
         }
 
@@ -175,43 +184,6 @@ public class CarManager : NetworkBehaviour
         carRigidbody.angularVelocity = Vector3.zero;
 
         Physics.SyncTransforms();
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    private void CollectItemServerRpc(ulong collectibleNetworkObjectId)
-    {
-        if (!IsServer)
-            return;
-
-        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(collectibleNetworkObjectId, out var networkObject))
-        {
-            var collectible = networkObject.GetComponent<CollisionCollectible>();
-            if (collectible != null)
-            {
-                ProcessCollectible(collectible);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Processes collectible collision based on type. Handles repair and damage collectibles.
-    /// </summary>
-    private void ProcessCollectible(CollisionCollectible collectible)
-    {
-        switch (collectible)
-        {
-            case RepairCollectible repair:
-                DamageManager.Repair(repair.RepairAmount);
-                break;
-
-            case DamagingCollectible damager:
-                DamageManager.ApplyDamage(damager.DamageAmount, collectible.transform.position);
-                break;
-
-            default:
-                Debug.LogWarning("Unknown collectible type!");
-                break;
-        }
     }
     #endregion
 }

@@ -8,6 +8,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 268046985027001661, guid: 2dab03ac5a27f9247a42bddcf984cbc1, type: 3}
+      propertyPath: collectibleEffectData.Type
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 268046985027001661, guid: 2dab03ac5a27f9247a42bddcf984cbc1, type: 3}
+      propertyPath: collectibleEffectData.Magnitude
+      value: 50
+      objectReference: {fileID: 0}
     - target: {fileID: 612490644846131966, guid: 2dab03ac5a27f9247a42bddcf984cbc1, type: 3}
       propertyPath: m_Name
       value: CollisionCollectible_Points Variant
@@ -57,11 +65,8 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 612490644846131966, guid: 2dab03ac5a27f9247a42bddcf984cbc1, type: 3}
-      insertIndex: -1
+      insertIndex: 2
       addedObject: {fileID: -755211485800774976}
-    - targetCorrespondingSourceObject: {fileID: 612490644846131966, guid: 2dab03ac5a27f9247a42bddcf984cbc1, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1047425362135001136}
   m_SourcePrefab: {fileID: 100100000, guid: 2dab03ac5a27f9247a42bddcf984cbc1, type: 3}
 --- !u!1 &6854195107242495698 stripped
 GameObject:
@@ -89,23 +94,3 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
---- !u!114 &1047425362135001136
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6854195107242495698}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aa55d698bbe38a64e9ccad9c0ebdd36d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  collectibleType: 2
-  visuals: {fileID: 9000356074160345444}
-  pointsAwared: 20
---- !u!1 &9000356074160345444 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3132621826807440712, guid: 2dab03ac5a27f9247a42bddcf984cbc1, type: 3}
-  m_PrefabInstance: {fileID: 6313763955414496300}
-  m_PrefabAsset: {fileID: 0}

@@ -1,4 +1,5 @@
 using Unity.Netcode;
+using UnityEngine;
 
 public interface IEvent { }
 
@@ -23,8 +24,10 @@ public struct CountdownEvent : IEvent
 
 public struct CollectibleCollectedEvent : IEvent
 {
-    public ulong PlayerNetworkObjectId;
-    public CollectibleType CollectibleType;
+    public ulong CollectorNetworkObjectId;
+    public CollectibleType Type;
+    public float Magnitude;
+    public Vector3 WorldPosition;
 }
 
 public struct PlayerTeleportedEvent : IEvent

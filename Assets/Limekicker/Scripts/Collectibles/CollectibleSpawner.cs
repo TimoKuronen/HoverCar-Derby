@@ -39,14 +39,14 @@ public class CollectibleSpawner : MonoBehaviour
 
     private void Update()
     {
-        if (isSpawningActive)
+        if (!isSpawningActive || NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer)
+            return;
+
+        timer += Time.deltaTime;
+        if (timer >= spawnInterval)
         {
-            timer += Time.deltaTime;
-            if (timer >= spawnInterval)
-            {
-                SpawnCollectible();
-                timer = 0f;
-            }
+            SpawnCollectible();
+            timer = 0f;
         }
     }
 
@@ -71,14 +71,15 @@ public class CollectibleSpawner : MonoBehaviour
             prefabToSpawn = collectiblePrefabs[UnityEngine.Random.Range(0, collectiblePrefabs.Length)];
 
             if (previouslySpawnedCollectible == CollectibleType.None ||
-                prefabToSpawn.CollectibleType != previouslySpawnedCollectible)
+                prefabToSpawn.CollectibleEffectData.Type != previouslySpawnedCollectible)
             {
-                previouslySpawnedCollectible = prefabToSpawn.CollectibleType;
+                previouslySpawnedCollectible = prefabToSpawn.CollectibleEffectData.Type;
                 break;
             }
         }
 
         NetworkObject spawnedCollectible = Instantiate(prefabToSpawn.NetworkObject, spawnPosition, Quaternion.identity);
+        spawnedCollectible.Spawn();
         activeCollectibles.Add(spawnedCollectible.GetComponent<CollisionCollectible>());
     }
 
@@ -94,6 +95,7 @@ public class CollectibleSpawner : MonoBehaviour
         {
             existingPositions.Add(player.transform.position);
         }
+        activeCollectibles.RemoveAll(collectible => collectible == null);
         foreach (var collectible in activeCollectibles)
         {
             existingPositions.Add(collectible.transform.position);

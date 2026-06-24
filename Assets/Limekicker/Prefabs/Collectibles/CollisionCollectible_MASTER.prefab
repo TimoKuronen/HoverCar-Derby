@@ -10,7 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 4821215706331043053}
   - component: {fileID: 5750844407237730630}
-  m_Layer: 0
+  - component: {fileID: 5659824739588870767}
+  - component: {fileID: 268046985027001661}
+  m_Layer: 2
   m_Name: CollisionCollectible_MASTER
   m_TagString: Collectible
   m_Icon: {fileID: 0}
@@ -56,6 +58,45 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0.5, z: 0}
+--- !u!114 &5659824739588870767
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 612490644846131966}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 2411222686
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+--- !u!114 &268046985027001661
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 612490644846131966}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbf71358b6e55914c917590b9a179d92, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  collectibleEffectData:
+    Type: 0
+    Magnitude: 0
+    HazardLifetimeSeconds: 0
+  visualsContainer: {fileID: 3132621826807440712}
+  triggerCollider: {fileID: 5750844407237730630}
 --- !u!1 &3132621826807440712
 GameObject:
   m_ObjectHideFlags: 0
@@ -65,7 +106,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4332668935760301595}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Visuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
