@@ -24,9 +24,43 @@ public static class AuthenticatorHandler
 
         AuthenticatorState = AuthenticatorState.Authenticating;
 
+        ApplyParrelSyncProfileIfNeeded();
+
         await SignInAnonymouslyAsync(maxTries);
 
         return AuthenticatorState;
+    }
+
+    /// <summary>
+    /// ParrelSync clones symlink this project's ProjectSettings, so a clone shares the original's
+    /// Company/Product identity and, with it, Unity Authentication's cached anonymous session.
+    /// Switching to a profile unique to the clone's project folder gives each editor instance its
+    /// own anonymous player identity instead of colliding with the original.
+    /// </summary>
+    private static void ApplyParrelSyncProfileIfNeeded()
+    {
+#if UNITY_EDITOR
+        if (!ParrelSync.ClonesManager.IsClone())
+        {
+            return;
+        }
+
+        try
+        {
+            string folderName = System.IO.Path.GetFileName(ParrelSync.ClonesManager.GetCurrentProjectPath());
+            string profile = System.Text.RegularExpressions.Regex.Replace(folderName, "[^a-zA-Z0-9_-]", "_");
+            if (profile.Length > 30)
+            {
+                profile = profile.Substring(profile.Length - 30, 30);
+            }
+
+            AuthenticationService.Instance.SwitchProfile(profile);
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"[AuthenticatorHandler] Failed to switch ParrelSync clone auth profile: {e.Message}");
+        }
+#endif
     }
 
     /// <summary>Waits for ongoing authentication to complete.</summary>
