@@ -1,15 +1,10 @@
 using System;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
 
 public class GameHUDView : MonoBehaviour, IGameHUDView
 {
-    [Header("Display")]
-    [SerializeField] private TextMeshProUGUI infoText;
-    [SerializeField] private InfoTextType debugInfoToDisplay;
-
     [Header("Menus")]
     [SerializeField] private GameObject pauseMenu;
     [SerializeField] private GameObject winMenu;
@@ -38,7 +33,7 @@ public class GameHUDView : MonoBehaviour, IGameHUDView
     private void Start()
     {
         WireButtons();
-        presenter = new GameHUDPresenter(this, gameManager, debugInfoToDisplay);
+        presenter = new GameHUDPresenter(this, gameManager);
         presenter.Initialize();
     }
 
@@ -52,12 +47,6 @@ public class GameHUDView : MonoBehaviour, IGameHUDView
             restartButton.onClick.AddListener(() => OnRestartClicked?.Invoke());
         if (goToMenuFromWinButton != null)
             goToMenuFromWinButton.onClick.AddListener(() => OnGoToMenuClicked?.Invoke());
-    }
-
-    public void SetDebugText(string text)
-    {
-        if (infoText != null)
-            infoText.text = text;
     }
 
     public void ShowPauseMenu(bool show)

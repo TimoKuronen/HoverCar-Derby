@@ -2,14 +2,12 @@ public class GameHUDPresenter : BasePresenter
 {
     private readonly IGameHUDView view;
     private readonly IGameManager gameManager;
-    private readonly InfoTextType debugInfoType;
     private EventBinding<GameStateChangeEvent> gameStateChangeBinding;
 
-    public GameHUDPresenter(IGameHUDView view, IGameManager gameManager, InfoTextType debugInfoType)
+    public GameHUDPresenter(IGameHUDView view, IGameManager gameManager)
     {
         this.view = view;
         this.gameManager = gameManager;
-        this.debugInfoType = debugInfoType;
     }
 
     protected override void SubscribeToModels()
@@ -20,9 +18,6 @@ public class GameHUDPresenter : BasePresenter
         view.OnResumeClicked += HandleResumeClicked;
         view.OnRestartClicked += HandleRestartClicked;
         view.OnGoToMenuClicked += HandleGoToMenuClicked;
-
-        if (debugInfoType != InfoTextType.None && gameManager.CurrentGameState != null)
-            UpdateDebugText();
 
         SyncMenuVisibilityToState();
     }
@@ -39,7 +34,6 @@ public class GameHUDPresenter : BasePresenter
 
     private void HandleGameStateChange(GameStateChangeEvent @event)
     {
-        UpdateDebugText();
         SyncMenuVisibilityToState();
     }
 
@@ -66,29 +60,4 @@ public class GameHUDPresenter : BasePresenter
     {
         NetworkSession.LeaveGame();
     }
-
-    private void UpdateDebugText()
-    {
-        if (debugInfoType == InfoTextType.None || gameManager.CurrentGameState == null)
-        {
-            view.SetDebugText("");
-            return;
-        }
-
-        switch (debugInfoType)
-        {
-            case InfoTextType.GameState:
-                view.SetDebugText(gameManager.CurrentGameState.ToString());
-                break;
-            default:
-                view.SetDebugText("");
-                break;
-        }
-    }
-}
-
-public enum InfoTextType
-{
-    None,
-    GameState
 }

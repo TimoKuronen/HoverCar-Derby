@@ -51,7 +51,9 @@ public static class NetworkSession
     {
         if (HostSingleton.Instance == null || HostSingleton.Instance.GameManager == null)
         {
-            Debug.LogError("[NetworkSession] Cannot start host: HostSingleton or GameManager is missing.");
+            SessionNotifications.Error(
+                "Could not start host.",
+                "[NetworkSession] Cannot start host: HostSingleton or GameManager is missing.");
             return;
         }
 
@@ -65,7 +67,9 @@ public static class NetworkSession
     {
         if (ClientSingleton.Instance == null || ClientSingleton.Instance.GameManager == null)
         {
-            Debug.LogError("[NetworkSession] Cannot start client: ClientSingleton or GameManager is missing.");
+            SessionNotifications.Error(
+                "Could not start client.",
+                "[NetworkSession] Cannot start client: ClientSingleton or GameManager is missing.");
             return;
         }
 
@@ -80,7 +84,9 @@ public static class NetworkSession
     {
         if (ClientSingleton.Instance == null || ClientSingleton.Instance.GameManager == null)
         {
-            Debug.LogError("[NetworkSession] Cannot start matchmaking: ClientSingleton or GameManager is missing.");
+            SessionNotifications.Error(
+                "Matchmaking is unavailable.",
+                "[NetworkSession] Cannot start matchmaking: ClientSingleton or GameManager is missing.");
             onMatchmakeResponse?.Invoke(MatchmakerPollingResult.TicketCreationError);
             return;
         }
@@ -171,13 +177,17 @@ public static class NetworkSession
     {
         if (!IsClientInitialized)
         {
-            Debug.LogError("[NetworkSession] Cannot join lobby: ClientSingleton is not initialized.");
+            SessionNotifications.Error(
+                "Could not join lobby.",
+                "[NetworkSession] Cannot join lobby: ClientSingleton is not initialized.");
             return;
         }
 
         if (string.IsNullOrWhiteSpace(lobbyId))
         {
-            Debug.LogError("[NetworkSession] Cannot join lobby: lobby ID is null or empty.");
+            SessionNotifications.Error(
+                "Could not join lobby.",
+                "[NetworkSession] Cannot join lobby: lobby ID is null or empty.");
             return;
         }
 
@@ -193,12 +203,16 @@ public static class NetworkSession
             }
             else
             {
-                Debug.LogError("[NetworkSession] Lobby does not contain a join code.");
+                SessionNotifications.Error(
+                    "Lobby is missing a join code.",
+                    "[NetworkSession] Lobby does not contain a join code.");
             }
         }
         catch (Exception e)
         {
-            Debug.LogError($"[NetworkSession] Failed to join lobby: {e.Message}");
+            SessionNotifications.Error(
+                "Could not join lobby.",
+                $"[NetworkSession] Failed to join lobby: {e.Message}");
         }
     }
 

@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 public class MainMenu : MonoBehaviour
 {
-    [SerializeField] private TMP_Text queueStatusText;
     [SerializeField] private TMP_Text queueTimerText;
     [SerializeField] private TMP_Text findMatchButtonText;
     [SerializeField] private TMP_InputField joinCodeField;
@@ -22,7 +21,6 @@ public class MainMenu : MonoBehaviour
 
     float timeInQueue = 0;
 
-    private const string LastJoinCodeKey = "LastJoinCode";
     private const string SpawnBotKey = "SpawnBotForTesting";
     private const string SkipCountdownKey = "SkipCountdownForTesting";
 
@@ -35,25 +33,17 @@ public class MainMenu : MonoBehaviour
 
         Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
 
-        queueStatusText.text = string.Empty;
-        queueTimerText.text = string.Empty;
-
-        // Auto-fill last used join code for easier testing
-        string lastJoinCode = PlayerPrefs.GetString(LastJoinCodeKey, "");
-        if (!string.IsNullOrEmpty(lastJoinCode) && joinCodeField != null)
-        {
-            joinCodeField.text = lastJoinCode;
-        }
+        if (queueTimerText != null)
+            queueTimerText.text = string.Empty;
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-        // Load bot spawn toggle state
         bool spawnBot = PlayerPrefs.GetInt(SpawnBotKey, 0) == 1;
         if (spawnBotToggle != null)
         {
             spawnBotToggle.isOn = spawnBot;
             spawnBotToggle.onValueChanged.AddListener(OnSpawnBotToggleChanged);
         }
-        
+
         bool ignoreCountdown = PlayerPrefs.GetInt(SkipCountdownKey, 0) == 1;
         if (skipCountdownToggle != null)
         {
@@ -70,7 +60,7 @@ public class MainMenu : MonoBehaviour
 
     private void Update()
     {
-        if (isMatchmaking)
+        if (isMatchmaking && queueTimerText != null)
         {
             timeInQueue += Time.deltaTime;
             TimeSpan timeSpan = TimeSpan.FromSeconds(timeInQueue);
@@ -85,7 +75,7 @@ public class MainMenu : MonoBehaviour
 
         if (isMatchmaking)
         {
-            queueStatusText.text = "Canceling...";
+            SessionNotifications.Info("Canceling matchmaking...");
             isCanceling = true;
 
             await NetworkSession.CancelMatchmakingAsync();
@@ -95,8 +85,8 @@ public class MainMenu : MonoBehaviour
             isBusy = false;
 
             findMatchButtonText.text = "Find Match";
-            queueStatusText.text = string.Empty;
-            queueTimerText.text = string.Empty;
+            if (queueTimerText != null)
+                queueTimerText.text = string.Empty;
 
             return;
         }
@@ -107,7 +97,7 @@ public class MainMenu : MonoBehaviour
         NetworkSession.FindMatchAsync(OnMatchMade);
 
         findMatchButtonText.text = "Cancel";
-        queueStatusText.text = "Searching...";
+        SessionNotifications.Info("Searching for a match...");
         timeInQueue = 0;
         isMatchmaking = true;
         isBusy = true;
@@ -118,20 +108,20 @@ public class MainMenu : MonoBehaviour
         switch (result)
         {
             case MatchmakerPollingResult.Success:
-                queueStatusText.text = "Match found! Joining...";
+                SessionNotifications.Info("Match found. Joining...");
                 break;
             case MatchmakerPollingResult.TicketCreationError:
-                queueStatusText.text = "Matchmaking failed. Please try again.";
+                SessionNotifications.Error("Matchmaking failed. Please try again.");
                 isMatchmaking = false;
                 findMatchButtonText.text = "Find Match";
                 break;
             case MatchmakerPollingResult.TicketCancellationError:
-                queueStatusText.text = "Matchmaking canceled.";
+                SessionNotifications.Info("Matchmaking canceled.");
                 isMatchmaking = false;
                 findMatchButtonText.text = "Find Match";
                 break;
             default:
-                queueStatusText.text = "Timeout Error.";
+                SessionNotifications.Error("Matchmaking timed out.");
                 isMatchmaking = false;
                 findMatchButtonText.text = "Find Match";
                 break;
@@ -140,10 +130,11 @@ public class MainMenu : MonoBehaviour
 
     public async void StartHost()
     {
-        if (isBusy) 
+        if (isBusy)
             return;
 
         isBusy = true;
+        SessionNotifications.Info("Starting host...");
 
         await NetworkSession.StartHostAsync();
 
@@ -152,31 +143,27 @@ public class MainMenu : MonoBehaviour
 
     public async void StartClient()
     {
-        if (isBusy) 
+        if (isBusy)
             return;
 
         isBusy = true;
 
         string joinCode = joinCodeField.text.Trim().ToUpper();
 
-        // If join code is empty, try to quick join the first available lobby
         if (string.IsNullOrEmpty(joinCode))
         {
+            SessionNotifications.Info("Quick joining first available lobby...");
             await QuickJoinFirstLobby();
         }
         else
         {
-            // Save join code for next time
-            PlayerPrefs.SetString(LastJoinCodeKey, joinCode);
-            PlayerPrefs.Save();
-
+            SessionNotifications.Info("Joining game...");
             await NetworkSession.StartClientViaJoinCodeAsync(joinCode);
         }
 
         isBusy = false;
     }
 
-    /// <summary>Quick joins the first available lobby without needing a join code.</summary>
     public async Task QuickJoinFirstLobby()
     {
         try
@@ -186,17 +173,19 @@ public class MainMenu : MonoBehaviour
             if (lobbies.Results != null && lobbies.Results.Count > 0)
             {
                 Lobby firstLobby = lobbies.Results[0];
-                Debug.Log($"Quick joining lobby: {firstLobby.Name}");
+                SessionNotifications.Info($"Joining lobby: {firstLobby.Name}");
                 await NetworkSession.JoinLobbyByIdAsync(firstLobby.Id);
             }
             else
             {
-                Debug.LogWarning("No available lobbies found for quick join. Please enter a join code or wait for a lobby to be created.");
+                SessionNotifications.Warn("No lobbies available. Enter a join code from the host.");
             }
         }
         catch (Exception e)
         {
-            Debug.LogError($"Failed to quick join lobby: {e.Message}");
+            SessionNotifications.Error(
+                "Could not join a lobby.",
+                $"Failed to quick join lobby: {e.Message}");
         }
     }
 
@@ -205,7 +194,6 @@ public class MainMenu : MonoBehaviour
         await JoinLobbyAsync(lobby);
     }
 
-    /// <summary>Internal method to join a lobby (returns Task for awaitable operations).</summary>
     private async Task JoinLobbyAsync(Lobby lobby)
     {
         if (isBusy)
@@ -215,33 +203,24 @@ public class MainMenu : MonoBehaviour
 
         try
         {
-            // Get join code from lobby before joining
-            string joinCode = lobby.Data != null && lobby.Data.ContainsKey("JoinCode") 
-                ? lobby.Data["JoinCode"].Value 
+            string joinCode = lobby.Data != null && lobby.Data.ContainsKey("JoinCode")
+                ? lobby.Data["JoinCode"].Value
                 : null;
 
             if (string.IsNullOrEmpty(joinCode))
             {
-                // If join code not in lobby data, join lobby first to get it
                 Lobby joiningLobby = await lobbyService.JoinLobbyByIdAsync(lobby.Id);
                 joinCode = joiningLobby.Data["JoinCode"].Value;
             }
 
-            // Save join code for next time
-            PlayerPrefs.SetString(LastJoinCodeKey, joinCode);
-            PlayerPrefs.Save();
-
-            // Update the input field with the join code
-            if (joinCodeField != null)
-            {
-                joinCodeField.text = joinCode;
-            }
-
+            SessionNotifications.Info("Joining game...");
             await NetworkSession.StartClientViaJoinCodeAsync(joinCode);
         }
         catch (LobbyServiceException e)
         {
-            Debug.LogError($"Failed to join lobby: {e.Message}");
+            SessionNotifications.Error(
+                "Could not join that lobby.",
+                $"Failed to join lobby: {e.Message}");
         }
 
         isBusy = false;
@@ -252,17 +231,14 @@ public class MainMenu : MonoBehaviour
     {
         PlayerPrefs.SetInt(SpawnBotKey, value ? 1 : 0);
         PlayerPrefs.Save();
-        Debug.Log($"[MainMenu] Spawn bot toggle changed to: {value}");
     }
 
     private void OnSkipCountdownToggleChanged(bool value)
     {
         PlayerPrefs.SetInt(SkipCountdownKey, value ? 1 : 0);
         PlayerPrefs.Save();
-        Debug.Log($"[MainMenu] Skip countdown toggle changed to: {value}");
     }
 
-    /// <summary>Gets whether bot spawning is enabled for testing.</summary>
     public static bool IsSpawnBotEnabled()
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD

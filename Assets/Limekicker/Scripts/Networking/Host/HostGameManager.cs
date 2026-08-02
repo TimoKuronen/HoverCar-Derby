@@ -59,7 +59,9 @@ public class HostGameManager : IDisposable
         }
         catch (Exception e)
         {
-            Debug.LogError($"Failed to start host: {e.Message}");
+            SessionNotifications.Error(
+                "Could not create Relay session.",
+                $"Failed to start host: {e.Message}");
             return;
         }
 
@@ -69,7 +71,9 @@ public class HostGameManager : IDisposable
         }
         catch (Exception e)
         {
-            Debug.LogError($"Failed to configure transport: {e.Message}");
+            SessionNotifications.Error(
+                "Could not configure host connection.",
+                $"Failed to configure transport: {e.Message}");
             return;
         }
 
@@ -81,7 +85,9 @@ public class HostGameManager : IDisposable
         }
         catch (LobbyServiceException e)
         {
-            Debug.LogError($"Failed to start host: {e.Message}");
+            SessionNotifications.Error(
+                "Could not create lobby.",
+                $"Failed to start host: {e.Message}");
             return;
         }
 
@@ -105,6 +111,7 @@ public class HostGameManager : IDisposable
         if (NetworkManager.Singleton.IsServer)
         {
             NetworkManager.Singleton.SceneManager.LoadScene(GameSceneName, LoadSceneMode.Single);
+            SessionNotifications.Info($"Hosting game. Join code: {joinCode}");
         }
     }
 

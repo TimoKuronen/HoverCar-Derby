@@ -40,3 +40,16 @@ public struct DamageDealtEvent : IEvent
     public ulong AttackerClientId;
     public float DamageAmount;
 }
+
+public enum NotificationSeverity : byte
+{
+    Info = 0,
+    Warning = 1,
+    Error = 2
+}
+
+public struct UserNotificationEvent : IEvent
+{
+    public string Message;
+    public NotificationSeverity Severity;
+}

@@ -292,11 +292,13 @@ public class GameManager : NetworkBehaviour, IGameManager
         ChangeState(previousState);
     }
 
-    void OnDestroy()
+    public override void OnDestroy()
     {
         playerSpawnManager?.Dispose();
 
         if (matchFlowCoroutine != null)
             StopCoroutine(matchFlowCoroutine);
+
+        base.OnDestroy();
     }
 }

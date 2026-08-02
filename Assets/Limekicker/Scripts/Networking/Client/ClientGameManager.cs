@@ -44,7 +44,9 @@ public class ClientGameManager : IDisposable
             return true;
         }
 
-        Debug.LogError("Authentication failed. Cannot proceed with ClientGameManager initialization.");
+        SessionNotifications.Error(
+            "Authentication failed. Could not sign in.",
+            "Authentication failed. Cannot proceed with ClientGameManager initialization.");
         return false;
     }
 
@@ -70,7 +72,9 @@ public class ClientGameManager : IDisposable
         }
         catch (Exception e)
         {
-            Debug.LogError($"[ClientGameManager] Failed to join Relay allocation: {e.Message}");
+            SessionNotifications.Error(
+                "Invalid or expired join code.",
+                $"[ClientGameManager] Failed to join Relay allocation: {e.Message}");
             return;
         }
 
@@ -80,7 +84,9 @@ public class ClientGameManager : IDisposable
         }
         catch (Exception e)
         {
-            Debug.LogError($"[ClientGameManager] Failed to configure transport: {e.Message}");
+            SessionNotifications.Error(
+                "Could not configure network connection.",
+                $"[ClientGameManager] Failed to configure transport: {e.Message}");
             return;
         }
 
@@ -93,13 +99,17 @@ public class ClientGameManager : IDisposable
         NetworkManager nm = NetworkManager.Singleton;
         if (nm == null)
         {
-            Debug.LogError("[ClientGameManager] NetworkManager.Singleton is null.");
+            SessionNotifications.Error(
+                "Network manager is missing.",
+                "[ClientGameManager] NetworkManager.Singleton is null.");
             return;
         }
 
         if (userData == null)
         {
-            Debug.LogError("[ClientGameManager] userData is null; authenticate before connecting.");
+            SessionNotifications.Error(
+                "Not signed in.",
+                "[ClientGameManager] userData is null; authenticate before connecting.");
             return;
         }
 
@@ -123,16 +133,18 @@ public class ClientGameManager : IDisposable
         byte[] payloadBytes = Encoding.UTF8.GetBytes(payload);
         nm.NetworkConfig.ConnectionData = payloadBytes;
 
-        Debug.Log($"[ClientGameManager] Starting client as {userData.userName} ({userData.userAuthId})");
+        SessionNotifications.Info($"Connecting as {userData.userName}...");
 
         bool started = nm.StartClient();
         if (!started)
         {
-            Debug.LogError($"[ClientGameManager] StartClient returned false. IsListening={nm.IsListening}, IsClient={nm.IsClient}, IsConnectedClient={nm.IsConnectedClient}");
+            SessionNotifications.Error(
+                "Could not start client connection.",
+                $"[ClientGameManager] StartClient returned false. IsListening={nm.IsListening}, IsClient={nm.IsClient}, IsConnectedClient={nm.IsConnectedClient}");
             return;
         }
 
-        Debug.Log("[ClientGameManager] StartClient succeeded; waiting for host connection and scene sync.");
+        SessionNotifications.Info("Waiting for host...");
     }
 
     private static async Task EnsureNetworkShutdownAsync(NetworkManager nm)
@@ -151,7 +163,9 @@ public class ClientGameManager : IDisposable
 
         if (nm.IsListening)
         {
-            Debug.LogError("[ClientGameManager] NetworkManager is still listening after Shutdown.");
+            SessionNotifications.Error(
+                "Could not reset network connection.",
+                "[ClientGameManager] NetworkManager is still listening after Shutdown.");
         }
     }
 
@@ -160,7 +174,7 @@ public class ClientGameManager : IDisposable
         if (clientId != NetworkManager.Singleton.LocalClientId)
             return;
 
-        Debug.Log($"[ClientGameManager] Connected to host. LocalClientId={clientId}");
+        SessionNotifications.Info("Connected to host. Loading game...");
 
         if (!NetworkManager.Singleton.NetworkConfig.EnableSceneManagement)
         {
@@ -177,21 +191,23 @@ public class ClientGameManager : IDisposable
         if (clientId != 0 && clientId != NetworkManager.Singleton.LocalClientId)
             return;
 
-        Debug.LogWarning($"[ClientGameManager] Disconnected from host. clientId={clientId}, localClientId={NetworkManager.Singleton.LocalClientId}");
+        SessionNotifications.Warn(
+            "Disconnected from host.",
+            $"[ClientGameManager] Disconnected from host. clientId={clientId}, localClientId={NetworkManager.Singleton.LocalClientId}");
     }
 
     private void HandleSceneEvent(SceneEvent sceneEvent)
     {
-        Debug.Log($"[ClientGameManager] SceneEvent: {sceneEvent.SceneEventType} -> {sceneEvent.SceneName} (client={sceneEvent.ClientId})");
+        if (sceneEvent.SceneEventType == SceneEventType.LoadComplete && sceneEvent.ClientId == NetworkManager.Singleton.LocalClientId)
+            SessionNotifications.Info("Game loaded.");
     }
 
     /// <summary>Starts matchmaking process. Calls callback with result.</summary>
     public async void MatchmakeAsync(Action<MatchmakerPollingResult> onMatchmakeResponse)
     {
         if (matchmaker.IsMatchmaking)
-        {
             return;
-        }
+
         MatchmakerPollingResult matchResult = await GetMatchAsync();
         onMatchmakeResponse?.Invoke(matchResult);
     }
