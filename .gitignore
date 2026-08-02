@@ -79,5 +79,9 @@ crashlytics-build.properties
 !/Assets/JMO Assets/
 !/Assets/RPGPP_LT/
 
-*.md
-*.md.meta
+# Public docs at repo root
+!README.md
+!/docs/
+
+# Private agent workspace
+.agent/
