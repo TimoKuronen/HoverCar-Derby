@@ -96,7 +96,6 @@ public class DamageNumberPool : MonoBehaviour
     /// <param name="victimClientId">Client ID of the player who received damage (ulong.MaxValue for non-player sources)</param>
     public void ShowDamageNumber(Vector3 worldPosition, float amount, ulong attackerClientId = ulong.MaxValue, ulong victimClientId = ulong.MaxValue)
     {
-        // Check if we should show this damage number based on visibility mode
         if (!ShouldShowDamage(attackerClientId, victimClientId))
             return;
 

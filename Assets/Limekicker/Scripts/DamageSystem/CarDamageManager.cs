@@ -12,6 +12,7 @@ public class CarDamageManager : NetworkBehaviour
     );
     
     private readonly float maxCarHealth = 100f;
+    private DamageNumberSync damageNumberSync;
     #endregion
 
     #region Properties
@@ -57,7 +58,15 @@ public class CarDamageManager : NetworkBehaviour
 
         OnCarDamaged.Invoke(damagePosition);
         Debug.Log($"[CarDamageManager] Car took {damage} damage");
-        DamageNumberPool.Instance.ShowDamageNumber(damagePosition, damage, attackerId, victimId);
+
+        if (damageNumberSync != null)
+        {
+            damageNumberSync.ShowDamageNumberRpc(damagePosition, damage, attackerId, victimId);
+        }
+        else if (DamageNumberPool.Instance != null)
+        {
+            DamageNumberPool.Instance.ShowDamageNumber(damagePosition, damage, attackerId, victimId);
+        }
 
         if (attackerId != ulong.MaxValue && damage > 0)
         {
@@ -97,6 +106,8 @@ public class CarDamageManager : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
+
+        damageNumberSync = GetComponent<DamageNumberSync>();
 
         if (IsServer && currentCarHealth.Value == 0)
         {

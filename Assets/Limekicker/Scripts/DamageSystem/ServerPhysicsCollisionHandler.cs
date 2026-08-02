@@ -30,14 +30,6 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
     private static HashSet<ulong> globalRecentCollisions = new HashSet<ulong>();
     #endregion
 
-    #region Network Lifecycle
-    public override void OnNetworkSpawn()
-    {
-        if (!IsServer) 
-            enabled = false;
-    }
-    #endregion
-
     #region Unity Lifecycle
     private void Start()
     {
@@ -52,38 +44,106 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
     /// </summary>
     private void OnCollisionEnter(Collision collision)
     {
-        if (!IsServer || Time.time - lastCollisionTime < collisionCooldown) 
+        if (Time.time - lastCollisionTime < collisionCooldown)
             return;
 
         PlayerController otherPlayer = collision.gameObject.GetComponent<PlayerController>();
-        if (otherPlayer == null) 
+        if (otherPlayer == null)
             return;
 
-        // Bots use NetworkObjectId, real players use OwnerClientId for collision tracking
-        bool thisIsBot = playerController.IsBot;
-        bool otherIsBot = otherPlayer.IsBot;
+        if (IsServer)
+        {
+            HandleServerCollisionEnter(collision, otherPlayer);
+        }
+        else if (IsOwner)
+        {
+            HandleOwnerCollisionEnter(collision, otherPlayer);
+        }
+    }
 
-        ulong thisId = thisIsBot ? NetworkObjectId : OwnerClientId;
-        ulong otherId = otherIsBot ? otherPlayer.NetworkObjectId : otherPlayer.OwnerClientId;
+    private void HandleServerCollisionEnter(Collision collision, PlayerController otherPlayer)
+    {
+        GetCollisionIds(otherPlayer, out ulong thisId, out ulong otherId, out ulong collisionKey);
 
-        // Create a symmetric collision key to ensure both cars see the same collision as the same event
-        ulong collisionKey = thisId < otherId ? (thisId << 32) | otherId : (otherId << 32) | thisId;
-
-        if (globalRecentCollisions.Contains(collisionKey)) return;
-
-        if (thisId > otherId) 
+        if (globalRecentCollisions.Contains(collisionKey))
             return;
 
-        globalRecentCollisions.Add(collisionKey);
+        if (thisId > otherId)
+            return;
 
         float impactForce = collision.relativeVelocity.magnitude;
-        if (impactForce < minImpactForce)
-        {
-            globalRecentCollisions.Remove(collisionKey);
+        if (!TryRegisterCollision(collisionKey, impactForce))
             return;
-        }
 
-        ProcessCarCollision(otherPlayer, collision.contacts[0].point, (otherPlayer.transform.position - transform.position).normalized, impactForce, collision);
+        Rigidbody otherRb = otherPlayer.GetComponent<Rigidbody>();
+        ProcessCarCollisionInternal(
+            otherPlayer,
+            collision.contacts[0].point,
+            (otherPlayer.transform.position - transform.position).normalized,
+            impactForce,
+            collision.contacts[0].normal,
+            rb.velocity.magnitude,
+            otherRb != null ? otherRb.velocity.magnitude : 0f);
+
+        lastCollisionTime = Time.time;
+        StartCoroutine(RemoveFromRecentCollisions(collisionKey, collisionCooldown));
+    }
+
+    private void HandleOwnerCollisionEnter(Collision collision, PlayerController otherPlayer)
+    {
+        float impactForce = collision.relativeVelocity.magnitude;
+        if (impactForce < minImpactForce)
+            return;
+
+        Rigidbody otherRb = otherPlayer.GetComponent<Rigidbody>();
+        if (otherRb == null)
+            return;
+
+        ReportCollisionServerRpc(
+            otherPlayer.NetworkObjectId,
+            impactForce,
+            collision.contacts[0].point,
+            (otherPlayer.transform.position - transform.position).normalized,
+            collision.contacts[0].normal,
+            rb.velocity.magnitude,
+            otherRb.velocity.magnitude);
+
+        lastCollisionTime = Time.time;
+    }
+
+    [ServerRpc]
+    private void ReportCollisionServerRpc(
+        ulong otherNetworkObjectId,
+        float impactForce,
+        Vector3 contactPoint,
+        Vector3 direction,
+        Vector3 hitNormal,
+        float reporterSpeed,
+        float reportedOtherSpeed)
+    {
+        if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(otherNetworkObjectId, out NetworkObject otherNetObj))
+            return;
+
+        PlayerController otherPlayer = otherNetObj.GetComponent<PlayerController>();
+        if (otherPlayer == null)
+            return;
+
+        GetCollisionIds(otherPlayer, out _, out _, out ulong collisionKey);
+
+        if (globalRecentCollisions.Contains(collisionKey))
+            return;
+
+        if (!TryRegisterCollision(collisionKey, impactForce))
+            return;
+
+        ProcessCarCollisionInternal(
+            otherPlayer,
+            contactPoint,
+            direction,
+            impactForce,
+            hitNormal,
+            reporterSpeed,
+            reportedOtherSpeed);
 
         lastCollisionTime = Time.time;
         StartCoroutine(RemoveFromRecentCollisions(collisionKey, collisionCooldown));
@@ -97,19 +157,44 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
         globalRecentCollisions.Remove(collisionKey);
     }
 
+    private static void GetCollisionIds(PlayerController otherPlayer, PlayerController thisPlayer, NetworkBehaviour thisNetworkBehaviour, out ulong thisId, out ulong otherId, out ulong collisionKey)
+    {
+        bool thisIsBot = thisPlayer.IsBot;
+        bool otherIsBot = otherPlayer.IsBot;
+
+        thisId = thisIsBot ? thisNetworkBehaviour.NetworkObjectId : thisNetworkBehaviour.OwnerClientId;
+        otherId = otherIsBot ? otherPlayer.NetworkObjectId : otherPlayer.OwnerClientId;
+        collisionKey = thisId < otherId ? (thisId << 32) | otherId : (otherId << 32) | thisId;
+    }
+
+    private void GetCollisionIds(PlayerController otherPlayer, out ulong thisId, out ulong otherId, out ulong collisionKey)
+    {
+        GetCollisionIds(otherPlayer, playerController, this, out thisId, out otherId, out collisionKey);
+    }
+
+    private bool TryRegisterCollision(ulong collisionKey, float impactForce)
+    {
+        if (impactForce < minImpactForce)
+            return false;
+
+        globalRecentCollisions.Add(collisionKey);
+        return true;
+    }
+
     /// <summary>
     /// Processes collision damage and physics forces based on collision type, velocities, and impact angles.
     /// Damage distribution follows rules: front bumper hits deal full damage, head-on collisions split damage,
     /// and side hits require majority velocity to deal damage.
     /// </summary>
-    private void ProcessCarCollision(PlayerController otherPlayer, Vector3 collisionPoint, Vector3 direction, float impactForce, Collision collision)
+    private void ProcessCarCollisionInternal(
+        PlayerController otherPlayer,
+        Vector3 contactPoint,
+        Vector3 direction,
+        float impactForce,
+        Vector3 hitNormal,
+        float thisSpeed,
+        float otherSpeed)
     {
-        Rigidbody otherRb = otherPlayer.GetComponent<Rigidbody>();
-        if (otherRb == null) 
-            return;
-
-        Vector3 hitNormal = collision.contacts[0].normal;
-
         // Determine collision angles - front bumper hits are more damaging
         bool thisIsFrontBumper = Vector3.Dot(transform.forward, -hitNormal) > 0.7f;
         bool otherIsFrontBumper = Vector3.Dot(otherPlayer.transform.forward, hitNormal) > 0.7f;
@@ -121,8 +206,6 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
         bool isHeadOn = thisIsFrontBumper && otherIsFrontBumper;
         float baseDamage = impactForce * damageMultiplier;
 
-        float thisSpeed = rb.velocity.magnitude;
-        float otherSpeed = otherRb.velocity.magnitude;
         bool thisIsIdle = thisSpeed < idleSpeedThreshold;
         bool otherIsIdle = otherSpeed < idleSpeedThreshold;
         bool thisHasDecentSpeed = thisSpeed >= decentSpeedThreshold;
@@ -235,34 +318,32 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
             }
         }
 
-        if (damageToThis > 0) 
-            ApplyDamageToCar(otherPlayer, collision, damageToThis);
+        if (damageToThis > 0)
+            ApplyDamageToCar(otherPlayer, contactPoint, damageToThis);
 
         if (damageToOther > minDamageThreshold)
-        {
-            ApplyDamageToOtherCar(otherPlayer, collision, damageToOther);
-        }
+            ApplyDamageToOtherCar(otherPlayer, contactPoint, damageToOther);
 
-        ApplyPhysicsForces(otherPlayer, collisionPoint, direction, impactForce);
+        ApplyPhysicsForces(otherPlayer, contactPoint, direction, impactForce);
     }
 
-    private void ApplyDamageToCar(PlayerController otherPlayer, Collision collision, float damage)
+    private void ApplyDamageToCar(PlayerController otherPlayer, Vector3 contactPoint, float damage)
     {
-        if (damageManager == null) 
+        if (damageManager == null)
             return;
 
         ulong? attackerId = otherPlayer.IsBot ? otherPlayer.NetworkObjectId : otherPlayer.OwnerClientId;
-        damageManager.ApplyDamage(damage, collision.contacts[0].point, attackerId);
+        damageManager.ApplyDamage(damage, contactPoint, attackerId);
         Debug.Log($"[ServerPhysicsCollisionHandler] Applied {damage} damage to {playerController.PlayerName.Value} from collision.");
     }
 
-    private void ApplyDamageToOtherCar(PlayerController otherPlayer, Collision collision, float damage)
+    private void ApplyDamageToOtherCar(PlayerController otherPlayer, Vector3 contactPoint, float damage)
     {
         CarDamageManager otherDM = otherPlayer.DamageManager;
         if (otherDM != null)
         {
             ulong attackerId = playerController.IsBot ? NetworkObjectId : OwnerClientId;
-            otherDM.ApplyDamage(damage, collision.contacts[0].point, attackerId);
+            otherDM.ApplyDamage(damage, contactPoint, attackerId);
             Debug.Log($"[ServerPhysicsCollisionHandler] Applied {damage} damage to {otherPlayer.PlayerName.Value} from collision with {playerController.PlayerName.Value}.");
         }
     }
