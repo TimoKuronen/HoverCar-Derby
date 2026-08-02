@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3849721111700847601}
+  - component: {fileID: -4823605298858025698}
   - component: {fileID: 2291909503304187783}
   - component: {fileID: 815216536240064054}
   - component: {fileID: 3873993525832094766}
@@ -35,6 +36,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &-4823605298858025698
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9144071519269716720}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 4264307284
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!114 &2291909503304187783
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -67,6 +89,7 @@ MonoBehaviour:
   raceCamera: {fileID: 0}
   victoryDollyTrack: {fileID: 0}
   roundDurationInSeconds: 60
+  requiredPlayerCount: 2
 --- !u!114 &3873993525832094766
 MonoBehaviour:
   m_ObjectHideFlags: 0

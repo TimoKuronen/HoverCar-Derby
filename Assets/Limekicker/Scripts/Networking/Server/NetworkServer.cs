@@ -50,7 +50,7 @@ public class NetworkServer : INetworkServer, IDisposable
     {
         if (request.Payload == null || request.Payload.Length == 0)
         {
-            //Debug.Log("[NetworkServer] Host approval with no payload - auto-approve self.");
+            Debug.Log("[NetworkServer] Approved host connection with no payload.");
             response.Approved = true;
             response.CreatePlayerObject = false;
             return;
@@ -61,7 +61,7 @@ public class NetworkServer : INetworkServer, IDisposable
 
         if (userData == null)
         {
-            //Debug.LogWarning("[NetworkServer] Invalid userData payload - approving anyway.");
+            Debug.LogWarning("[NetworkServer] Invalid userData payload; approving without player object.");
             response.Approved = true;
             response.CreatePlayerObject = false;
             return;
@@ -69,7 +69,7 @@ public class NetworkServer : INetworkServer, IDisposable
 
         clientIdToAuth[request.ClientNetworkId] = userData.userAuthId;
         authIdToUserData[userData.userAuthId] = userData;
-        //Debug.Log($"[NetworkServer] Approved connection for {userData.userName} (Client ID: {request.ClientNetworkId})");
+        Debug.Log($"[NetworkServer] Approved connection for {userData.userName} (Client ID: {request.ClientNetworkId})");
         response.Approved = true;
         response.CreatePlayerObject = false;
     }
@@ -87,7 +87,7 @@ public class NetworkServer : INetworkServer, IDisposable
         {
             if (authIdToUserData.TryGetValue(authId, out var userData))
             {
-                //Debug.Log($"[NetworkServer] Client connected: {clientId} ({userData.userName}) — raising OnUserJoined");
+                Debug.Log($"[NetworkServer] Client connected: {clientId} ({userData.userName}) — raising OnUserJoined");
                 OnUserJoined?.Invoke(userData);
             }
         }

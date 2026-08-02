@@ -66,6 +66,9 @@ public class PlayerController : NetworkBehaviour
 
         gameStateChangeEvent = new EventBinding<GameStateChangeEvent>(HandleGameStateChange);
         EventBus<GameStateChangeEvent>.Register(gameStateChangeEvent);
+
+        if (IsOwner && !IsBot)
+            StartCoroutine(ReportReadyWhenInitialized());
     }
 
     public override void OnNetworkDespawn()
@@ -77,6 +80,12 @@ public class PlayerController : NetworkBehaviour
         catch (System.Exception e)
         {
             Debug.LogWarning($"[PlayerController] Failed to unsubscribe from PlayerIndex (expected during shutdown): {e.Message}");
+        }
+
+        if (IsServer)
+        {
+            var gameManager = FindFirstObjectByType<GameManager>();
+            gameManager?.UnregisterParticipant(NetworkObjectId);
         }
 
         EventBus<GameStateChangeEvent>.Unregister(gameStateChangeEvent);
@@ -115,6 +124,18 @@ public class PlayerController : NetworkBehaviour
     #endregion
 
     #region Private Methods
+    private IEnumerator ReportReadyWhenInitialized()
+    {
+        yield return null;
+
+        if (!IsOwner || IsBot)
+            yield break;
+
+        var gameManager = FindFirstObjectByType<GameManager>();
+        if (gameManager != null)
+            gameManager.ReportPlayerReadyServerRpc(NetworkObjectId);
+    }
+
     private void HandleGameStateChange(GameStateChangeEvent @event)
     {
         if (@event.NewState is CountdownState)

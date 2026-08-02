@@ -1,3 +1,5 @@
+using System.Collections;
+using Unity.Netcode;
 using UnityEngine;
 
 public class CinematicState : IGameState
@@ -8,9 +10,8 @@ public class CinematicState : IGameState
     private string playerLayerName = "Car";
 
     private readonly int playerLayer;
-    private float timer;
-    private const float stateDuration = 3f;
-    public float GetStateDuration() => stateDuration;
+    private Coroutine beginCinematicCoroutine;
+    private bool cinematicStarted;
 
     public CinematicState(GameManager manager)
     {
@@ -20,32 +21,40 @@ public class CinematicState : IGameState
     }
 
     /// <summary>
-    /// Hides player layer from camera and starts intro dolly camera movement.
+    /// Waits for the server-scheduled cinematic start time, then hides players and runs the dolly.
     /// </summary>
     public void Enter()
     {
-        mainCamera.cullingMask &= ~(1 << playerLayer);
-        manager.Context.endingDollyCamera.ToggleMovement();
+        beginCinematicCoroutine = CoroutineMonoBehavior.Instance.StartCoroutine(BeginCinematicWhenScheduled());
     }
 
-    public void Update()
-    {
-        timer += Time.deltaTime;
+    public void Update() { }
 
-        if (timer > stateDuration)
-        {
-            manager.ChangeState(new CountdownState(manager));
-        }
-    }
-
-    /// <summary>
-    /// Stops dolly camera and restores player layer visibility.
-    /// </summary>
     public void Exit()
     {
-        manager.Context.endingDollyCamera.ToggleMovement();
-        mainCamera.cullingMask |= 1 << playerLayer;
+        if (beginCinematicCoroutine != null)
+        {
+            CoroutineMonoBehavior.Instance.StopCoroutine(beginCinematicCoroutine);
+            beginCinematicCoroutine = null;
+        }
 
-        timer = 0;
+        if (cinematicStarted)
+        {
+            manager.Context.endingDollyCamera.ToggleMovement();
+            cinematicStarted = false;
+        }
+
+        mainCamera.cullingMask |= 1 << playerLayer;
+    }
+
+    private IEnumerator BeginCinematicWhenScheduled()
+    {
+        yield return new WaitUntil(() =>
+            NetworkManager.Singleton != null &&
+            NetworkManager.Singleton.ServerTime.Time >= manager.PhaseStartServerTime);
+
+        cinematicStarted = true;
+        mainCamera.cullingMask &= ~(1 << playerLayer);
+        manager.Context.endingDollyCamera.ToggleMovement();
     }
 }

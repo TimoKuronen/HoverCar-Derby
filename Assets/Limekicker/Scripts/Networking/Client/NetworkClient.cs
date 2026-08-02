@@ -1,5 +1,6 @@
 using System;
 using Unity.Netcode;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class NetworkClient : IDisposable
@@ -23,20 +24,21 @@ public class NetworkClient : IDisposable
             return;
         }
 
+        Debug.LogWarning($"[NetworkClient] Local client disconnected. clientId={clientId}, connected={networkManager.IsConnectedClient}, listening={networkManager.IsListening}");
         Disconnect();
     }
 
     /// <summary>Disconnects client and returns to MainMenu scene.</summary>
     public void Disconnect()
     {
+        if (networkManager != null && networkManager.IsListening)
+        {
+            networkManager.Shutdown();
+        }
+
         if (SceneManager.GetActiveScene().name != MenuSceneName)
         {
             SceneManager.LoadScene(MenuSceneName);
-        }
-
-        if (networkManager.IsConnectedClient)
-        {
-            networkManager.Shutdown();
         }
     }
 

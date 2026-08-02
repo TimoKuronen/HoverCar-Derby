@@ -1,11 +1,11 @@
-using System;
 using System.Collections;
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer;
 
-public class GameManager : MonoBehaviour, IGameManager
+public class GameManager : NetworkBehaviour, IGameManager
 {
     [Header("References")]
     [SerializeField] private RaceContext context;
@@ -17,12 +17,36 @@ public class GameManager : MonoBehaviour, IGameManager
     private IScoreManager scoreManager;
 
     private PlayerSpawnManager playerSpawnManager;
-    private Coroutine timerCoroutine;
+    private Coroutine matchFlowCoroutine;
+
+    private readonly HashSet<ulong> registeredParticipants = new();
+    private readonly HashSet<ulong> readyParticipants = new();
+
+    private readonly NetworkVariable<RaceContext.MatchPhase> matchPhase = new NetworkVariable<RaceContext.MatchPhase>(
+        RaceContext.MatchPhase.WaitingForPlayers,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
+
+    private readonly NetworkVariable<double> phaseStartServerTime = new NetworkVariable<double>(
+        0d,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
+
+    private readonly NetworkVariable<double> roundEndServerTime = new NetworkVariable<double>(
+        0d,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
+
+    private RaceContext.MatchPhase lastAppliedPhase = RaceContext.MatchPhase.WaitingForPlayers;
+    private int lastCountdownDisplayValue = -1;
+    private bool serverMatchFlowStarted;
 
     public IntVariable CountdownValue => countdownValue;
     public PlayerTracker PlayerTracker { get; private set; }
     public IGameState CurrentGameState => currentState;
     public RaceContext Context => context;
+    public RaceContext.MatchPhase CurrentMatchPhase => matchPhase.Value;
+    public double PhaseStartServerTime => phaseStartServerTime.Value;
 
     [Inject]
     public void Construct(IScoreManager scoreManager, IInputService inputService)
@@ -35,42 +59,51 @@ public class GameManager : MonoBehaviour, IGameManager
 
     void Start()
     {
-        StartCoroutine(Initialize());
-        StartCoroutine(playerSpawnManager.Initialize());
-    }
-
-    private IEnumerator Initialize()
-    {
-        bool skipCountdown = MainMenu.IsSkipCountdownEnabled();
         gameTimerValue.Value = Context.roundDurationInSeconds;
         countdownValue.Value = -1;
 
-        Debug.Log("GameManager Initialization Started.");
+        StartCoroutine(playerSpawnManager.Initialize());
+    }
 
-        if (!skipCountdown)
+    public override void OnNetworkSpawn()
+    {
+        matchPhase.OnValueChanged += HandleMatchPhaseChanged;
+
+        if (IsServer && !serverMatchFlowStarted)
         {
-            CinematicState cinematicState = new CinematicState(this);
-            ChangeState(cinematicState);
+            serverMatchFlowStarted = true;
 
-            yield return new WaitForSeconds(cinematicState.GetStateDuration());
-
-            timerCoroutine = StartCoroutine(UpdateGameTimer());
-
-            yield break;
+            if (MainMenu.IsSkipCountdownEnabled())
+            {
+                matchFlowCoroutine = StartCoroutine(SkipToPlayingCoroutine());
+            }
+            else
+            {
+                double cinematicStart = NetworkManager.ServerTime.Time + Context.phaseReplicationBufferSeconds;
+                SetMatchPhase(RaceContext.MatchPhase.Cinematic, cinematicStart);
+                matchFlowCoroutine = StartCoroutine(ServerMatchFlowCoroutine(cinematicStart));
+            }
         }
 
-        yield return new WaitForSeconds(1f);
+        ApplyMatchPhase(matchPhase.Value);
+    }
 
-        timerCoroutine = StartCoroutine(UpdateGameTimer());
+    public override void OnNetworkDespawn()
+    {
+        matchPhase.OnValueChanged -= HandleMatchPhaseChanged;
 
-        Context.raceCamera.Priority = 20;
-
-        ChangeState(new PlayState());
+        if (matchFlowCoroutine != null)
+        {
+            StopCoroutine(matchFlowCoroutine);
+            matchFlowCoroutine = null;
+        }
     }
 
     private void Update()
     {
         currentState?.Update();
+        SyncCountdownDisplayFromServerTime();
+        SyncRoundTimerFromServerTime();
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (Keyboard.current != null && Keyboard.current.yKey.wasPressedThisFrame)
@@ -78,41 +111,163 @@ public class GameManager : MonoBehaviour, IGameManager
 #endif
     }
 
-    /// <summary>
-    /// Coroutine that updates the game timer. Only decrements when in PlayState.
-    /// Transitions to RaceCompletionState when timer reaches or exceeds round duration.
-    /// </summary>
-    private IEnumerator UpdateGameTimer()
+    public void RegisterParticipant(ulong networkObjectId)
     {
-        while (true)
-        {
-            bool timeRunning = currentState is PlayState;
+        if (!IsServer)
+            return;
 
-            if (timeRunning)
-            {
-                yield return new WaitForSeconds(1f);
-
-                gameTimerValue.Value--;
-
-                if (gameTimerValue.Value <= 0)
-                {
-                    ChangeState(new RaceCompletionState(this));
-                }
-            }
-            else
-            {
-                yield return null;
-            }
-        }
+        registeredParticipants.Add(networkObjectId);
     }
 
-    /// <summary>
-    /// Changes the current game state. Preserves previous state unless entering/exiting pause.
-    /// Stops timer coroutine when entering completion state.
-    /// </summary>
+    public void MarkParticipantReady(ulong networkObjectId)
+    {
+        if (!IsServer)
+            return;
+
+        if (!registeredParticipants.Contains(networkObjectId))
+            return;
+
+        readyParticipants.Add(networkObjectId);
+    }
+
+    public void UnregisterParticipant(ulong networkObjectId)
+    {
+        if (!IsServer)
+            return;
+
+        registeredParticipants.Remove(networkObjectId);
+        readyParticipants.Remove(networkObjectId);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void ReportPlayerReadyServerRpc(ulong participantNetworkObjectId, ServerRpcParams rpcParams = default)
+    {
+        if (NetworkManager.SpawnManager == null ||
+            !NetworkManager.SpawnManager.SpawnedObjects.TryGetValue(participantNetworkObjectId, out NetworkObject netObj))
+        {
+            return;
+        }
+
+        if (netObj.OwnerClientId != rpcParams.Receive.SenderClientId)
+            return;
+
+        MarkParticipantReady(participantNetworkObjectId);
+    }
+
+    private IEnumerator ServerMatchFlowCoroutine(double cinematicStart)
+    {
+        yield return new WaitUntil(() => NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening);
+
+        yield return new WaitUntil(() =>
+            HasRequiredReadyParticipants() &&
+            NetworkManager.ServerTime.Time >= cinematicStart + Context.cinematicDurationSeconds);
+
+        double countdownStart = NetworkManager.ServerTime.Time;
+        SetMatchPhase(RaceContext.MatchPhase.Countdown, countdownStart);
+
+        float countdownDuration = Context.countdownIntervalSeconds * 3f + Context.countdownGoDelaySeconds;
+        yield return new WaitUntil(() =>
+            NetworkManager.ServerTime.Time >= countdownStart + countdownDuration);
+
+        double playStart = NetworkManager.ServerTime.Time;
+        roundEndServerTime.Value = playStart + Context.roundDurationInSeconds;
+        SetMatchPhase(RaceContext.MatchPhase.Playing, playStart);
+
+        yield return new WaitUntil(() => NetworkManager.ServerTime.Time >= roundEndServerTime.Value);
+
+        SetMatchPhase(RaceContext.MatchPhase.Completed, NetworkManager.ServerTime.Time);
+    }
+
+    private IEnumerator SkipToPlayingCoroutine()
+    {
+        yield return new WaitUntil(() => NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening);
+
+        double playStart = NetworkManager.ServerTime.Time;
+        roundEndServerTime.Value = playStart + Context.roundDurationInSeconds;
+        SetMatchPhase(RaceContext.MatchPhase.Playing, playStart);
+    }
+
+    private bool HasRequiredReadyParticipants()
+    {
+        return readyParticipants.Count >= Context.requiredPlayerCount;
+    }
+
+    private void SetMatchPhase(RaceContext.MatchPhase phase, double startServerTime)
+    {
+        phaseStartServerTime.Value = startServerTime;
+        matchPhase.Value = phase;
+    }
+
+    private void HandleMatchPhaseChanged(RaceContext.MatchPhase previous, RaceContext.MatchPhase current)
+    {
+        ApplyMatchPhase(current);
+    }
+
+    private void ApplyMatchPhase(RaceContext.MatchPhase phase)
+    {
+        if (phase == lastAppliedPhase && currentState != null)
+            return;
+
+        lastAppliedPhase = phase;
+
+        IGameState newState = phase switch
+        {
+            RaceContext.MatchPhase.WaitingForPlayers => new IdleState(),
+            RaceContext.MatchPhase.Cinematic => new CinematicState(this),
+            RaceContext.MatchPhase.Countdown => new CountdownState(this),
+            RaceContext.MatchPhase.Playing => new PlayState(),
+            RaceContext.MatchPhase.Completed => new RaceCompletionState(this),
+            _ => new IdleState()
+        };
+
+        ChangeState(newState);
+    }
+
+    private void SyncCountdownDisplayFromServerTime()
+    {
+        if (matchPhase.Value != RaceContext.MatchPhase.Countdown || NetworkManager.Singleton == null)
+            return;
+
+        int displayValue = GetCountdownDisplayValue(NetworkManager.ServerTime.Time - phaseStartServerTime.Value);
+        if (displayValue == lastCountdownDisplayValue)
+            return;
+
+        lastCountdownDisplayValue = displayValue;
+        countdownValue.Value = displayValue;
+    }
+
+    private int GetCountdownDisplayValue(double elapsedSeconds)
+    {
+        if (elapsedSeconds < 0d)
+            return -1;
+
+        float interval = Context.countdownIntervalSeconds;
+        if (elapsedSeconds < interval)
+            return 3;
+        if (elapsedSeconds < interval * 2f)
+            return 2;
+        if (elapsedSeconds < interval * 3f)
+            return 1;
+        if (elapsedSeconds < interval * 3f + Context.countdownGoDelaySeconds)
+            return 0;
+
+        return -1;
+    }
+
+    private void SyncRoundTimerFromServerTime()
+    {
+        if (matchPhase.Value != RaceContext.MatchPhase.Playing || NetworkManager.Singleton == null)
+            return;
+
+        int remaining = Mathf.CeilToInt((float)(roundEndServerTime.Value - NetworkManager.ServerTime.Time));
+        remaining = Mathf.Max(0, remaining);
+
+        if (gameTimerValue.Value != remaining)
+            gameTimerValue.Value = remaining;
+    }
+
     public void ChangeState(IGameState newState)
     {
-        // Don't overwrite previous state when pausing/unpausing
         if (newState is not PauseState && previousState is not PauseState)
             previousState = currentState;
 
@@ -121,16 +276,6 @@ public class GameManager : MonoBehaviour, IGameManager
         currentState.Enter();
 
         EventBus<GameStateChangeEvent>.Raise(new GameStateChangeEvent { NewState = currentState });
-
-        // Stop timer when race completes
-        if (newState is RaceCompletionState)
-        {
-            if (timerCoroutine != null)
-            {
-                StopCoroutine(timerCoroutine);
-                timerCoroutine = null;
-            }
-        }
     }
 
     public NetworkObject GetLeadingPlayer()
@@ -150,9 +295,8 @@ public class GameManager : MonoBehaviour, IGameManager
     void OnDestroy()
     {
         playerSpawnManager?.Dispose();
-        if (timerCoroutine != null)
-        {
-            StopCoroutine(timerCoroutine);
-        }
+
+        if (matchFlowCoroutine != null)
+            StopCoroutine(matchFlowCoroutine);
     }
 }

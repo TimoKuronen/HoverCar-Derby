@@ -169,6 +169,7 @@ public class PlayerSpawnManager : IDisposable
         }
 
         EventBus<PlayerSpawnedEvent>.Raise(new PlayerSpawnedEvent { UserData = userData, NetworkObject = instance });
+        gameManager.RegisterParticipant(instance.NetworkObjectId);
     }
 
     private void HandleUserLeft(UserData userData)
@@ -182,6 +183,7 @@ public class PlayerSpawnManager : IDisposable
             {
                 var playerObject = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(clientId);
                 spawnPointService.ReleaseSpawnPoint(playerObject);
+                gameManager.UnregisterParticipant(playerObject.NetworkObjectId);
             }
         }
     }
@@ -239,6 +241,8 @@ public class PlayerSpawnManager : IDisposable
         }
 
         EventBus<PlayerSpawnedEvent>.Raise(new PlayerSpawnedEvent { UserData = null, NetworkObject = botInstance });
+        gameManager.RegisterParticipant(botInstance.NetworkObjectId);
+        gameManager.MarkParticipantReady(botInstance.NetworkObjectId);
     }
 
     private int CountAllPlayersIncludingBots()
@@ -260,7 +264,8 @@ public class PlayerSpawnManager : IDisposable
 
     /// <summary>
     /// Teleports a NetworkObject to spawn position after NetworkTransform initializes.
-    /// For client-authoritative transforms, also sends ClientRPC to have client teleport itself.
+    /// Player cars use ClientNetworkTransform, so only the owning client may call Teleport.
+    /// Bots and other server-owned objects are teleported on the server directly.
     /// </summary>
     private IEnumerator TeleportAfterSpawn(NetworkObject networkObject, SpawnPointData spawnData, ulong clientId, System.Action onTeleportComplete = null)
     {
@@ -272,7 +277,16 @@ public class PlayerSpawnManager : IDisposable
             yield break;
         }
 
-        if (networkObject.TryGetComponent<Unity.Netcode.Components.NetworkTransform>(out var networkTransform))
+        bool usesClientAuthority = networkObject.TryGetComponent<ClientNetworkTransform>(out _);
+        networkObject.TryGetComponent<PlayerController>(out var controller);
+        bool isPlayerCar = controller != null && !controller.IsBot;
+
+        if (usesClientAuthority && isPlayerCar)
+        {
+            yield return new WaitForSeconds(0.1f);
+            controller.TeleportToSpawnPositionClientRpc(spawnData.Position, spawnData.Rotation);
+        }
+        else if (networkObject.TryGetComponent<Unity.Netcode.Components.NetworkTransform>(out var networkTransform))
         {
             networkTransform.Teleport(spawnData.Position, spawnData.Rotation, Vector3.one);
         }
@@ -280,20 +294,6 @@ public class PlayerSpawnManager : IDisposable
         {
             networkObject.transform.SetPositionAndRotation(spawnData.Position, spawnData.Rotation);
             Debug.LogWarning($"[PlayerSpawnManager] NetworkTransform not found on {networkObject.name}, using direct transform set");
-        }
-
-        // For client-authoritative transforms, client must also teleport itself
-        if (networkObject.TryGetComponent<PlayerController>(out var controller) && 
-            !controller.IsBot &&
-            networkObject.OwnerClientId == clientId &&
-            clientId != NetworkManager.ServerClientId)
-        {
-            if (networkObject.TryGetComponent<ClientNetworkTransform>(out _))
-            {
-                yield return new WaitForSeconds(0.1f);
-                controller.TeleportToSpawnPositionClientRpc(spawnData.Position, spawnData.Rotation);
-                Debug.Log($"[PlayerSpawnManager] Sent ClientRPC to teleport client {clientId} to spawn point: {spawnData.Position}");
-            }
         }
 
         onTeleportComplete?.Invoke();

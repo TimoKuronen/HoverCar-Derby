@@ -1,12 +1,11 @@
 using System.Collections;
+using Unity.Netcode;
 using UnityEngine;
 
 public class CountdownState : IGameState
 {
     private readonly GameManager gameManager;
-    
-    private const float countdownInterval = 0.75f;
-    private const float goDelay = 0.5f;
+    private Coroutine beginCountdownCoroutine;
 
     public CountdownState(GameManager manager)
     {
@@ -15,34 +14,28 @@ public class CountdownState : IGameState
 
     public void Enter()
     {
-        gameManager.Context.raceCamera.Priority = 20;
-        CoroutineMonoBehavior.Instance.StartCoroutine(CountdownCoroutine());
+        beginCountdownCoroutine = CoroutineMonoBehavior.Instance.StartCoroutine(BeginCountdownWhenScheduled());
     }
 
-    public void Exit() 
+    public void Exit()
     {
-        // Reset countdown to invalid value to hide display
+        if (beginCountdownCoroutine != null)
+        {
+            CoroutineMonoBehavior.Instance.StopCoroutine(beginCountdownCoroutine);
+            beginCountdownCoroutine = null;
+        }
+
         gameManager.CountdownValue.Value = -1;
     }
 
     public void Update() { }
 
-    private IEnumerator CountdownCoroutine()
+    private IEnumerator BeginCountdownWhenScheduled()
     {
-        yield return null;
+        yield return new WaitUntil(() =>
+            NetworkManager.Singleton != null &&
+            NetworkManager.Singleton.ServerTime.Time >= gameManager.PhaseStartServerTime);
 
-        gameManager.CountdownValue.Value = 3;
-        yield return new WaitForSeconds(countdownInterval);
-
-        gameManager.CountdownValue.Value = 2;
-        yield return new WaitForSeconds(countdownInterval);
-
-        gameManager.CountdownValue.Value = 1;
-        yield return new WaitForSeconds(countdownInterval);
-
-        gameManager.CountdownValue.Value = 0;
-        yield return new WaitForSeconds(goDelay);
-
-        gameManager.ChangeState(new PlayState());
+        gameManager.Context.raceCamera.Priority = 20;
     }
 }

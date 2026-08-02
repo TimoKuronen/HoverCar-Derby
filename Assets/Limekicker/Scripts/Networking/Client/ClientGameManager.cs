@@ -2,6 +2,7 @@ using System;
 using System.Text;
 using System.Threading.Tasks;
 using Unity.Netcode;
+using Unity.Netcode.Transports.UTP;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
 using Unity.Services.Relay.Models;
@@ -13,6 +14,7 @@ public class ClientGameManager : IDisposable
     private JoinAllocation allocation;
     private const string MenuSceneName = "MainMenu";
     private const string PlaySceneName = "PlayScene";
+    private const int RelayConnectTimeoutMs = 15000;
 
     private NetworkClient networkClient;
     private MatchplayMatchmaker matchmaker;
@@ -53,10 +55,10 @@ public class ClientGameManager : IDisposable
     }
 
     /// <summary>Connects client directly to server via IP/port (used for matchmaking).</summary>
-    public void StartClient(string ip, int port)
+    public async void StartClient(string ip, int port)
     {
         ConnectionService.ConfigureDirectConnection(ip, port);
-        ConnectClient();
+        await ConnectClientAsync();
     }
 
     /// <summary>Connects client via Relay join code (used for lobby-based joining).</summary>
@@ -68,7 +70,7 @@ public class ClientGameManager : IDisposable
         }
         catch (Exception e)
         {
-            Debug.LogError($"Failed to start client: {e.Message}");
+            Debug.LogError($"[ClientGameManager] Failed to join Relay allocation: {e.Message}");
             return;
         }
 
@@ -78,40 +80,91 @@ public class ClientGameManager : IDisposable
         }
         catch (Exception e)
         {
-            Debug.LogError($"Failed to configure transport: {e.Message}");
+            Debug.LogError($"[ClientGameManager] Failed to configure transport: {e.Message}");
             return;
         }
 
-        ConnectClient();
+        await ConnectClientAsync();
     }
 
     /// <summary>Sets up connection callbacks and starts client with UserData payload.</summary>
-    private void ConnectClient()
+    private async Task ConnectClientAsync()
     {
-        // Attach diagnostics and scene sync guards
-        var nm = NetworkManager.Singleton;
+        NetworkManager nm = NetworkManager.Singleton;
+        if (nm == null)
+        {
+            Debug.LogError("[ClientGameManager] NetworkManager.Singleton is null.");
+            return;
+        }
+
+        if (userData == null)
+        {
+            Debug.LogError("[ClientGameManager] userData is null; authenticate before connecting.");
+            return;
+        }
+
+        await EnsureNetworkShutdownAsync(nm);
+
+        UnityTransport transport = ConnectionService.GetTransport();
+        transport.ConnectTimeoutMS = RelayConnectTimeoutMs;
+
         if (nm.SceneManager != null)
         {
             nm.SceneManager.OnSceneEvent -= HandleSceneEvent;
             nm.SceneManager.OnSceneEvent += HandleSceneEvent;
         }
+
         nm.OnClientConnectedCallback -= HandleClientConnected;
         nm.OnClientConnectedCallback += HandleClientConnected;
+        nm.OnClientDisconnectCallback -= HandleClientDisconnect;
+        nm.OnClientDisconnectCallback += HandleClientDisconnect;
 
         string payload = JsonUtility.ToJson(userData);
         byte[] payloadBytes = Encoding.UTF8.GetBytes(payload);
+        nm.NetworkConfig.ConnectionData = payloadBytes;
 
-        NetworkManager.Singleton.NetworkConfig.ConnectionData = payloadBytes;
-        NetworkManager.Singleton.StartClient();
+        Debug.Log($"[ClientGameManager] Starting client as {userData.userName} ({userData.userAuthId})");
+
+        bool started = nm.StartClient();
+        if (!started)
+        {
+            Debug.LogError($"[ClientGameManager] StartClient returned false. IsListening={nm.IsListening}, IsClient={nm.IsClient}, IsConnectedClient={nm.IsConnectedClient}");
+            return;
+        }
+
+        Debug.Log("[ClientGameManager] StartClient succeeded; waiting for host connection and scene sync.");
     }
 
-    /// <summary>Fallback scene loading if Netcode scene management is disabled.</summary>
+    private static async Task EnsureNetworkShutdownAsync(NetworkManager nm)
+    {
+        if (!nm.IsListening)
+            return;
+
+        Debug.LogWarning("[ClientGameManager] NetworkManager is already listening; shutting down before reconnect.");
+        nm.Shutdown();
+
+        float timeoutAt = Time.realtimeSinceStartup + 3f;
+        while (nm.IsListening && Time.realtimeSinceStartup < timeoutAt)
+        {
+            await Task.Yield();
+        }
+
+        if (nm.IsListening)
+        {
+            Debug.LogError("[ClientGameManager] NetworkManager is still listening after Shutdown.");
+        }
+    }
+
     private void HandleClientConnected(ulong clientId)
     {
-        // If scene management is off, clients won't auto-switch to the server scene
+        if (clientId != NetworkManager.Singleton.LocalClientId)
+            return;
+
+        Debug.Log($"[ClientGameManager] Connected to host. LocalClientId={clientId}");
+
         if (!NetworkManager.Singleton.NetworkConfig.EnableSceneManagement)
         {
-            Debug.LogWarning("[Client] Enable Scene Management is OFF; loading PlayScene locally as fallback.");
+            Debug.LogWarning("[ClientGameManager] Scene management is off; loading PlayScene locally as fallback.");
             if (SceneManager.GetActiveScene().name != PlaySceneName)
             {
                 SceneManager.LoadScene(PlaySceneName);
@@ -119,10 +172,17 @@ public class ClientGameManager : IDisposable
         }
     }
 
-    /// <summary>Logs scene events for debugging.</summary>
+    private void HandleClientDisconnect(ulong clientId)
+    {
+        if (clientId != 0 && clientId != NetworkManager.Singleton.LocalClientId)
+            return;
+
+        Debug.LogWarning($"[ClientGameManager] Disconnected from host. clientId={clientId}, localClientId={NetworkManager.Singleton.LocalClientId}");
+    }
+
     private void HandleSceneEvent(SceneEvent sceneEvent)
     {
-        Debug.Log($"[Client] SceneEvent: {sceneEvent.SceneEventType} -> {sceneEvent.SceneName} (client={sceneEvent.ClientId})");
+        Debug.Log($"[ClientGameManager] SceneEvent: {sceneEvent.SceneEventType} -> {sceneEvent.SceneName} (client={sceneEvent.ClientId})");
     }
 
     /// <summary>Starts matchmaking process. Calls callback with result.</summary>
@@ -164,6 +224,11 @@ public class ClientGameManager : IDisposable
 
     public void Dispose()
     {
+        if (NetworkManager.Singleton != null)
+        {
+            NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnect;
+        }
+
         networkClient?.Dispose();
     }
 }
