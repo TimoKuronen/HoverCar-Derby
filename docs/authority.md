@@ -1,6 +1,6 @@
 # Authority model
 
-Authority assigns each piece of state to either the **server** (referee) or the **owning client** (player). HoverCar uses a **hybrid** split: responsive driving on the client, trusted combat and scoring on the server.
+Authority assigns each piece of state to either the **server** (referee) or the **owning client** (player). HoverCar Derby uses a **hybrid** split: responsive driving on the client, trusted combat and scoring on the server.
 
 ## Authority table
 
@@ -43,7 +43,7 @@ Clients do not unilaterally decide damage outcomes.
 
 Without server validation of speed/position, a modified client could speed-hack or teleport. Health and score remain server-writable NetworkVariable / server events, so permanent fake health is not trivial without compromising the host/server.
 
-Production hardening would add sanity checks on velocity and position. See [known-limitations.md](known-limitations.md).
+Production hardening would add sanity checks on velocity and position. See the known limitations section in the [README](../README.md#known-limitations).
 
 ## Key files
 

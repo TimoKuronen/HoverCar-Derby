@@ -81,7 +81,9 @@ crashlytics-build.properties
 
 # Public docs at repo root
 !README.md
+!LICENSE
 !/docs/
 
 # Private agent workspace
 .agent/
+.cursor/

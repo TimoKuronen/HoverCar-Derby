@@ -19,3 +19,10 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+Scope note: the MIT grant above applies to original HoverCar Derby source code and
+documentation authored for this repository. Third-party Unity packages and Asset
+Store content (including Cartoon FX Remaster and RPGPP_LT) remain under their
+respective licenses and are not relicensed by this file.

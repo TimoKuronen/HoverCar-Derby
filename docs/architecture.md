@@ -1,6 +1,6 @@
 # Architecture
 
-HoverCar is a Unity 2022.3 LTS demolition-derby prototype focused on **Netcode for GameObjects (NGO)** and **Unity Gaming Services** (Auth, Relay, Lobbies, Matchmaker stubs). Gameplay and visuals are intentionally minimal.
+HoverCar Derby is a Unity 2022.3 LTS demolition-derby prototype focused on **Netcode for GameObjects (NGO)** and **Unity Gaming Services** (Auth, Relay, Lobbies, Matchmaker stubs). Gameplay and visuals are intentionally minimal so networking and session design stay front and center.
 
 ## Folder map
 
@@ -26,7 +26,7 @@ Assets/Limekicker/
 └── DefaultNetworkPrefabs.asset
 ```
 
-Art/VFX under `Assets/JMO Assets` and `Assets/RPGPP_LT` are placeholders.
+Art and VFX under `Assets/JMO Assets` and `Assets/RPGPP_LT` are placeholders.
 
 ## Scenes
 
@@ -103,6 +103,8 @@ Singletons (`HostSingleton`, `ClientSingleton`, `ServerSingleton`) are DontDestr
 | `Prefabs/UI/RuntimeConsolePanel` | Error/exception log UI |
 | `Prefabs/UI/NotificationConsolePanel` | Player-facing session messages |
 
-## Stable demo path
+## Primary demo path
 
-**Host + Relay + join code** (2–4 players) is the primary portfolio path. Lobby browse and Find Match exist but are secondary.
+**Host + Relay + join code** (2–4 players) is the primary demo path. Lobby browse and Find Match exist but are secondary.
+
+Related: [authority.md](authority.md)
