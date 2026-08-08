@@ -18,6 +18,24 @@ public class NotificationConsoleView : MonoBehaviour
 
         notificationBinding = new EventBinding<UserNotificationEvent>(HandleNotification);
         EventBus<UserNotificationEvent>.Register(notificationBinding);
+
+        TryShowHostJoinCode();
+    }
+
+    private void TryShowHostJoinCode()
+    {
+        if (!NetworkSession.IsHostActive)
+            return;
+
+        string joinCode = NetworkSession.GetHostJoinCode();
+        if (string.IsNullOrEmpty(joinCode))
+            return;
+
+        HandleNotification(new UserNotificationEvent
+        {
+            Message = $"Join code: {joinCode}",
+            Severity = NotificationSeverity.Info
+        });
     }
 
     private void OnDisable()

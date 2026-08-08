@@ -41,7 +41,7 @@ public class GameHUDPresenter : BasePresenter
     {
         var state = gameManager.CurrentGameState;
         view.ShowPauseMenu(state is PauseState);
-        view.ShowWinMenu(state is RaceCompletionState);
+        view.ShowResultsMenu(state is RaceCompletionState);
     }
 
     private void HandleResumeClicked()
@@ -52,6 +52,14 @@ public class GameHUDPresenter : BasePresenter
 
     private void HandleRestartClicked()
     {
+        if (NetworkSession.IsHostActive && Unity.Netcode.NetworkManager.Singleton != null)
+        {
+            Unity.Netcode.NetworkManager.Singleton.SceneManager.LoadScene(
+                UnityEngine.SceneManagement.SceneManager.GetActiveScene().name,
+                UnityEngine.SceneManagement.LoadSceneMode.Single);
+            return;
+        }
+
         UnityEngine.SceneManagement.SceneManager.LoadScene(
             UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
     }

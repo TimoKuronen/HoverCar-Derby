@@ -104,11 +104,24 @@ public class GameManager : NetworkBehaviour, IGameManager
         currentState?.Update();
         SyncCountdownDisplayFromServerTime();
         SyncRoundTimerFromServerTime();
+        TryCompleteRoundFromTimer();
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-        if (Keyboard.current != null && Keyboard.current.yKey.wasPressedThisFrame)
-            gameTimerValue.Value = 2;
+        if (Keyboard.current != null && Keyboard.current.tKey.wasPressedThisFrame)
+            DevSetRemainingRoundSeconds(1);
 #endif
+    }
+
+    private void TryCompleteRoundFromTimer()
+    {
+        if (!IsServer || matchPhase.Value != RaceContext.MatchPhase.Playing || NetworkManager.Singleton == null)
+            return;
+
+        if (roundEndServerTime.Value <= 0d)
+            return;
+
+        if (NetworkManager.ServerTime.Time >= roundEndServerTime.Value)
+            SetMatchPhase(RaceContext.MatchPhase.Completed, NetworkManager.ServerTime.Time);
     }
 
     public void RegisterParticipant(ulong networkObjectId)
@@ -185,6 +198,10 @@ public class GameManager : NetworkBehaviour, IGameManager
         double playStart = NetworkManager.ServerTime.Time;
         roundEndServerTime.Value = playStart + Context.roundDurationInSeconds;
         SetMatchPhase(RaceContext.MatchPhase.Playing, playStart);
+
+        yield return new WaitUntil(() => NetworkManager.ServerTime.Time >= roundEndServerTime.Value);
+
+        SetMatchPhase(RaceContext.MatchPhase.Completed, NetworkManager.ServerTime.Time);
     }
 
     private bool HasRequiredReadyParticipants()
@@ -291,6 +308,16 @@ public class GameManager : NetworkBehaviour, IGameManager
     {
         ChangeState(previousState);
     }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    private void DevSetRemainingRoundSeconds(int seconds)
+    {
+        if (!IsServer || matchPhase.Value != RaceContext.MatchPhase.Playing || NetworkManager.Singleton == null)
+            return;
+
+        roundEndServerTime.Value = NetworkManager.ServerTime.Time + seconds;
+    }
+#endif
 
     public override void OnDestroy()
     {

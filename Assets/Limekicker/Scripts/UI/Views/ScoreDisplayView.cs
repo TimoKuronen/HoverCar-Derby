@@ -7,7 +7,6 @@ public class ScoreDisplayView : MonoBehaviour, IScoreDisplayView
 {
     [SerializeField] private LeaderboardEntity leaderboardEntityPrefab;
     [SerializeField] private Transform scoreContainer;
-    [SerializeField] private Transform buttonContainer;
     [SerializeField] private RectTransform panelToMove;
 
     private IScoreManager scoreManager;
@@ -27,8 +26,25 @@ public class ScoreDisplayView : MonoBehaviour, IScoreDisplayView
 
     private void Start()
     {
+        TryResolveDependencies();
+
+        if (scoreManager == null)
+        {
+            Debug.LogError("[ScoreDisplayView] IScoreManager was not resolved. Check GameLifetimeScope injection.");
+            return;
+        }
+
         presenter = new ScoreDisplayPresenter(this, scoreManager, this);
         presenter.Initialize();
+    }
+
+    private void TryResolveDependencies()
+    {
+        if (scoreManager != null)
+            return;
+
+        GameLifetimeScope scope = FindFirstObjectByType<GameLifetimeScope>();
+        scope?.Container.Inject(this);
     }
 
     public void AddPlayer(ulong clientId, string playerName, int initialScore)
@@ -77,8 +93,6 @@ public class ScoreDisplayView : MonoBehaviour, IScoreDisplayView
         panelToMove.anchorMin = savedAnchorMin;
         panelToMove.anchorMax = savedAnchorMax;
         panelToMove.anchoredPosition = savedAnchoredPosition;
-
-        buttonContainer.gameObject.SetActive(false);
     }
 
     private void SortEntriesByScoreDescending()
@@ -94,10 +108,5 @@ public class ScoreDisplayView : MonoBehaviour, IScoreDisplayView
     private void OnDestroy()
     {
         presenter?.Dispose();
-    }
-
-    public void DisplayButtons()
-    {
-        buttonContainer.gameObject.SetActive(true);
     }
 }

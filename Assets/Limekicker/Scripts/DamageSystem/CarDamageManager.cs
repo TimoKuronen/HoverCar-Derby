@@ -50,7 +50,7 @@ public class CarDamageManager : NetworkBehaviour
 
         if (PlayerController != null && NetworkObject != null)
         {
-            victimId = PlayerController.OwnerClientId;
+            victimId = PlayerController.IsBot ? NetworkObject.NetworkObjectId : PlayerController.OwnerClientId;
         }
 
         float newHealth = Mathf.Max(0f, currentCarHealth.Value - damage);

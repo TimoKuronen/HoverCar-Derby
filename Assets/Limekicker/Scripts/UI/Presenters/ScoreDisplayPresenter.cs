@@ -22,6 +22,9 @@ public class ScoreDisplayPresenter : BasePresenter
 
     protected override void SubscribeToModels()
     {
+        if (scoreManager == null)
+            return;
+
         scoreManager.OnPlayerAdded += HandlePlayerAdded;
 
         playerSpawnedBinding = new EventBinding<PlayerSpawnedEvent>(HandlePlayerSpawned);
@@ -117,14 +120,7 @@ public class ScoreDisplayPresenter : BasePresenter
 
     private void HandleGameStateChange(GameStateChangeEvent @event)
     {
-        if (@event.NewState is RaceCompletionState)
-        {
-            view.MoveToCenter();
-            view.DisplayButtons();
-        }
-        else
-        {
+        if (@event.NewState is not RaceCompletionState)
             view.ResetToGamePosition();
-        }
     }
 }

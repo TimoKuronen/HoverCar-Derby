@@ -7,7 +7,7 @@ public class GameHUDView : MonoBehaviour, IGameHUDView
 {
     [Header("Menus")]
     [SerializeField] private GameObject pauseMenu;
-    [SerializeField] private GameObject winMenu;
+    [SerializeField] private GameObject resultsMenu;
 
     [Header("Pause menu buttons")]
     [SerializeField] private Button resumeButton;
@@ -33,8 +33,25 @@ public class GameHUDView : MonoBehaviour, IGameHUDView
     private void Start()
     {
         WireButtons();
+        TryResolveDependencies();
+
+        if (gameManager == null)
+        {
+            Debug.LogError("[GameHUDView] IGameManager was not resolved. Check GameLifetimeScope injection.");
+            return;
+        }
+
         presenter = new GameHUDPresenter(this, gameManager);
         presenter.Initialize();
+    }
+
+    private void TryResolveDependencies()
+    {
+        if (gameManager != null)
+            return;
+
+        GameLifetimeScope scope = FindFirstObjectByType<GameLifetimeScope>();
+        scope?.Container.Inject(this);
     }
 
     private void WireButtons()
@@ -55,10 +72,10 @@ public class GameHUDView : MonoBehaviour, IGameHUDView
             pauseMenu.SetActive(show);
     }
 
-    public void ShowWinMenu(bool show)
+    public void ShowResultsMenu(bool show)
     {
-        if (winMenu != null)
-            winMenu.SetActive(show);
+        if (resultsMenu != null)
+            resultsMenu.SetActive(show);
     }
 
     private void OnDestroy()

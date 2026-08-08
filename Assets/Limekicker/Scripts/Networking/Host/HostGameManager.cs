@@ -111,7 +111,6 @@ public class HostGameManager : IDisposable
         if (NetworkManager.Singleton.IsServer)
         {
             NetworkManager.Singleton.SceneManager.LoadScene(GameSceneName, LoadSceneMode.Single);
-            SessionNotifications.Info($"Hosting game. Join code: {joinCode}");
         }
     }
 
