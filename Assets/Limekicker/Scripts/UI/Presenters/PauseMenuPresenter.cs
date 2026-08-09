@@ -1,10 +1,10 @@
-public class GameHUDPresenter : BasePresenter
+public class PauseMenuPresenter : BasePresenter
 {
-    private readonly IGameHUDView view;
+    private readonly IPauseMenuView view;
     private readonly IGameManager gameManager;
     private EventBinding<GameStateChangeEvent> gameStateChangeBinding;
 
-    public GameHUDPresenter(IGameHUDView view, IGameManager gameManager)
+    public PauseMenuPresenter(IPauseMenuView view, IGameManager gameManager)
     {
         this.view = view;
         this.gameManager = gameManager;
@@ -15,8 +15,8 @@ public class GameHUDPresenter : BasePresenter
         gameStateChangeBinding = new EventBinding<GameStateChangeEvent>(HandleGameStateChange);
         EventBus<GameStateChangeEvent>.Register(gameStateChangeBinding);
 
+        view.OnPauseMenuClicked += HandlePauseMenuClicked;
         view.OnResumeClicked += HandleResumeClicked;
-        view.OnRestartClicked += HandleRestartClicked;
         view.OnGoToMenuClicked += HandleGoToMenuClicked;
 
         SyncMenuVisibilityToState();
@@ -27,8 +27,8 @@ public class GameHUDPresenter : BasePresenter
         if (gameStateChangeBinding != null)
             EventBus<GameStateChangeEvent>.Unregister(gameStateChangeBinding);
 
+        view.OnPauseMenuClicked -= HandlePauseMenuClicked;
         view.OnResumeClicked -= HandleResumeClicked;
-        view.OnRestartClicked -= HandleRestartClicked;
         view.OnGoToMenuClicked -= HandleGoToMenuClicked;
     }
 
@@ -39,9 +39,12 @@ public class GameHUDPresenter : BasePresenter
 
     private void SyncMenuVisibilityToState()
     {
-        var state = gameManager.CurrentGameState;
-        view.ShowPauseMenu(state is PauseState);
-        view.ShowResultsMenu(state is RaceCompletionState);
+        view.ShowPauseMenu(gameManager.CurrentGameState is PauseState);
+    }
+
+    private void HandlePauseMenuClicked()
+    {
+        gameManager.TogglePause();
     }
 
     private void HandleResumeClicked()
@@ -50,22 +53,8 @@ public class GameHUDPresenter : BasePresenter
             gameManager.ReturnToPreviousState();
     }
 
-    private void HandleRestartClicked()
-    {
-        if (NetworkSession.IsHostActive && Unity.Netcode.NetworkManager.Singleton != null)
-        {
-            Unity.Netcode.NetworkManager.Singleton.SceneManager.LoadScene(
-                UnityEngine.SceneManagement.SceneManager.GetActiveScene().name,
-                UnityEngine.SceneManagement.LoadSceneMode.Single);
-            return;
-        }
-
-        UnityEngine.SceneManagement.SceneManager.LoadScene(
-            UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
-    }
-
     private void HandleGoToMenuClicked()
     {
-        NetworkSession.LeaveGame();
+        NetworkSession.ReturnToMainMenu();
     }
 }

@@ -1,11 +1,10 @@
 using System;
 
-public interface IGameHUDView
+public interface IPauseMenuView
 {
     void ShowPauseMenu(bool show);
-    void ShowResultsMenu(bool show);
 
+    event Action OnPauseMenuClicked;
     event Action OnResumeClicked;
-    event Action OnRestartClicked;
     event Action OnGoToMenuClicked;
 }

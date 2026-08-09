@@ -8,7 +8,10 @@ public class RoundResultsPresenter : BasePresenter
     private readonly IGameManager gameManager;
     private EventBinding<GameStateChangeEvent> gameStateChangeBinding;
 
-    public RoundResultsPresenter(IRoundResultsView view, IScoreManager scoreManager, IGameManager gameManager)
+    public RoundResultsPresenter(
+        IRoundResultsView view,
+        IScoreManager scoreManager,
+        IGameManager gameManager)
     {
         this.view = view;
         this.scoreManager = scoreManager;
@@ -98,20 +101,11 @@ public class RoundResultsPresenter : BasePresenter
 
     private void HandleRematchClicked()
     {
-        if (NetworkSession.IsHostActive && NetworkManager.Singleton != null)
-        {
-            NetworkManager.Singleton.SceneManager.LoadScene(
-                UnityEngine.SceneManagement.SceneManager.GetActiveScene().name,
-                UnityEngine.SceneManagement.LoadSceneMode.Single);
-            return;
-        }
-
-        UnityEngine.SceneManagement.SceneManager.LoadScene(
-            UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
+        NetworkSession.RestartCurrentMatch();
     }
 
     private void HandleMainMenuClicked()
     {
-        NetworkSession.LeaveGame();
+        NetworkSession.ReturnToMainMenu();
     }
 }

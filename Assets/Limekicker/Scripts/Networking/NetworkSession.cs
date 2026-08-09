@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Unity.Netcode;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Central entry point for high-level network session actions.
@@ -123,6 +124,28 @@ public static class NetworkSession
         {
             ClientSingleton.Instance.GameManager.Disconnect();
         }
+    }
+
+    /// <summary>
+    /// Leaves the current session and returns to MainMenu via LeaveGame.
+    /// </summary>
+    public static void ReturnToMainMenu() => LeaveGame();
+
+    /// <summary>
+    /// Reloads the current PlayScene for a rematch.
+    /// Host uses NGO scene manager so clients sync; client falls back to local load.
+    /// </summary>
+    public static void RestartCurrentMatch()
+    {
+        if (IsHostActive && NetworkManager.Singleton != null)
+        {
+            NetworkManager.Singleton.SceneManager.LoadScene(
+                SceneManager.GetActiveScene().name,
+                LoadSceneMode.Single);
+            return;
+        }
+
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     // NetworkServer Access

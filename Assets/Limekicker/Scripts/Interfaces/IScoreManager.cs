@@ -10,4 +10,5 @@ public interface IScoreManager
 
     PlayerData GetLeadingPlayer();
     IReadOnlyList<PlayerData> GetRankedPlayersByScore();
+    IntVariable GetPlayerScoreVariable(ulong clientId);
 }

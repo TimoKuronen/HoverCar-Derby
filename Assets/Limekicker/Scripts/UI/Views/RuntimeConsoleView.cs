@@ -11,6 +11,7 @@ public class RuntimeConsoleView : MonoBehaviour
     [SerializeField] private int maxLines = 10;
     [SerializeField] private int maxCharsPerEntry = 200;
     [SerializeField] private bool includeWarnings;
+    [SerializeField] private GameObject content;
 
     private readonly StringBuilder logBuilder = new StringBuilder();
 
@@ -34,6 +35,8 @@ public class RuntimeConsoleView : MonoBehaviour
 
         if (type != LogType.Error && type != LogType.Exception && !(includeWarnings && type == LogType.Warning))
             return;
+
+        content.SetActive(true);
 
         string entry = logString;
         if (type == LogType.Error || type == LogType.Exception)

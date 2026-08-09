@@ -71,11 +71,22 @@ UI and gameplay call `NetworkSession` instead of Host/Client/Server singletons d
 | `StartHostAsync()` | Relay + Lobby + StartHost |
 | `StartClientViaJoinCodeAsync(code)` | Join Relay session |
 | `FindMatchAsync(callback)` | Matchmaker (dedicated path) |
-| `LeaveGame()` | Host shutdown or client disconnect |
+| `LeaveGame()` / `ReturnToMainMenu()` | Host shutdown or client disconnect → MainMenu |
+| `RestartCurrentMatch()` | Reload PlayScene for rematch (host NGO / client local) |
 | `QueryAvailableLobbiesAsync()` | Lobby browser |
 | `JoinLobbyByIdAsync(id)` | Browse → join code → connect |
 
 Singletons (`HostSingleton`, `ClientSingleton`, `ServerSingleton`) are DontDestroyOnLoad and created at NetBootstrap.
+
+## PlayScene menu MVP
+
+| Menu | View | Presenter |
+|------|------|-----------|
+| Pause (resume, leave, open/close) | `PauseMenuView` | `PauseMenuPresenter` |
+| Round results | `RoundResultsView` | `RoundResultsPresenter` |
+| Live scoreboard | `ScoreDisplayView` | `ScoreDisplayPresenter` |
+
+Composition root: `GameUiPresenterBootstrap` (registered in `GameLifetimeScope`). Pause opens via on-screen pause button; resume via resume button or pause toggle. Leave calls `NetworkSession.ReturnToMainMenu()`. SFX/music toggles on the pause panel are plain UI for now (not wired). Session actions go through `NetworkSession` only.
 
 ## Key systems
 
@@ -83,10 +94,12 @@ Singletons (`HostSingleton`, `ClientSingleton`, `ServerSingleton`) are DontDestr
 |----------|------------|
 | Host / join | `MainMenu` → `NetworkSession` → Host/Client game managers |
 | Player spawn | `PlayerSpawnManager` |
-| Round start/end | `GameManager` + `GameStates/*` |
+| Round start/end | `GameManager` + `MatchTimerDisplaySync` + `GameStates/*` |
+| Pause | `MatchPauseController` via `IGameManager.TogglePause` |
 | Damage | `ServerPhysicsCollisionHandler` |
 | Score | `ScoreManager` + `DamageDealtEvent` |
-| HUD | `GameHUDPresenter`, `ScoreDisplayView` |
+| PlayScene menus | `GameUiPresenterBootstrap`, pause / round-results presenters |
+| Session leave / rematch | `NetworkSession.ReturnToMainMenu` / `RestartCurrentMatch` |
 | Player notifications | `SessionNotifications` + `NotificationConsoleView` |
 | Debug log panel | `RuntimeConsoleView` |
 
@@ -99,7 +112,7 @@ Singletons (`HostSingleton`, `ClientSingleton`, `ServerSingleton`) are DontDestr
 | `Networking/ClientManager` | Client singleton wiring |
 | `Hover Car_Player Variant` | Networked player car |
 | `GameManager` | Match flow (NetworkBehaviour) |
-| `GameHUD` / `GameUiCanvas` | HUD, pause/win, scoreboard |
+| `GameUiCanvas` | HUD, pause/settings/results, scoreboard |
 | `Prefabs/UI/RuntimeConsolePanel` | Error/exception log UI |
 | `Prefabs/UI/NotificationConsolePanel` | Player-facing session messages |
 

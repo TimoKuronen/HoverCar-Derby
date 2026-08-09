@@ -15,25 +15,7 @@ public class GameLifetimeScope : LifetimeScope
                .AsSelf();
 
         builder.RegisterEntryPoint<PlayerSpawnManager>(Lifetime.Scoped);
+        builder.RegisterEntryPoint<GameUiPresenterBootstrap>(Lifetime.Scoped);
         builder.RegisterComponentInHierarchy<GasButton>();
-    }
-
-    protected override void Awake()
-    {
-        base.Awake();
-        InjectSceneUiViews();
-    }
-
-    private void InjectSceneUiViews()
-    {
-        InjectView<ScoreDisplayView>();
-        InjectView<GameHUDView>();
-        InjectView<RoundResultsView>();
-    }
-
-    private void InjectView<T>() where T : Component
-    {
-        foreach (T view in FindObjectsByType<T>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-            Container.Inject(view);
     }
 }

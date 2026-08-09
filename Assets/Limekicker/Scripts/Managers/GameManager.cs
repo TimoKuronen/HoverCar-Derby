@@ -15,6 +15,8 @@ public class GameManager : NetworkBehaviour, IGameManager
     private IGameState currentState;
     private IGameState previousState;
     private IScoreManager scoreManager;
+    private MatchTimerDisplaySync timerDisplaySync;
+    private MatchPauseController pauseController;
 
     private PlayerSpawnManager playerSpawnManager;
     private Coroutine matchFlowCoroutine;
@@ -38,12 +40,12 @@ public class GameManager : NetworkBehaviour, IGameManager
         NetworkVariableWritePermission.Server);
 
     private RaceContext.MatchPhase lastAppliedPhase = RaceContext.MatchPhase.WaitingForPlayers;
-    private int lastCountdownDisplayValue = -1;
     private bool serverMatchFlowStarted;
 
     public IntVariable CountdownValue => countdownValue;
     public PlayerTracker PlayerTracker { get; private set; }
     public IGameState CurrentGameState => currentState;
+    public bool CanPause => pauseController != null && pauseController.CanPause;
     public RaceContext Context => context;
     public RaceContext.MatchPhase CurrentMatchPhase => matchPhase.Value;
     public double PhaseStartServerTime => phaseStartServerTime.Value;
@@ -55,6 +57,14 @@ public class GameManager : NetworkBehaviour, IGameManager
 
         PlayerTracker = new PlayerTracker();
         playerSpawnManager = new PlayerSpawnManager(inputService, this);
+        pauseController = new MatchPauseController(() => currentState, ChangeState);
+        timerDisplaySync = new MatchTimerDisplaySync(
+            context,
+            countdownValue,
+            gameTimerValue,
+            matchPhase,
+            phaseStartServerTime,
+            roundEndServerTime);
     }
 
     void Start()
@@ -102,8 +112,7 @@ public class GameManager : NetworkBehaviour, IGameManager
     private void Update()
     {
         currentState?.Update();
-        SyncCountdownDisplayFromServerTime();
-        SyncRoundTimerFromServerTime();
+        timerDisplaySync?.Tick();
         TryCompleteRoundFromTimer();
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -240,52 +249,9 @@ public class GameManager : NetworkBehaviour, IGameManager
         ChangeState(newState);
     }
 
-    private void SyncCountdownDisplayFromServerTime()
-    {
-        if (matchPhase.Value != RaceContext.MatchPhase.Countdown || NetworkManager.Singleton == null)
-            return;
-
-        int displayValue = GetCountdownDisplayValue(NetworkManager.ServerTime.Time - phaseStartServerTime.Value);
-        if (displayValue == lastCountdownDisplayValue)
-            return;
-
-        lastCountdownDisplayValue = displayValue;
-        countdownValue.Value = displayValue;
-    }
-
-    private int GetCountdownDisplayValue(double elapsedSeconds)
-    {
-        if (elapsedSeconds < 0d)
-            return -1;
-
-        float interval = Context.countdownIntervalSeconds;
-        if (elapsedSeconds < interval)
-            return 3;
-        if (elapsedSeconds < interval * 2f)
-            return 2;
-        if (elapsedSeconds < interval * 3f)
-            return 1;
-        if (elapsedSeconds < interval * 3f + Context.countdownGoDelaySeconds)
-            return 0;
-
-        return -1;
-    }
-
-    private void SyncRoundTimerFromServerTime()
-    {
-        if (matchPhase.Value != RaceContext.MatchPhase.Playing || NetworkManager.Singleton == null)
-            return;
-
-        int remaining = Mathf.CeilToInt((float)(roundEndServerTime.Value - NetworkManager.ServerTime.Time));
-        remaining = Mathf.Max(0, remaining);
-
-        if (gameTimerValue.Value != remaining)
-            gameTimerValue.Value = remaining;
-    }
-
     public void ChangeState(IGameState newState)
     {
-        if (newState is not PauseState && previousState is not PauseState)
+        if (newState is not PauseState && currentState is not PauseState)
             previousState = currentState;
 
         currentState?.Exit();
@@ -306,7 +272,16 @@ public class GameManager : NetworkBehaviour, IGameManager
 
     public void ReturnToPreviousState()
     {
-        ChangeState(previousState);
+        if (pauseController != null && pauseController.TryResumeFromPause())
+            return;
+
+        if (previousState != null)
+            ChangeState(previousState);
+    }
+
+    public void TogglePause()
+    {
+        pauseController?.TogglePause();
     }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
