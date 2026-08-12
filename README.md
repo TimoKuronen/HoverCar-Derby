@@ -64,13 +64,13 @@ Do not commit dashboard secrets or account-specific service config.
 3. **Play:** Intro and countdown run, then drive and ram. Highest score when the timer ends wins.
 4. **Leave:** Use the pause or end-of-round menu to return to the main menu.
 
-The stable demo path is **Host + Relay + join code**. Lobby browse, quick join, Find Match, and dedicated server remain secondary paths.
+The supported demo path is **Host + Relay + join code**. Lobby browse and Find Match exist in code but are hidden in the menu UI and not part of the portfolio demo (see [Known limitations](#known-limitations)).
 
 ## Known limitations
 
 - No host migration; host quit ends the session for clients
 - Client movement is not server-validated (prototype scope)
-- Matchmaking / Multiplay paths are partial; Relay + join code is the stable demo
+- Matchmaking / Multiplay paths are partial and not exposed in the menu UI; Relay + join code is the demo path
 - No prediction / lag compensation; no automated tests yet
 - Single arena, respawn (not elimination), placeholder art
 
@@ -78,6 +78,7 @@ The stable demo path is **Host + Relay + join code**. Lobby browse, quick join, 
 
 - [Architecture](docs/architecture.md) — scenes, folder map, session facade, key systems
 - [Authority model](docs/authority.md) — who owns movement, damage, score, and match state
+- Known limitations — see section below (extracted to `docs/known-limitations.md` in MVP Phase 2)
 
 ## Asset credits
 

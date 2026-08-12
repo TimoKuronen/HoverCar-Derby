@@ -1,8 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Netcode;
 
-public class PlayerTracker
+public class PlayerTracker : IDisposable
 {
     public static Dictionary<ulong, NetworkObject> players = new();
 
@@ -62,5 +63,16 @@ public class PlayerTracker
     public IEnumerable<NetworkObject> GetAllPlayers()
     {
         return players.Values;
+    }
+
+    public void Dispose()
+    {
+        if (playerSpawnEvent != null)
+        {
+            EventBus<PlayerSpawnedEvent>.Unregister(playerSpawnEvent);
+            playerSpawnEvent = null;
+        }
+
+        players.Clear();
     }
 }

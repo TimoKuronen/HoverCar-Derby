@@ -34,7 +34,7 @@ Art and VFX under `Assets/JMO Assets` and `Assets/RPGPP_LT` are placeholders.
 |-------|------|
 | `NetBootstrap` | App entry; creates singletons; auth; routes to menu or dedicated server |
 | `Bootstrap` | Optional name entry |
-| `MainMenu` | Host, join by code, lobby browse, quick join, find match |
+| `MainMenu` | Host and join by code (MVP UI); lobby browse and Find Match hidden — see limitations doc |
 | `PlayScene` | Arena, GameManager, match loop |
 
 ## Runtime flow
@@ -118,6 +118,6 @@ Composition root: `GameUiPresenterBootstrap` (registered in `GameLifetimeScope`)
 
 ## Primary demo path
 
-**Host + Relay + join code** (2–4 players) is the primary demo path. Lobby browse and Find Match exist but are secondary.
+**Host + Relay + join code** (2–4 players) is the only supported demo path. Lobby browse and Find Match remain in code for future work but are not exposed in the menu UI.
 
 Related: [authority.md](authority.md)

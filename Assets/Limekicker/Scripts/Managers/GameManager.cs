@@ -297,6 +297,8 @@ public class GameManager : NetworkBehaviour, IGameManager
     public override void OnDestroy()
     {
         playerSpawnManager?.Dispose();
+        PlayerTracker?.Dispose();
+        PlayerTracker = null;
 
         if (matchFlowCoroutine != null)
             StopCoroutine(matchFlowCoroutine);
