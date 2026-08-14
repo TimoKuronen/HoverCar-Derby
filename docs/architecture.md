@@ -46,7 +46,7 @@ flowchart TD
     B -->|No| D[HostSingleton + ClientSingleton]
     D --> E[UGS Auth]
     E --> F[MainMenu]
-    F --> G[Host / Join / Matchmake]
+    F --> G[Host / Join by code]
     G --> H[PlayScene]
     H --> I[GameManager phases]
     I --> J[Cinematic to Countdown to Play to Completion]
@@ -66,15 +66,24 @@ flowchart TD
 
 UI and gameplay call `NetworkSession` instead of Host/Client/Server singletons directly.
 
+### Demo path
+
 | Method | Purpose |
 |--------|---------|
-| `StartHostAsync()` | Relay + Lobby + StartHost |
-| `StartClientViaJoinCodeAsync(code)` | Join Relay session |
-| `FindMatchAsync(callback)` | Matchmaker (dedicated path) |
-| `LeaveGame()` / `ReturnToMainMenu()` | Host shutdown or client disconnect → MainMenu |
+| `StartHostAsync()` | Relay + lobby metadata + StartHost |
+| `StartClientViaJoinCodeAsync(code)` | Join Relay session by code |
+| `LeaveGame()` / `ReturnToMainMenu()` | Host shutdown or client disconnect to MainMenu |
 | `RestartCurrentMatch()` | Reload PlayScene for rematch (host NGO / client local) |
+
+### In code, not demo
+
+These APIs remain for future work. They are not exposed in the main menu UI and are not part of the portfolio demo. See [known-limitations.md](known-limitations.md).
+
+| Method | Purpose |
+|--------|---------|
+| `FindMatchAsync(callback)` | Matchmaker / dedicated-server path |
 | `QueryAvailableLobbiesAsync()` | Lobby browser |
-| `JoinLobbyByIdAsync(id)` | Browse → join code → connect |
+| `JoinLobbyByIdAsync(id)` | Browse to join code to connect |
 
 Singletons (`HostSingleton`, `ClientSingleton`, `ServerSingleton`) are DontDestroyOnLoad and created at NetBootstrap.
 
@@ -128,4 +137,4 @@ Composition root: `MenuUiPresenterBootstrap` (registered in `MenuLifetimeScope`)
 
 **Host + Relay + join code** (2–4 players) is the only supported demo path. Lobby browse and Find Match remain in code for future work but are not exposed in the menu UI.
 
-Related: [authority.md](authority.md)
+Related: [authority.md](authority.md) · [known-limitations.md](known-limitations.md)

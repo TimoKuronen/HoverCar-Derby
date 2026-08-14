@@ -43,7 +43,20 @@ Clients do not unilaterally decide damage outcomes.
 
 Without server validation of speed/position, a modified client could speed-hack or teleport. Health and score remain server-writable NetworkVariable / server events, so permanent fake health is not trivial without compromising the host/server.
 
-Production hardening would add sanity checks on velocity and position. See the known limitations section in the [README](../README.md#known-limitations).
+Production hardening would add sanity checks on velocity and position. Broader gaps are listed in [known-limitations.md](known-limitations.md).
+
+## Production v2 (not implemented)
+
+If this moved toward a commercial online mode, the first authority upgrades would be:
+
+| Area | Direction |
+|------|-----------|
+| Movement | Server-side sanity checks on speed and position; reject or correct outliers |
+| Damage / score / phases | Stay server-owned; tighten RPC and spawn ownership rules |
+| Session | Host migration or dedicated servers; lobby cleanup on failed join and disconnect |
+| Netcode | Optional prediction/reconciliation only after validation exists |
+
+Host migration, full server simulation, and matchmaking at scale remain out of scope for this prototype.
 
 ## Key files
 
