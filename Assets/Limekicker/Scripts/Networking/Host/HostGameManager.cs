@@ -30,7 +30,7 @@ using UnityEngine.SceneManagement;
 /// - Host is also a client (IsHost = true)
 /// - No backfilling (lobby-based, not matchmaker-based)
 /// 
-/// USAGE: Called from MainMenu.StartHost() when user clicks "Start Host" button.
+/// Called from MainMenuPresenter when the user starts a host session.
 /// </summary>
 public class HostGameManager : IDisposable
 {

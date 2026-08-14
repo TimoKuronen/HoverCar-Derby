@@ -2,6 +2,7 @@ using System;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
 
+// Lobby browse is deferred post-MVP; menu UI keeps this component disabled.
 public class LobbiesList : MonoBehaviour
 {
     [SerializeField] private Transform lobbyItemParent;

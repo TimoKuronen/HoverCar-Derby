@@ -44,7 +44,7 @@ public class PlayerSpawnManager : IDisposable
 
             yield return new WaitForSeconds(1);
 
-            if (MainMenu.IsSpawnBotEnabled())
+            if (DevMenuOptions.IsSpawnBotEnabled())
             {
                 yield return new WaitForSeconds(0.5f);
                 SpawnBotPlayer();

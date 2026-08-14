@@ -83,7 +83,7 @@ public class GameManager : NetworkBehaviour, IGameManager
         {
             serverMatchFlowStarted = true;
 
-            if (MainMenu.IsSkipCountdownEnabled())
+            if (DevMenuOptions.IsSkipCountdownEnabled())
             {
                 matchFlowCoroutine = StartCoroutine(SkipToPlayingCoroutine());
             }

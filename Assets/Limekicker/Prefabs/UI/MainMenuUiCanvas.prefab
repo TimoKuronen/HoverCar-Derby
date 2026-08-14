@@ -120,19 +120,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 4029569328539889553}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 9008511352457326401}
-        m_TargetAssemblyTypeName: MainMenu, Assembly-CSharp
-        m_MethodName: StartClient
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!1 &758060494346503092
 GameObject:
   m_ObjectHideFlags: 0
@@ -939,14 +927,20 @@ MonoBehaviour:
   m_GameObject: {fileID: 2124325797167336669}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e43d3a5ba0727b6499c2eaf4207189d2, type: 3}
+  m_Script: {fileID: 11500000, guid: a7c4e2f91b8d4036a5e1c9d0f3b2a817, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  queueTimerText: {fileID: 8999681668001614370}
-  findMatchButtonText: {fileID: 1752120214696151788}
+  hostButton: {fileID: 4958485854531802381}
+  joinButton: {fileID: 4717735827089696271}
   joinCodeField: {fileID: 5378148366308112178}
   spawnBotToggle: {fileID: 5420612104647965257}
   skipCountdownToggle: {fileID: 4136741008338634264}
+  findMatchButtonRoot: {fileID: 3632516847444705342}
+  queueTimerRoot: {fileID: 5255186405524666981}
+  lobbiesButtonRoot: {fileID: 4195672714274535717}
+  lobbiesPanelRoot: {fileID: 968591674750559142}
+  refreshButtonRoot: {fileID: 4061256106759198451}
+  lobbiesList: {fileID: 5611985312153097903}
 --- !u!114 &5611985312153097903
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -954,7 +948,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2124325797167336669}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 75778018c0735284bbe6903ed980b7a7, type: 3}
   m_Name: 
@@ -1314,7 +1308,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &7803367473295167366
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1416,19 +1410,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1915385999698794752}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 9008511352457326401}
-        m_TargetAssemblyTypeName: MainMenu, Assembly-CSharp
-        m_MethodName: FindMatchButtonPressed
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!1 &3752413683886422435
 GameObject:
   m_ObjectHideFlags: 0
@@ -1743,7 +1725,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &9014712563274418631
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1845,19 +1827,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 4676965063120036891}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: LobbiesList, Assembly-CSharp
-        m_MethodName: RefreshLobbiesList
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!1 &4195672714274535717
 GameObject:
   m_ObjectHideFlags: 0
@@ -1876,7 +1846,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &3014295125984543224
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1978,19 +1948,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1411377343364166780}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 968591674750559142}
-        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
-        m_MethodName: SetActive
-        m_Mode: 6
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 1
-        m_CallState: 2
+      m_Calls: []
 --- !u!1 &4409852360642054148
 GameObject:
   m_ObjectHideFlags: 0
@@ -2111,19 +2069,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 8812579597379608924}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 9008511352457326401}
-        m_TargetAssemblyTypeName: MainMenu, Assembly-CSharp
-        m_MethodName: StartHost
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!1 &4437400370278865058
 GameObject:
   m_ObjectHideFlags: 0
@@ -2597,7 +2543,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &103247233963498071
 RectTransform:
   m_ObjectHideFlags: 0

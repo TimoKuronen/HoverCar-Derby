@@ -88,11 +88,19 @@ Singletons (`HostSingleton`, `ClientSingleton`, `ServerSingleton`) are DontDestr
 
 Composition root: `GameUiPresenterBootstrap` (registered in `GameLifetimeScope`). Pause opens via on-screen pause button; resume via resume button or pause toggle. Leave calls `NetworkSession.ReturnToMainMenu()`. SFX/music toggles on the pause panel are plain UI for now (not wired). Session actions go through `NetworkSession` only.
 
+## MainMenu MVP
+
+| Concern | View | Presenter |
+|---------|------|-----------|
+| Host / join by code | `MainMenuView` | `MainMenuPresenter` |
+
+Composition root: `MenuUiPresenterBootstrap` (registered in `MenuLifetimeScope`). Find Match and lobby browse UI are hidden; session calls go through `NetworkSession` only.
+
 ## Key systems
 
 | Question | Start here |
 |----------|------------|
-| Host / join | `MainMenu` → `NetworkSession` → Host/Client game managers |
+| Host / join | `MainMenuView` / `MainMenuPresenter` → `NetworkSession` → Host/Client game managers |
 | Player spawn | `PlayerSpawnManager` |
 | Round start/end | `GameManager` + `MatchTimerDisplaySync` + `GameStates/*` |
 | Pause | `MatchPauseController` via `IGameManager.TogglePause` |
