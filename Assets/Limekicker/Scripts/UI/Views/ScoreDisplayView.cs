@@ -32,6 +32,15 @@ public class ScoreDisplayView : MonoBehaviour, IScoreDisplayView
             entity.UpdatePoints(newScore);
     }
 
+    public void RemovePlayer(ulong clientId)
+    {
+        if (!playerScores.TryGetValue(clientId, out LeaderboardEntity entity))
+            return;
+
+        Destroy(entity.gameObject);
+        playerScores.Remove(clientId);
+    }
+
     public void ResetToGamePosition()
     {
         if (!gamePositionSaved)

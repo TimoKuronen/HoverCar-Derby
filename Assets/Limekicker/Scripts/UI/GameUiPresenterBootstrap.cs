@@ -23,10 +23,13 @@ public class GameUiPresenterBootstrap : IStartable, IDisposable
             new PauseMenuPresenter(view, gameManager));
 
         InitializePresenter(FindView<RoundResultsView>(), view =>
-            new RoundResultsPresenter(view, scoreManager, gameManager));
+            new RoundResultsPresenter(view, gameManager));
 
         InitializePresenter(FindView<ScoreDisplayView>(), view =>
-            new ScoreDisplayPresenter(view, scoreManager, view));
+            new ScoreDisplayPresenter(view, gameManager));
+
+        InitializePresenter(FindView<GameplayHudView>(), view =>
+            new GameplayHudPresenter(view, gameManager));
     }
 
     public void Dispose()

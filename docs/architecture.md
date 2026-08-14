@@ -120,7 +120,7 @@ Composition root: `MenuUiPresenterBootstrap` (registered in `MenuLifetimeScope`)
 | `Networking/ClientManager` | Client singleton wiring |
 | `Hover Car_Player Variant` | Networked player car |
 | `GameManager` | Match flow (NetworkBehaviour) |
-| `GameUiCanvas` | HUD, pause/settings/results, scoreboard |
+| `GameUiCanvas` | HUD, pause/settings/results, scoreboard; `GameplayHudPresenter` toggles driving HUD by match state |
 | `Prefabs/UI/RuntimeConsolePanel` | Error/exception log UI |
 | `Prefabs/UI/NotificationConsolePanel` | Player-facing session messages |
 

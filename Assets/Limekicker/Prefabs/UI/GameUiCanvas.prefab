@@ -148,6 +148,7 @@ GameObject:
   - component: {fileID: -6484189622070671668}
   - component: {fileID: 757624661384511266}
   - component: {fileID: 5558510347982454424}
+  - component: {fileID: 8888888888888888889}
   m_Layer: 0
   m_Name: GameUiCanvas
   m_TagString: Untagged
@@ -335,6 +336,22 @@ MonoBehaviour:
   pauseMenuButton: {fileID: 6513968467603376817}
   resumeButton: {fileID: 325475785892810517}
   goToMenuFromPauseButton: {fileID: 7048127207155245510}
+--- !u!114 &8888888888888888889
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 216951266313414739}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7e4a2c91d3f548a9b0e1f2c3d4e5f6a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  timePanelRoot: {fileID: 3212117909910636251}
+  pauseMenuButton: {fileID: 6150411106808394712}
+  steeringWheelRoot: {fileID: 1201593353925464948}
+  gasButtonRoot: {fileID: 993517176303710224}
 --- !u!1 &785868518301396073
 GameObject:
   m_ObjectHideFlags: 0

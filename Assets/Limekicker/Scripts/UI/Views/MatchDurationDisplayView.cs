@@ -12,7 +12,6 @@ public class MatchDurationDisplayView : MonoBehaviour, IMatchDurationDisplayView
     {
         presenter = new MatchDurationPresenter(this, matchDurationLeft);
         presenter.Initialize();
-        Hide();
     }
 
     public void SetTime(string timeString)

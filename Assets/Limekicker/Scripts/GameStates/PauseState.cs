@@ -1,18 +1,12 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
+/// <summary>
+/// Local pause overlay. Match time and physics keep running; gameplay systems
+/// gate input while this state is active (e.g. HoverCarMover only drives in PlayState).
+/// </summary>
 public class PauseState : IGameState
 {
-    public void Enter()
-    {
-        Time.timeScale = 0.00001f;
-    }
+    public void Enter() { }
 
-    public void Exit()
-    {
-        Time.timeScale = 1f;
-    }
+    public void Exit() { }
 
     public void Update() { }
 }

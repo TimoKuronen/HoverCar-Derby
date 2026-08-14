@@ -17,9 +17,29 @@ public class PlayerTracker : IDisposable
 
     private void AddPlayer(PlayerSpawnedEvent playerSpawned)
     {
-        // Store by NetworkObjectId to handle bots correctly (bots share OwnerClientId with server)
-        // But provide lookup methods that search by OwnerClientId for real players
-        players.Add(playerSpawned.NetworkObject.NetworkObjectId, playerSpawned.NetworkObject);
+        if (playerSpawned.NetworkObject == null)
+            return;
+
+        ulong networkObjectId = playerSpawned.NetworkObject.NetworkObjectId;
+        players[networkObjectId] = playerSpawned.NetworkObject;
+    }
+
+    public void RemovePlayer(ulong networkObjectId)
+    {
+        if (!players.TryGetValue(networkObjectId, out NetworkObject playerObject))
+            return;
+
+        ulong scoreClientId = networkObjectId;
+        if (playerObject.TryGetComponent<PlayerController>(out PlayerController controller))
+            scoreClientId = controller.IsBot ? controller.NetworkObjectId : controller.OwnerClientId;
+
+        players.Remove(networkObjectId);
+
+        EventBus<PlayerRemovedEvent>.Raise(new PlayerRemovedEvent
+        {
+            ClientId = scoreClientId,
+            NetworkObjectId = networkObjectId
+        });
     }
 
     /// <summary>

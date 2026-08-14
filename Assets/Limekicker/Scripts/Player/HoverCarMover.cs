@@ -56,10 +56,12 @@ public class HoverCarMover : NetworkBehaviour
             return;
         }
 
+        gameStateChangeEvent = new EventBinding<GameStateChangeEvent>(HandleGameStateChange);
+        EventBus<GameStateChangeEvent>.Register(gameStateChangeEvent);
+        SyncGameplayReady();
+
         if (!isBot && IsOwner && inputService == null)
-        {
             TryConstructFromContainer();
-        }
     }
 
     public override void OnNetworkDespawn()
@@ -74,20 +76,10 @@ public class HoverCarMover : NetworkBehaviour
     {
         originalAccelerationValue = forwardAcceleration;
         originalMaxSpeed = maxSpeed;
+        SyncGameplayReady();
 
-        gameStateChangeEvent = new EventBinding<GameStateChangeEvent>(HandleGameStateChange);
-        EventBus<GameStateChangeEvent>.Register(gameStateChangeEvent);
-        
-        var gameManager = FindFirstObjectByType<GameManager>();
-        if (gameManager != null && gameManager.CurrentGameState is PlayState)
-        {
-            isReady = true;
-        }
-        
         if (!isBot && IsOwner && inputService == null)
-        {
             TryConstructFromContainer();
-        }
     }
     #endregion
 
@@ -100,8 +92,7 @@ public class HoverCarMover : NetworkBehaviour
             try
             {
                 var container = bootstrapScope.Container;
-                var inputService = container.Resolve<IInputService>();
-                Construct(inputService);
+                Construct(container.Resolve<IInputService>());
             }
             catch (System.Exception ex)
             {
@@ -113,6 +104,12 @@ public class HoverCarMover : NetworkBehaviour
     private void HandleGameStateChange(GameStateChangeEvent @event)
     {
         isReady = @event.NewState is PlayState;
+    }
+
+    private void SyncGameplayReady()
+    {
+        GameManager gameManager = FindFirstObjectByType<GameManager>();
+        isReady = gameManager != null && gameManager.CurrentGameState is PlayState;
     }
 
     private void FixedUpdate()
@@ -136,25 +133,16 @@ public class HoverCarMover : NetworkBehaviour
         if (carManager.DamageManager != null && carManager.DamageManager.IsDestroyed)
             return;
 
-        // Apply forward acceleration
         currentThrust = inputService.IsGasPressed ? forwardAcceleration : 0f;
         if (currentThrust != 0)
-        {
             rig.AddForce(carManager.CarData.GetAccelerationMultiplier() * currentThrust * transform.forward, ForceMode.Acceleration);
-        }
 
-        // Apply turning torque
         currentTurn = inputService.Steering * turnStrength;
         if (Mathf.Abs(currentTurn) > 0.01f)
-        {
             rig.AddTorque(Vector3.up * currentTurn, ForceMode.Acceleration);
-        }
 
-        // Clamp speed to max, accounting for car-specific multipliers
         if (rig.velocity.magnitude > maxSpeed)
-        {
             rig.velocity = carManager.CarData.GetMaxSpeedMultiplier() * maxSpeed * rig.velocity.normalized;
-        }
     }
     #endregion
 }

@@ -241,7 +241,7 @@ public class GameManager : NetworkBehaviour, IGameManager
             RaceContext.MatchPhase.WaitingForPlayers => new IdleState(),
             RaceContext.MatchPhase.Cinematic => new CinematicState(this),
             RaceContext.MatchPhase.Countdown => new CountdownState(this),
-            RaceContext.MatchPhase.Playing => new PlayState(),
+            RaceContext.MatchPhase.Playing => new PlayState(this),
             RaceContext.MatchPhase.Completed => new RaceCompletionState(this),
             _ => new IdleState()
         };
@@ -296,9 +296,12 @@ public class GameManager : NetworkBehaviour, IGameManager
 
     public override void OnDestroy()
     {
-        playerSpawnManager?.Dispose();
+        currentState?.Exit();
+
         PlayerTracker?.Dispose();
         PlayerTracker = null;
+
+        playerSpawnManager?.Dispose();
 
         if (matchFlowCoroutine != null)
             StopCoroutine(matchFlowCoroutine);

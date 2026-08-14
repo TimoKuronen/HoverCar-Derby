@@ -66,12 +66,7 @@ public class PlayerSpawnManager : IDisposable
                 return localPlayer != null;
             });
 
-            Debug.Log("[PlayerSpawnManager] Local player spawned on client - firing OnPlayerSpawned event and marking session loaded.");
-
-            if (localPlayer != null)
-            {
-                EventBus<PlayerSpawnedEvent>.Raise(new PlayerSpawnedEvent { UserData = null, NetworkObject = localPlayer });
-            }
+            Debug.Log("[PlayerSpawnManager] Local player spawned on client - waiting for PlayerController spawn event.");
         }
     }
     /// <summary>
@@ -128,7 +123,7 @@ public class PlayerSpawnManager : IDisposable
 
         if (spawnedClientIds.Contains(clientId))
         {
-            Debug.Log($"[PlayerSpawnManager] Player for {userData.userName} (Client ID: {clientId}) already spawned, skipping.");
+            Debug.Log($"[PlayerSpawnManager] Player for {userData.userName} (Client ID: {clientId}) already tracked as spawned, skipping duplicate spawn.");
             return;
         }
 
@@ -161,31 +156,43 @@ public class PlayerSpawnManager : IDisposable
 
         if (instance.TryGetComponent<PlayerController>(out PlayerController controller))
         {
-            controller.Initialize(instance.NetworkManager.ConnectedClients.Count - 1);
+            int joinOrderOneBased = instance.NetworkManager.ConnectedClients.Count;
+            controller.Initialize(joinOrderOneBased - 1);
+            ApplyDisplayName(controller, userData.userName, joinOrderOneBased);
         }
         else
         {
             Debug.LogWarning($"[PlayerSpawnManager] Could not find PlayerController on spawned instance for {userData.userName}");
         }
 
-        EventBus<PlayerSpawnedEvent>.Raise(new PlayerSpawnedEvent { UserData = userData, NetworkObject = instance });
         gameManager.RegisterParticipant(instance.NetworkObjectId);
     }
 
     private void HandleUserLeft(UserData userData)
     {
         var server = ResolveNetworkServer();
-        if (server != null && server.TryGetClientIdForUser(userData, out var clientId))
-        {
-            if (NetworkManager.Singleton != null &&
-                NetworkManager.Singleton.SpawnManager != null &&
-                NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(clientId) != null)
-            {
-                var playerObject = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(clientId);
-                spawnPointService.ReleaseSpawnPoint(playerObject);
-                gameManager.UnregisterParticipant(playerObject.NetworkObjectId);
-            }
-        }
+        if (server == null || !server.TryGetClientIdForUser(userData, out var clientId))
+            return;
+
+        spawnedClientIds.Remove(clientId);
+
+        if (NetworkManager.Singleton == null || NetworkManager.Singleton.SpawnManager == null)
+            return;
+
+        var playerObject = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(clientId);
+        if (playerObject == null)
+            return;
+
+        spawnPointService.ReleaseSpawnPoint(playerObject);
+        gameManager.UnregisterParticipant(playerObject.NetworkObjectId);
+        gameManager.PlayerTracker?.RemovePlayer(playerObject.NetworkObjectId);
+        playerObject.Despawn(true);
+    }
+
+    private static void ApplyDisplayName(PlayerController controller, string userName, int joinOrderOneBased)
+    {
+        if (PlayerDisplayNameUtility.ShouldUseJoinOrderName(userName))
+            controller.PlayerName.Value = PlayerDisplayNameUtility.BuildJoinOrderName(joinOrderOneBased);
     }
 
     /// <summary>
@@ -240,7 +247,6 @@ public class PlayerSpawnManager : IDisposable
             controller.PlayerName.Value = new Unity.Collections.FixedString32Bytes("Bot Player " + (totalPlayerCount + 1));
         }
 
-        EventBus<PlayerSpawnedEvent>.Raise(new PlayerSpawnedEvent { UserData = null, NetworkObject = botInstance });
         gameManager.RegisterParticipant(botInstance.NetworkObjectId);
         gameManager.MarkParticipantReady(botInstance.NetworkObjectId);
     }
@@ -301,8 +307,11 @@ public class PlayerSpawnManager : IDisposable
 
     public void Dispose()
     {
-        networkServer.OnUserJoined -= HandleUserJoined;
-        networkServer.OnUserLeft -= HandleUserLeft;
+        if (networkServer != null)
+        {
+            networkServer.OnUserJoined -= HandleUserJoined;
+            networkServer.OnUserLeft -= HandleUserLeft;
+        }
 
         CarManager.OnCarRespawned -= HandleCarRespawn;
     }

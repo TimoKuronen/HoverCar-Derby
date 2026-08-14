@@ -1,8 +1,11 @@
+using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
 public class SimpleHoverChaseCam : MonoBehaviour
 {
+    private const int RaceCameraPlayPriority = 20;
+
     #region Fields
     [Header("Settings")]
     public float distance = 8;
@@ -33,10 +36,15 @@ public class SimpleHoverChaseCam : MonoBehaviour
 
         playerTeleportedEvent = new EventBinding<PlayerTeleportedEvent>(HandlePlayerTeleported);
         EventBus<PlayerTeleportedEvent>.Register(playerTeleportedEvent);
+
+        TryAssignLocalPlayerTarget("Start");
     }
 
     void LateUpdate()
     {
+        if (target == null)
+            return;
+
         MoveCamera();
     }
 
@@ -63,9 +71,7 @@ public class SimpleHoverChaseCam : MonoBehaviour
         Vector3 targetPosition = target.position - target.forward * distance + Vector3.up * height;
 
         if (speed > 2f)
-        {
             targetPosition += target.forward * (speed * 0.1f);
-        }
 
         transform.position = targetPosition;
 
@@ -82,35 +88,24 @@ public class SimpleHoverChaseCam : MonoBehaviour
     #region Private Methods
     private void HandleGameStateChange(GameStateChangeEvent @event)
     {
-        if (@event.NewState is not PlayState)
-            return;
+        if (@event.NewState is CountdownState or PlayState)
+            EnsureRaceCameraPriority();
 
-        if (target != null)
-            return;
-
-        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsConnectedClient)
-            return;
-
-        var localPlayer = NetworkManager.Singleton.SpawnManager?.GetLocalPlayerObject();
-        if (localPlayer != null && localPlayer.IsOwner)
-        {
-            AssignTarget(localPlayer.transform, localPlayer.GetComponent<Rigidbody>());
-        }
+        if (@event.NewState is PlayState)
+            TryAssignLocalPlayerTarget("PlayState");
     }
 
     private void HandlePlayerSpawnFromManager(PlayerSpawnedEvent playerSpawnedEvent)
     {
         if (playerSpawnedEvent.NetworkObject == null)
             return;
-            
+
         var playerController = playerSpawnedEvent.NetworkObject.GetComponent<PlayerController>();
         if (playerController != null && playerController.IsBot)
             return;
-            
+
         if (playerSpawnedEvent.NetworkObject.IsOwner)
-        {
-            AssignTarget(playerSpawnedEvent.NetworkObject.transform, playerSpawnedEvent.NetworkObject.GetComponent<Rigidbody>());
-        }
+            AssignTarget(playerSpawnedEvent.NetworkObject.transform, playerSpawnedEvent.NetworkObject.GetComponent<Rigidbody>(), "PlayerSpawned");
     }
 
     private void HandlePlayerTeleported(PlayerTeleportedEvent @event)
@@ -119,18 +114,40 @@ public class SimpleHoverChaseCam : MonoBehaviour
             return;
 
         if (target != null && @event.NetworkObject.transform == target)
-        {
             ForceUpdatePosition();
-        }
     }
 
-    private void AssignTarget(Transform newTarget, Rigidbody newRigidbody)
+    private void TryAssignLocalPlayerTarget(string source)
+    {
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsConnectedClient)
+            return;
+
+        NetworkObject localPlayer = NetworkManager.Singleton.SpawnManager?.GetLocalPlayerObject();
+        if (localPlayer == null || !localPlayer.IsOwner)
+            return;
+
+        AssignTarget(localPlayer.transform, localPlayer.GetComponent<Rigidbody>(), source);
+    }
+
+    private void AssignTarget(Transform newTarget, Rigidbody newRigidbody, string source)
     {
         if (newTarget == null)
             return;
 
         target = newTarget;
         targetRigidbody = newRigidbody != null ? newRigidbody : newTarget.GetComponent<Rigidbody>();
+        EnsureRaceCameraPriority();
+        ForceUpdatePosition();
+    }
+
+    private void EnsureRaceCameraPriority()
+    {
+        RaceContext raceContext = FindFirstObjectByType<RaceContext>();
+        if (raceContext?.raceCamera == null)
+            return;
+
+        if (raceContext.raceCamera.Priority < RaceCameraPlayPriority)
+            raceContext.raceCamera.Priority = RaceCameraPlayPriority;
     }
 
     /// <summary>
@@ -145,23 +162,17 @@ public class SimpleHoverChaseCam : MonoBehaviour
         Rigidbody rb = target.GetComponent<Rigidbody>();
         float speed = rb.velocity.magnitude;
 
-        // Base position behind and above the car
         Vector3 targetPosition = target.position - target.forward * distance + Vector3.up * height;
 
-        // Push camera forward slightly when moving fast for better visibility
         if (speed > 2f)
-        {
             targetPosition += target.forward * (speed * 0.1f);
-        }
 
-        // Adjust smoothing based on turn sharpness - faster response during sharp turns
         float turnSharpness = rb ? rb.angularVelocity.magnitude : 0f;
         float turnBoost = Mathf.Clamp01(turnSharpness / 2f);
         float smoothTime = Mathf.Lerp(0.03f, 0.1f, 1f - turnBoost);
 
         transform.position = Vector3.SmoothDamp(transform.position, targetPosition, ref velocity, smoothTime);
 
-        // Tilt camera down more at higher speeds
         float speedFactor = Mathf.Clamp01(speed / maxSpeedForTilt);
         float currentTiltAngle = Mathf.Lerp(minTiltAngle, maxTiltAngle, speedFactor);
 
@@ -169,7 +180,6 @@ public class SimpleHoverChaseCam : MonoBehaviour
         Quaternion targetRotation = Quaternion.LookRotation(lookDir.normalized);
         Quaternion tiltRotation = Quaternion.Euler(currentTiltAngle, targetRotation.eulerAngles.y, 0);
 
-        // Rotate faster during sharp turns
         float rotSpeed = rotationSpeed * (1f + turnBoost * 2f);
         transform.rotation = Quaternion.Slerp(transform.rotation, tiltRotation, rotSpeed * Time.deltaTime);
     }

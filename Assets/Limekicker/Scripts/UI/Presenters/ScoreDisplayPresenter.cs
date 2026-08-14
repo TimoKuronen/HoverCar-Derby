@@ -1,105 +1,136 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+using Unity.Collections;
+using Unity.Netcode;
 
 public class ScoreDisplayPresenter : BasePresenter
 {
     private readonly IScoreDisplayView view;
-    private readonly IScoreManager scoreManager;
-    private readonly MonoBehaviour coroutineRunner;
-    private readonly Dictionary<ulong, Action<int>> scoreUpdateCallbacks = new Dictionary<ulong, Action<int>>();
+    private readonly IGameManager gameManager;
+    private readonly HashSet<ulong> registeredClientIds = new();
+    private readonly Dictionary<ulong, PlayerController> trackedControllers = new();
+    private readonly Dictionary<ulong, NetworkVariable<int>.OnValueChangedDelegate> scoreChangedCallbacks = new();
+    private readonly Dictionary<ulong, NetworkVariable<FixedString32Bytes>.OnValueChangedDelegate> nameChangedCallbacks = new();
 
     private EventBinding<PlayerSpawnedEvent> playerSpawnedBinding;
+    private EventBinding<PlayerRemovedEvent> playerRemovedBinding;
     private EventBinding<GameStateChangeEvent> gameStateChangeBinding;
 
-    public ScoreDisplayPresenter(IScoreDisplayView view, IScoreManager scoreManager, MonoBehaviour coroutineRunner)
+    public ScoreDisplayPresenter(IScoreDisplayView view, IGameManager gameManager)
     {
         this.view = view;
-        this.scoreManager = scoreManager;
-        this.coroutineRunner = coroutineRunner;
+        this.gameManager = gameManager;
     }
 
     protected override void SubscribeToModels()
     {
-        if (scoreManager == null)
-            return;
-
-        scoreManager.OnPlayerAdded += HandlePlayerAdded;
-
         playerSpawnedBinding = new EventBinding<PlayerSpawnedEvent>(HandlePlayerSpawned);
         EventBus<PlayerSpawnedEvent>.Register(playerSpawnedBinding);
 
+        playerRemovedBinding = new EventBinding<PlayerRemovedEvent>(HandlePlayerRemoved);
+        EventBus<PlayerRemovedEvent>.Register(playerRemovedBinding);
+
         gameStateChangeBinding = new EventBinding<GameStateChangeEvent>(HandleGameStateChange);
         EventBus<GameStateChangeEvent>.Register(gameStateChangeBinding);
+
+        RegisterTrackedPlayers();
     }
 
     protected override void UnsubscribeFromModels()
     {
-        if (scoreManager != null)
-            scoreManager.OnPlayerAdded -= HandlePlayerAdded;
-
         if (playerSpawnedBinding != null)
             EventBus<PlayerSpawnedEvent>.Unregister(playerSpawnedBinding);
+
+        if (playerRemovedBinding != null)
+            EventBus<PlayerRemovedEvent>.Unregister(playerRemovedBinding);
 
         if (gameStateChangeBinding != null)
             EventBus<GameStateChangeEvent>.Unregister(gameStateChangeBinding);
 
-        foreach (KeyValuePair<ulong, Action<int>> kvp in scoreUpdateCallbacks)
-        {
-            IntVariable scoreVariable = scoreManager.GetPlayerScoreVariable(kvp.Key);
-            if (scoreVariable != null)
-                scoreVariable.OnValueChanged -= kvp.Value;
-        }
+        foreach (KeyValuePair<ulong, PlayerController> entry in trackedControllers)
+            UnregisterControllerCallbacks(entry.Key, entry.Value);
 
-        scoreUpdateCallbacks.Clear();
+        trackedControllers.Clear();
+        registeredClientIds.Clear();
+        scoreChangedCallbacks.Clear();
+        nameChangedCallbacks.Clear();
+    }
+
+    private void RegisterTrackedPlayers()
+    {
+        if (gameManager?.PlayerTracker == null)
+            return;
+
+        foreach (NetworkObject playerObject in gameManager.PlayerTracker.GetAllPlayers())
+        {
+            if (playerObject != null && playerObject.TryGetComponent(out PlayerController controller))
+                RegisterPlayerController(controller);
+        }
     }
 
     private void HandlePlayerSpawned(PlayerSpawnedEvent playerSpawnedEvent)
     {
-        coroutineRunner.StartCoroutine(WaitForScoreVariable(playerSpawnedEvent));
-    }
-
-    private IEnumerator WaitForScoreVariable(PlayerSpawnedEvent playerSpawnedEvent)
-    {
-        var @object = playerSpawnedEvent.NetworkObject;
-        bool isBot = @object.TryGetComponent<PlayerController>(out var controller) && controller.IsBot;
-        ulong clientId = isBot ? @object.NetworkObjectId : @object.OwnerClientId;
-
-        int maxAttempts = 10;
-        int attempts = 0;
-
-        while (attempts < maxAttempts)
+        if (playerSpawnedEvent.NetworkObject != null &&
+            playerSpawnedEvent.NetworkObject.TryGetComponent(out PlayerController controller))
         {
-            IntVariable scoreVariable = scoreManager.GetPlayerScoreVariable(clientId);
-            if (scoreVariable != null)
-            {
-                Action<int> updateCallback = (score) => view.UpdatePlayerScore(clientId, score);
-                scoreVariable.OnValueChanged += updateCallback;
-                scoreUpdateCallbacks[clientId] = updateCallback;
-
-                string playerName = controller != null ? controller.PlayerName.Value.ToString() : "Unknown";
-                view.AddPlayer(clientId, playerName, scoreVariable.Value);
-                yield break;
-            }
-
-            attempts++;
-            yield return null;
+            RegisterPlayerController(controller);
         }
     }
 
-    private void HandlePlayerAdded(PlayerData playerData)
+    private void HandlePlayerRemoved(PlayerRemovedEvent playerRemovedEvent)
     {
-        IntVariable scoreVariable = scoreManager.GetPlayerScoreVariable(playerData.ClientId);
+        UnregisterPlayer(playerRemovedEvent.ClientId);
+    }
 
-        if (scoreVariable != null && !scoreUpdateCallbacks.ContainsKey(playerData.ClientId))
+    private void RegisterPlayerController(PlayerController controller)
+    {
+        if (controller == null || !controller.IsSpawned)
+            return;
+
+        ulong clientId = controller.IsBot ? controller.NetworkObjectId : controller.OwnerClientId;
+        if (!registeredClientIds.Add(clientId))
+            return;
+
+        trackedControllers[clientId] = controller;
+
+        NetworkVariable<int>.OnValueChangedDelegate scoreCallback = (_, newScore) =>
+            view.UpdatePlayerScore(clientId, newScore);
+        NetworkVariable<FixedString32Bytes>.OnValueChangedDelegate nameCallback = (_, newName) =>
+            view.AddPlayer(clientId, newName.ToString(), controller.Score.Value);
+
+        scoreChangedCallbacks[clientId] = scoreCallback;
+        nameChangedCallbacks[clientId] = nameCallback;
+        controller.Score.OnValueChanged += scoreCallback;
+        controller.PlayerName.OnValueChanged += nameCallback;
+
+        view.AddPlayer(clientId, controller.PlayerName.Value.ToString(), controller.Score.Value);
+    }
+
+    private void UnregisterPlayer(ulong clientId)
+    {
+        if (!registeredClientIds.Remove(clientId))
+            return;
+
+        if (trackedControllers.TryGetValue(clientId, out PlayerController controller))
         {
-            Action<int> updateCallback = (score) => view.UpdatePlayerScore(playerData.ClientId, score);
-            scoreVariable.OnValueChanged += updateCallback;
-            scoreUpdateCallbacks[playerData.ClientId] = updateCallback;
-
-            view.AddPlayer(playerData.ClientId, playerData.PlayerName.Value.ToString(), scoreVariable.Value);
+            UnregisterControllerCallbacks(clientId, controller);
+            trackedControllers.Remove(clientId);
         }
+
+        scoreChangedCallbacks.Remove(clientId);
+        nameChangedCallbacks.Remove(clientId);
+        view.RemovePlayer(clientId);
+    }
+
+    private void UnregisterControllerCallbacks(ulong clientId, PlayerController controller)
+    {
+        if (controller == null)
+            return;
+
+        if (scoreChangedCallbacks.TryGetValue(clientId, out NetworkVariable<int>.OnValueChangedDelegate scoreCallback))
+            controller.Score.OnValueChanged -= scoreCallback;
+
+        if (nameChangedCallbacks.TryGetValue(clientId, out NetworkVariable<FixedString32Bytes>.OnValueChangedDelegate nameCallback))
+            controller.PlayerName.OnValueChanged -= nameCallback;
     }
 
     private void HandleGameStateChange(GameStateChangeEvent @event)

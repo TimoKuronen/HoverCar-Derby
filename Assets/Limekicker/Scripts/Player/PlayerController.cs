@@ -26,6 +26,11 @@ public class PlayerController : NetworkBehaviour
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
+    public NetworkVariable<int> Score = new NetworkVariable<int>(
+        0,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
 
     private EventBinding<GameStateChangeEvent> gameStateChangeEvent;
 
@@ -68,7 +73,26 @@ public class PlayerController : NetworkBehaviour
         EventBus<GameStateChangeEvent>.Register(gameStateChangeEvent);
 
         if (IsOwner && !IsBot)
+        {
             StartCoroutine(ReportReadyWhenInitialized());
+            StartCoroutine(SyncCameraAfterSpawn());
+        }
+
+        StartCoroutine(RaisePlayerSpawnedEventNextFrame());
+    }
+
+    private IEnumerator RaisePlayerSpawnedEventNextFrame()
+    {
+        yield return null;
+
+        if (!IsSpawned)
+            yield break;
+
+        EventBus<PlayerSpawnedEvent>.Raise(new PlayerSpawnedEvent
+        {
+            UserData = null,
+            NetworkObject = NetworkObject
+        });
     }
 
     public override void OnNetworkDespawn()
@@ -87,6 +111,9 @@ public class PlayerController : NetworkBehaviour
             var gameManager = FindFirstObjectByType<GameManager>();
             gameManager?.UnregisterParticipant(NetworkObjectId);
         }
+
+        var trackerGameManager = FindFirstObjectByType<GameManager>();
+        trackerGameManager?.PlayerTracker?.RemovePlayer(NetworkObjectId);
 
         EventBus<GameStateChangeEvent>.Unregister(gameStateChangeEvent);
     }
@@ -140,6 +167,25 @@ public class PlayerController : NetworkBehaviour
     {
         if (@event.NewState is CountdownState)
             SetPlayerCamera();
+    }
+
+    private IEnumerator SyncCameraAfterSpawn()
+    {
+        yield return null;
+
+        if (!IsOwner || IsBot)
+            yield break;
+
+        var manager = FindFirstObjectByType<GameManager>();
+        if (manager == null)
+            yield break;
+
+        if (manager.CurrentMatchPhase is RaceContext.MatchPhase.Countdown
+            or RaceContext.MatchPhase.Playing
+            or RaceContext.MatchPhase.Completed)
+        {
+            SetPlayerCamera();
+        }
     }
 
     private void SetPlayerCamera()

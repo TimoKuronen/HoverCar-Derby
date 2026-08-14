@@ -45,9 +45,12 @@ public class ScoreManager : IScoreManager, IDisposable
         bool isBot = @object.TryGetComponent<PlayerController>(out var controller) && controller.IsBot;
         ulong clientId = isBot ? @object.NetworkObjectId : @object.OwnerClientId;
 
+        if (playerDataByClientId.ContainsKey(clientId))
+            return;
+
         PlayerData playerData = new PlayerData
         {
-            PlayerName = data?.userName ?? (isBot && controller != null ? controller.PlayerName.Value : new FixedString32Bytes("Unknown")),
+            PlayerName = ResolvePlayerName(data, controller, isBot),
             ClientId = clientId,
             Points = 0
         };
@@ -125,6 +128,7 @@ public class ScoreManager : IScoreManager, IDisposable
         if (playerScoreVariables.TryGetValue(clientId, out var scoreVariable))
         {
             scoreVariable.Value += scoreToAdd;
+            data.Score.Value = scoreVariable.Value;
             
             // Update PlayerData
             if (playerDataByClientId.TryGetValue(clientId, out var playerData))
@@ -164,6 +168,17 @@ public class ScoreManager : IScoreManager, IDisposable
         EventBus<PlayerSpawnedEvent>.Unregister(playerSpawnedEvent);
         EventBus<DamageDealtEvent>.Unregister(damageDealtEvent);
         EventBus<CollectibleCollectedEvent>.Unregister(collectibleCollectedEvent);
+    }
+
+    private static FixedString32Bytes ResolvePlayerName(UserData data, PlayerController controller, bool isBot)
+    {
+        if (controller != null && controller.PlayerName.Value.Length > 0)
+            return controller.PlayerName.Value;
+
+        if (data != null && !string.IsNullOrWhiteSpace(data.userName))
+            return new FixedString32Bytes(data.userName);
+
+        return isBot ? new FixedString32Bytes("Bot") : new FixedString32Bytes("Unknown");
     }
 }
 

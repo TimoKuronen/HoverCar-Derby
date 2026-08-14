@@ -16,6 +16,12 @@ public struct PlayerSpawnedEvent : IEvent
     public NetworkObject NetworkObject;
 }
 
+public struct PlayerRemovedEvent : IEvent
+{
+    public ulong ClientId;
+    public ulong NetworkObjectId;
+}
+
 public struct CountdownEvent : IEvent
 {
     public string CountdownValue;
