@@ -7,24 +7,34 @@ HoverCar Derby is a Unity 2022.3 LTS demolition-derby prototype focused on **Net
 ```
 Assets/Limekicker/
 ├── Scenes/                 NetBootstrap, MainMenu, PlayScene, Bootstrap
-├── Prefabs/                Cars, NetworkManager, HUD, collectibles
+├── Prefabs/                Cars, NetworkManager, HUD, collectibles (no scripts)
+├── Settings/               NGO default prefabs, Input System assets
 ├── Scripts/
+│   ├── GameFlow/           Match orchestration, score, timer, pause
 │   ├── Networking/         Connection, host/client/server, UGS services
-│   ├── Managers/           GameManager, spawn, score, audio, input
-│   ├── Player/             Movement, controller, bots
-│   ├── Car/                Car lifecycle, colors
-│   ├── DamageSystem/       Collisions, health, VFX
+│   ├── Player/             Movement, controller, bots, spawn, input
+│   ├── Car/                Car lifecycle, colors, hover physics, nitro
+│   ├── DamageSystem/       Collisions, health, VFX, damage numbers
 │   ├── Collectibles/       Pickups and spawner
-│   ├── GameStates/         Cinematic, countdown, play, completion
+│   ├── GameStates/         Cinematic, countdown, play, completion, IGameState
 │   ├── EventBus/           Decoupled local events
+│   ├── Core/               IntVariable, shared helpers, small utilities
 │   ├── DI/                 VContainer lifetime scopes
-│   ├── UI/                 Menus, presenters, views, lobby, notifications
-│   ├── Audio/              Cues, preferences
+│   ├── UI/
+│   │   ├── Bootstrap/      Presenter composition roots (menu + play HUD)
+│   │   ├── Input/          Touch driving controls
+│   │   ├── Presenters/
+│   │   ├── Views/
+│   │   ├── Leaderboard/
+│   │   └── Lobby/
+│   ├── Audio/              Cues, preferences, AudioService
 │   ├── Cameras/            Cinemachine, dolly intros
-│   └── ScriptableObjects/  IntVariable and shared SO patterns
+│   ├── Debug/              DevMenuOptions
+│   └── Editor/             Custom inspectors and drawers
 ├── Scriptables/            Timer/countdown assets, audio cues
-└── DefaultNetworkPrefabs.asset
 ```
+
+Agent workspace (local, gitignored): `.agent/AGENTS.md` entry point; style rules in `.cursor/rules/` and EngineeringRulebook.
 
 Art and VFX under `Assets/JMO Assets` and `Assets/RPGPP_LT` are placeholders.
 

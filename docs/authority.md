@@ -64,5 +64,5 @@ Host migration, full server simulation, and matchmaking at scale remain out of s
 - `Scripts/Player/HoverCarMover.cs`
 - `Scripts/DamageSystem/ServerPhysicsCollisionHandler.cs`
 - `Scripts/DamageSystem/CarDamageManager.cs`
-- `Scripts/Managers/ScoreManager.cs`
-- `Scripts/Managers/GameManager.cs`
+- `Scripts/GameFlow/ScoreManager.cs`
+- `Scripts/GameFlow/GameManager.cs`
