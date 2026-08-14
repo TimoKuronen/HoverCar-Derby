@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Singleton that accumulates and evaluates camera shake requests.
+/// </summary>
 public class CameraShake : MonoBehaviour
 {
     public static CameraShake Instance { get; private set; }
@@ -52,6 +55,9 @@ public class CameraShake : MonoBehaviour
     }
 }
 
+/// <summary>
+/// Serializable intensity, duration, and optional source for camera shake.
+/// </summary>
 [Serializable]
 public class CameraShakeData
 {

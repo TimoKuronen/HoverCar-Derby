@@ -2,6 +2,9 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer.Unity;
 
+/// <summary>
+/// Touch and keyboard input service for steering and gas.
+/// </summary>
 public class TouchInputService : IInputService, ITickable
 {
     [Header("Settings")]

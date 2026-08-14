@@ -1,5 +1,8 @@
 using System;
 
+/// <summary>
+/// Base class for UI presenters that subscribe to game models and views.
+/// </summary>
 public abstract class BasePresenter : IDisposable
 {
     protected bool isInitialized = false;

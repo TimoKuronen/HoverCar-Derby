@@ -3,6 +3,9 @@ using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
+/// <summary>
+/// Categories of pickup effects applied when a collectible is collected.
+/// </summary>
 public enum CollectibleType
 {
     None,
@@ -12,6 +15,9 @@ public enum CollectibleType
     SpeedBoost
 }
 
+/// <summary>
+/// Serializable effect parameters for a collectible instance.
+/// </summary>
 [Serializable]
 public struct CollectibleData
 {
@@ -20,6 +26,9 @@ public struct CollectibleData
     public float HazardLifetimeSeconds;
 }
 
+/// <summary>
+/// Networked pickup that applies configured effects on trigger collision.
+/// </summary>
 public class CollisionCollectible : NetworkBehaviour
 {
     [SerializeField] private CollectibleData collectibleEffectData;

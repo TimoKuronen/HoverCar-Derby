@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 
+/// <summary>
+/// Contract for score tracking, ranking, and per-player score variables.
+/// </summary>
 public interface IScoreManager
 {
     void IncreaseScore(PlayerData data, int scoreToAdd) { }

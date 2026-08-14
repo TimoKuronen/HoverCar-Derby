@@ -2,6 +2,9 @@ using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
+/// <summary>
+/// Runs the intro dolly cinematic after the server start time is reached.
+/// </summary>
 public class CinematicState : IGameState
 {
     private readonly GameManager manager;

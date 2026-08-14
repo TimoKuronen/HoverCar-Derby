@@ -1,6 +1,9 @@
 using UnityEngine;
 using VContainer;
 
+/// <summary>
+/// Plays countdown and go sounds driven by countdown variable changes.
+/// </summary>
 public class UIAudioPlayer : MonoBehaviour
 {
     [Header("Countdown Audio Cues")]

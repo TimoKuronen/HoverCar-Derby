@@ -2,6 +2,9 @@ using System.Text;
 using TMPro;
 using UnityEngine;
 
+/// <summary>
+/// Displays user-facing session notifications in the HUD.
+/// </summary>
 public class NotificationConsoleView : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI notificationText;

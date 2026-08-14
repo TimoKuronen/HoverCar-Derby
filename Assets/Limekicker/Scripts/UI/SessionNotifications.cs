@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// Publishes user-facing info, warning, and error notifications.
+/// </summary>
 public static class SessionNotifications
 {
     public static void Info(string message) => Raise(message, NotificationSeverity.Info);

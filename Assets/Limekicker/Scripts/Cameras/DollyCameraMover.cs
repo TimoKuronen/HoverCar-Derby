@@ -3,6 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Drives a Cinemachine dolly camera along a path for intro shots.
+/// </summary>
 public class DollyCameraMover : MonoBehaviour
 {
     public CinemachineVirtualCamera vcam;

@@ -2,6 +2,9 @@ using TMPro;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
 
+/// <summary>
+/// Single lobby entry UI with name, player count, and join action.
+/// </summary>
 public class LobbyItem : MonoBehaviour
 {
     [SerializeField] private TMP_Text lobbyNameText;

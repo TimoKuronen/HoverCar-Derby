@@ -3,6 +3,9 @@ using Unity.Services.Lobbies.Models;
 using UnityEngine;
 
 // Lobby browse is deferred post-MVP; menu UI keeps this component disabled.
+/// <summary>
+/// Refreshes and displays available multiplayer lobbies for browsing.
+/// </summary>
 public class LobbiesList : MonoBehaviour
 {
     [SerializeField] private Transform lobbyItemParent;

@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// In-game scoreboard UI with per-player score rows.
+/// </summary>
 public class ScoreDisplayView : MonoBehaviour, IScoreDisplayView
 {
     [SerializeField] private LeaderboardEntity leaderboardEntityPrefab;

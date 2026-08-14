@@ -2,6 +2,9 @@ using Unity.Netcode;
 using UnityEngine;
 using VContainer;
 
+/// <summary>
+/// Applies thrust and turn forces from input to the hover car rigidbody.
+/// </summary>
 public class HoverCarMover : NetworkBehaviour
 {
     [Header("References")]
@@ -24,28 +27,6 @@ public class HoverCarMover : NetworkBehaviour
     private bool isReady;
     private bool isBot;
 
-    #region Public Methods
-    public void Construct(IInputService inputService)
-    {
-        this.inputService = inputService;
-    }
-
-    public void ToggleNitroBoost(bool value, float nitroMultiplierValue, float maxSpeedMultiplier)
-    {
-        if (value)
-        {
-            forwardAcceleration *= nitroMultiplierValue;
-            maxSpeed *= maxSpeedMultiplier;
-        }
-        else
-        {
-            forwardAcceleration = originalAccelerationValue;
-            maxSpeed = originalMaxSpeed;
-        }
-    }
-    #endregion
-
-    #region Network Lifecycle
     public override void OnNetworkSpawn()
     {
         isBot = GetComponent<BotPlayerController>() != null;
@@ -69,9 +50,7 @@ public class HoverCarMover : NetworkBehaviour
         EventBus<GameStateChangeEvent>.Unregister(gameStateChangeEvent);
         base.OnNetworkDespawn();
     }
-    #endregion
 
-    #region Unity Lifecycle
     private void Start()
     {
         originalAccelerationValue = forwardAcceleration;
@@ -81,9 +60,26 @@ public class HoverCarMover : NetworkBehaviour
         if (!isBot && IsOwner && inputService == null)
             TryConstructFromContainer();
     }
-    #endregion
 
-    #region Private Methods
+    public void Construct(IInputService inputService)
+    {
+        this.inputService = inputService;
+    }
+
+    public void ToggleNitroBoost(bool value, float nitroMultiplierValue, float maxSpeedMultiplier)
+    {
+        if (value)
+        {
+            forwardAcceleration *= nitroMultiplierValue;
+            maxSpeed *= maxSpeedMultiplier;
+        }
+        else
+        {
+            forwardAcceleration = originalAccelerationValue;
+            maxSpeed = originalMaxSpeed;
+        }
+    }
+
     private void TryConstructFromContainer()
     {
         var bootstrapScope = FindFirstObjectByType<BootstrapLifetimeScope>();
@@ -124,10 +120,6 @@ public class HoverCarMover : NetworkBehaviour
         ApplyMovement();
     }
 
-    /// <summary>
-    /// Applies movement forces based on input. Uses acceleration for forward movement and torque for turning.
-    /// Clamps velocity to max speed, accounting for car data multipliers.
-    /// </summary>
     private void ApplyMovement()
     {
         if (carManager.DamageManager != null && carManager.DamageManager.IsDestroyed)
@@ -144,5 +136,4 @@ public class HoverCarMover : NetworkBehaviour
         if (rig.velocity.magnitude > maxSpeed)
             rig.velocity = carManager.CarData.GetMaxSpeedMultiplier() * maxSpeed * rig.velocity.normalized;
     }
-    #endregion
 }

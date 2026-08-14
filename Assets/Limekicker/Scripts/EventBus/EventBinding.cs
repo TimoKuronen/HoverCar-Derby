@@ -6,6 +6,9 @@ internal interface IEventBinding<T>
     public Action OnEventNoArgs { get; set; }
 }
 
+/// <summary>
+/// Wraps callbacks for registering with the typed event bus.
+/// </summary>
 public class EventBinding<T> : IEventBinding<T> where T : IEvent
 {
     Action<T> OnEvent = delegate (T _) { };

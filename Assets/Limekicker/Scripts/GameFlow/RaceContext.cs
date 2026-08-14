@@ -1,8 +1,14 @@
 ﻿using Cinemachine;
 using UnityEngine;
 
+/// <summary>
+/// Scene configuration for match timing, cameras, and player requirements.
+/// </summary>
 public class RaceContext : MonoBehaviour
 {
+    /// <summary>
+    /// Ordered phases from lobby wait through match completion.
+    /// </summary>
     public enum MatchPhase : byte
     {
         WaitingForPlayers = 0,

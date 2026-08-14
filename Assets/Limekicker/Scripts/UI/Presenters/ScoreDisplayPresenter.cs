@@ -2,6 +2,9 @@ using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Netcode;
 
+/// <summary>
+/// Tracks player scores and syncs them to the score display view.
+/// </summary>
 public class ScoreDisplayPresenter : BasePresenter
 {
     private readonly IScoreDisplayView view;

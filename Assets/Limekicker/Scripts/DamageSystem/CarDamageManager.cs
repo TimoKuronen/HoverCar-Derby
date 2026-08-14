@@ -2,32 +2,48 @@ using System;
 using Unity.Netcode;
 using UnityEngine;
 
+/// <summary>
+/// Server-authoritative car health, damage application, and destruction events.
+/// </summary>
 public class CarDamageManager : NetworkBehaviour
 {
-    #region Fields
     private NetworkVariable<float> currentCarHealth = new NetworkVariable<float>(
         100f,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
-    
+
     private readonly float maxCarHealth = 100f;
     private DamageNumberSync damageNumberSync;
-    #endregion
 
-    #region Properties
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
+
+        damageNumberSync = GetComponent<DamageNumberSync>();
+
+        if (IsServer && currentCarHealth.Value == 0)
+        {
+            currentCarHealth.Value = maxCarHealth;
+        }
+
+        currentCarHealth.OnValueChanged += OnHealthChanged;
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        currentCarHealth.OnValueChanged -= OnHealthChanged;
+        base.OnNetworkDespawn();
+    }
+
     public PlayerController PlayerController { get; private set; }
     public float CarHealthPercentage => currentCarHealth.Value / maxCarHealth * 100f;
     public float CurrentCarHealth => currentCarHealth.Value;
     public bool IsDestroyed => currentCarHealth.Value <= 0f;
-    #endregion
 
-    #region Events
     public event Action OnCarDestroyed;
     public event Action<Vector3> OnCarDamaged;
-    #endregion
 
-    #region Public Methods
     public void Initialize(PlayerController playerController)
     {
         PlayerController = playerController;
@@ -100,34 +116,7 @@ public class CarDamageManager : NetworkBehaviour
     {
         Repair(amount);
     }
-    #endregion
 
-    #region Network Lifecycle
-    public override void OnNetworkSpawn()
-    {
-        base.OnNetworkSpawn();
-
-        damageNumberSync = GetComponent<DamageNumberSync>();
-
-        if (IsServer && currentCarHealth.Value == 0)
-        {
-            currentCarHealth.Value = maxCarHealth;
-        }
-
-        currentCarHealth.OnValueChanged += OnHealthChanged;
-    }
-
-    public override void OnNetworkDespawn()
-    {
-        currentCarHealth.OnValueChanged -= OnHealthChanged;
-        base.OnNetworkDespawn();
-    }
-    #endregion
-
-    #region Private Methods
-    /// <summary>
-    /// Called when health NetworkVariable changes. Triggers destruction event when health reaches zero.
-    /// </summary>
     private void OnHealthChanged(float oldValue, float newValue)
     {
         if (oldValue > 0 && newValue <= 0)
@@ -135,6 +124,4 @@ public class CarDamageManager : NetworkBehaviour
             OnCarDestroyed?.Invoke();
         }
     }
-
-    #endregion
 }

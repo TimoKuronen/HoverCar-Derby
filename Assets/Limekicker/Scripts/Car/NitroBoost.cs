@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// Manages nitro fuel, cooldown, and temporary speed boost activation.
+/// </summary>
 public class NitroBoost : MonoBehaviour
 {
     [SerializeField] private float maxNitroAmount;

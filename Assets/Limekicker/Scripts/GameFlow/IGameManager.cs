@@ -1,3 +1,6 @@
+/// <summary>
+/// Contract for match orchestration, pause control, and participant registration.
+/// </summary>
 public interface IGameManager
 {
     RaceContext Context { get; }

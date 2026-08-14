@@ -1,5 +1,8 @@
 using Unity.Collections;
 
+/// <summary>
+/// Helpers for default join-order player display names.
+/// </summary>
 public static class PlayerDisplayNameUtility
 {
     public static bool ShouldUseJoinOrderName(string userName)

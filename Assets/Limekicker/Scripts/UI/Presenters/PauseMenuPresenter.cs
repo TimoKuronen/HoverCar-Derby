@@ -1,3 +1,6 @@
+/// <summary>
+/// Syncs pause menu visibility and actions with game state.
+/// </summary>
 public class PauseMenuPresenter : BasePresenter
 {
     private readonly IPauseMenuView view;

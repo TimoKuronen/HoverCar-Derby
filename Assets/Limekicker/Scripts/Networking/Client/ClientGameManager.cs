@@ -9,6 +9,9 @@ using Unity.Services.Relay.Models;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+/// <summary>
+/// Client matchmaking, relay connection, and scene transition orchestration.
+/// </summary>
 public class ClientGameManager : IDisposable
 {
     private JoinAllocation allocation;

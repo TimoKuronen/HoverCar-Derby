@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// Gameplay HUD root that toggles HUD and driving control visibility.
+/// </summary>
 public class GameplayHudView : MonoBehaviour, IGameplayHudView
 {
     [SerializeField] private GameObject timePanelRoot;

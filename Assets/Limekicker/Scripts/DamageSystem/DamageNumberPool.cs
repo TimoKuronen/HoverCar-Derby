@@ -4,8 +4,14 @@ using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
+/// <summary>
+/// Pooled floating damage numbers with per-client visibility filtering.
+/// </summary>
 public class DamageNumberPool : MonoBehaviour
 {
+    /// <summary>
+    /// Which clients see spawned damage numbers.
+    /// </summary>
     public enum ShowMode
     {
         AttackerOnly,   // Only show damage to the player who dealt it

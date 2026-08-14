@@ -2,6 +2,9 @@ using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
+/// <summary>
+/// Wires game-scene dependencies including scoring, spawning, and UI.
+/// </summary>
 [DefaultExecutionOrder(-100)]
 public class GameLifetimeScope : LifetimeScope
 {

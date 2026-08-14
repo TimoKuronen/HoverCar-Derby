@@ -3,6 +3,9 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+/// <summary>
+/// Client-side disconnect handling and return to the main menu scene.
+/// </summary>
 public class NetworkClient : IDisposable
 {
     private NetworkManager networkManager;

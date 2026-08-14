@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
+/// <summary>
+/// Server-side connection approval, user tracking, and player spawn orchestration.
+/// </summary>
 public class NetworkServer : INetworkServer, IDisposable
 {
     private NetworkManager networkManager;
@@ -42,7 +45,6 @@ public class NetworkServer : INetworkServer, IDisposable
         authIdToUserData[userData.userAuthId] = userData;
 
         OnUserJoined?.Invoke(userData);
-        //Debug.Log($"[NetworkServer] Registered host user data for client {hostClientId} ({userData.userName})");
     }
 
     /// <summary>Approves client connections. Extracts UserData from payload and maps clientId to authId.</summary>
@@ -96,7 +98,6 @@ public class NetworkServer : INetworkServer, IDisposable
     /// <summary>Retrieves UserData for a given clientId.</summary>
     public UserData GetUserData(ulong clientId)
     {
-        //Debug.Log($"Getting user data for client ID: {clientId}");
         if (clientIdToAuth.TryGetValue(clientId, out string authId))
         {
             if (authIdToUserData.TryGetValue(authId, out UserData userData))
@@ -104,7 +105,7 @@ public class NetworkServer : INetworkServer, IDisposable
                 return userData;
             }
         }
-        //Debug.Log($"User data not found for client ID: {clientId}");
+
         return null;
     }
 

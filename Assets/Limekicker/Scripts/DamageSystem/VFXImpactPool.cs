@@ -8,7 +8,6 @@ using UnityEngine;
 /// </summary>
 public class VFXImpactPool : MonoBehaviour
 {
-    #region Fields
     [Header("Pool Settings")]
     [SerializeField] private ParticleSystem impactEffectPrefab;
     [SerializeField] private int poolSize = 10;
@@ -16,23 +15,7 @@ public class VFXImpactPool : MonoBehaviour
 
     private Queue<ParticleSystem> pool = new Queue<ParticleSystem>();
     private static VFXImpactPool instance;
-    #endregion
 
-    #region Properties
-    public static VFXImpactPool Instance
-    {
-        get
-        {
-            if (instance == null)
-            {
-                instance = FindFirstObjectByType<VFXImpactPool>();
-            }
-            return instance;
-        }
-    }
-    #endregion
-
-    #region Unity Lifecycle
     void Awake()
     {
         if (instance == null)
@@ -63,9 +46,19 @@ public class VFXImpactPool : MonoBehaviour
             instance = null;
         }
     }
-    #endregion
 
-    #region Public Methods
+    public static VFXImpactPool Instance
+    {
+        get
+        {
+            if (instance == null)
+            {
+                instance = FindFirstObjectByType<VFXImpactPool>();
+            }
+            return instance;
+        }
+    }
+
     /// <summary>
     /// Gets an impact effect from the pool. Creates a new one if pool is empty.
     /// </summary>
@@ -81,7 +74,7 @@ public class VFXImpactPool : MonoBehaviour
     /// </summary>
     public void ReturnToPool(ParticleSystem ps)
     {
-        if (ps == null) 
+        if (ps == null)
             return;
 
         ps.Stop(true, ParticleSystemStopBehavior.StopEmitting);
@@ -95,14 +88,12 @@ public class VFXImpactPool : MonoBehaviour
     /// </summary>
     public void ReturnToPoolAfterDelay(ParticleSystem ps, float delay)
     {
-        if (ps == null) 
+        if (ps == null)
             return;
 
         StartCoroutine(ReturnToPoolCoroutine(ps, delay));
     }
-    #endregion
 
-    #region Private Methods
     private void InitializePool()
     {
         if (impactEffectPrefab == null)
@@ -112,7 +103,6 @@ public class VFXImpactPool : MonoBehaviour
             return;
         }
 
-        // Create initial pool instances
         for (int i = 0; i < poolSize; i++)
         {
             CreateNewInstance();
@@ -152,5 +142,4 @@ public class VFXImpactPool : MonoBehaviour
         yield return new WaitForSeconds(delay);
         ReturnToPool(ps);
     }
-    #endregion
 }

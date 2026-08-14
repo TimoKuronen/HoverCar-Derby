@@ -4,6 +4,9 @@ using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
+/// <summary>
+/// VContainer bootstrap that wires main menu presenters at startup.
+/// </summary>
 public class MenuUiPresenterBootstrap : IStartable, IDisposable
 {
     private readonly List<BasePresenter> presenters = new();

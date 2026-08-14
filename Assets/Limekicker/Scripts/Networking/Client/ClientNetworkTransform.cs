@@ -1,5 +1,8 @@
 using Unity.Netcode.Components;
 
+/// <summary>
+/// Client-authoritative NetworkTransform that commits position from the owning client.
+/// </summary>
 public class ClientNetworkTransform : NetworkTransform
 {
     public override void OnNetworkSpawn()

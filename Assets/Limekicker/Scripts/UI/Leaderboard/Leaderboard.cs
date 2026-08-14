@@ -3,6 +3,9 @@ using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 
+/// <summary>
+/// Networked leaderboard that tracks and displays player scores.
+/// </summary>
 public class Leaderboard : NetworkBehaviour
 {
     [SerializeField] private Transform leaderboardEntityHolder;

@@ -1,6 +1,9 @@
 using UnityEngine;
 using VContainer;
 
+/// <summary>
+/// Touch steering wheel UI that reflects current steer input.
+/// </summary>
 public class SteeringWheel : MonoBehaviour
 {
     [SerializeField] private RectTransform steeringWheelUI;

@@ -3,6 +3,9 @@ using Unity.Netcode;
 using UnityEngine;
 using VContainer;
 
+/// <summary>
+/// Spawns collectibles on an interval while the match is in play.
+/// </summary>
 public class CollectibleSpawner : MonoBehaviour
 {
     [SerializeField] private CollisionCollectible[] collectiblePrefabs;
@@ -123,9 +126,11 @@ public class CollectibleSpawner : MonoBehaviour
 
     private bool IsPointTooClose(Vector3 randomPoint, List<Vector3> existingPositions)
     {
+        float minDistanceSq = minDistanceFromOthers * minDistanceFromOthers;
+
         for (int i = 0; i < existingPositions.Count; i++)
         {
-            if (Vector3.Distance(randomPoint, existingPositions[i]) < minDistanceFromOthers)
+            if ((randomPoint - existingPositions[i]).sqrMagnitude < minDistanceSq)
                 return true;
         }
 

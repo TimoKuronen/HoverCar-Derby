@@ -3,6 +3,9 @@ using Unity.Netcode;
 using Unity.Services.Core;
 using UnityEngine;
 
+/// <summary>
+/// Scene singleton that owns the dedicated server game manager lifecycle.
+/// </summary>
 public class ServerSingleton : MonoBehaviour
 {
     private static ServerSingleton instance;

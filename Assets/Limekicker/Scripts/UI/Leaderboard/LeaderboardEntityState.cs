@@ -2,6 +2,9 @@ using System;
 using Unity.Collections;
 using Unity.Netcode;
 
+/// <summary>
+/// Network-serializable leaderboard row data for a single player.
+/// </summary>
 public struct LeaderboardEntityState : INetworkSerializable, IEquatable<LeaderboardEntityState>
 {
     public ulong ClientId;

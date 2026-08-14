@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Netcode;
 
+/// <summary>
+/// Registry of spawned player network objects keyed by object id.
+/// </summary>
 public class PlayerTracker : IDisposable
 {
     public static Dictionary<ulong, NetworkObject> players = new();

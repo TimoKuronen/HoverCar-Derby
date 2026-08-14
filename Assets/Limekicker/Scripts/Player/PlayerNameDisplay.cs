@@ -2,6 +2,9 @@ using TMPro;
 using Unity.Collections;
 using UnityEngine;
 
+/// <summary>
+/// Updates local UI text when the player network name changes.
+/// </summary>
 public class PlayerNameDisplay : MonoBehaviour
 {
     [SerializeField] private PlayerController playerController;

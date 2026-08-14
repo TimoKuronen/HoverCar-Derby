@@ -6,6 +6,9 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+/// <summary>
+/// Networked player identity with camera, score, and spawn lifecycle.
+/// </summary>
 public class PlayerController : NetworkBehaviour
 {
     [Header("References")]
@@ -16,6 +19,8 @@ public class PlayerController : NetworkBehaviour
 
     [Header("Settings")]
     [SerializeField] private int cameraPriority = 10;
+
+    private EventBinding<GameStateChangeEvent> gameStateChangeEvent;
 
     public CarDamageManager DamageManager => damageManager;
     public bool IsBot { get; private set; }
@@ -32,9 +37,6 @@ public class PlayerController : NetworkBehaviour
         NetworkVariableWritePermission.Server
     );
 
-    private EventBinding<GameStateChangeEvent> gameStateChangeEvent;
-
-    #region Network Lifecycle
     public override void OnNetworkSpawn()
     {
         IsBot = GetComponent<BotPlayerController>() != null;
@@ -81,20 +83,6 @@ public class PlayerController : NetworkBehaviour
         StartCoroutine(RaisePlayerSpawnedEventNextFrame());
     }
 
-    private IEnumerator RaisePlayerSpawnedEventNextFrame()
-    {
-        yield return null;
-
-        if (!IsSpawned)
-            yield break;
-
-        EventBus<PlayerSpawnedEvent>.Raise(new PlayerSpawnedEvent
-        {
-            UserData = null,
-            NetworkObject = NetworkObject
-        });
-    }
-
     public override void OnNetworkDespawn()
     {
         try
@@ -117,12 +105,9 @@ public class PlayerController : NetworkBehaviour
 
         EventBus<GameStateChangeEvent>.Unregister(gameStateChangeEvent);
     }
-    #endregion
 
-    #region Public Methods
     /// <summary>
-    /// Called by PlayerSpawnManager on server to set the player's index.
-    /// This is the single source of truth - server sets it, clients receive it via NetworkVariable.
+    /// Server assigns player index; replicated to clients via NetworkVariable.
     /// </summary>
     public void Initialize(int playerIndex)
     {
@@ -136,9 +121,7 @@ public class PlayerController : NetworkBehaviour
     }
 
     /// <summary>
-    /// ClientRPC called by PlayerSpawnManager to teleport the player to spawn position.
-    /// This is needed for client-authoritative transforms where the client must set its own position.
-    /// PlayerSpawnManager maintains responsibility for spawn logic; this is just a simple teleport interface.
+    /// Owner client teleports after spawn; required for client-authoritative NetworkTransform.
     /// </summary>
     [ClientRpc]
     public void TeleportToSpawnPositionClientRpc(Vector3 position, Quaternion rotation)
@@ -148,9 +131,38 @@ public class PlayerController : NetworkBehaviour
 
         StartCoroutine(TeleportToPositionCoroutine(position, rotation));
     }
-    #endregion
 
-    #region Private Methods
+    private void Update()
+    {
+        if (!IsBot)
+            return;
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (Keyboard.current != null && Keyboard.current.uKey.wasPressedThisFrame)
+        {
+            EventBus<DamageDealtEvent>.Raise(new DamageDealtEvent
+            {
+                AttackerClientId = NetworkObjectId,
+                DamageAmount = 10f
+            });
+        }
+#endif
+    }
+
+    private IEnumerator RaisePlayerSpawnedEventNextFrame()
+    {
+        yield return null;
+
+        if (!IsSpawned)
+            yield break;
+
+        EventBus<PlayerSpawnedEvent>.Raise(new PlayerSpawnedEvent
+        {
+            UserData = null,
+            NetworkObject = NetworkObject
+        });
+    }
+
     private IEnumerator ReportReadyWhenInitialized()
     {
         yield return null;
@@ -205,14 +217,11 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
-    /// <summary>
-    /// Coroutine to teleport the player to a specific position. Called by ClientRPC.
-    /// </summary>
     private IEnumerator TeleportToPositionCoroutine(Vector3 position, Quaternion rotation)
     {
         yield return new WaitForSeconds(0.05f);
 
-        if (!IsOwner) 
+        if (!IsOwner)
             yield break;
 
         if (cachedRigidbody != null)
@@ -238,34 +247,11 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
-    /// <summary>
-    /// Called when PlayerIndex NetworkVariable changes (set by server via Initialize method).
-    /// Applies car color based on the assigned index.
-    /// </summary>
     private void OnPlayerIndexChanged(int oldIndex, int newIndex)
     {
         if (carColorPainter != null && newIndex >= 0)
         {
             carColorPainter.AssignColor(newIndex);
         }
-    }
-    #endregion
-
-    // temporary point giver to bot 
-    private void Update()
-    {
-        if (!IsBot)
-            return;
-
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        if (Keyboard.current != null && Keyboard.current.uKey.wasPressedThisFrame)
-        {
-            EventBus<DamageDealtEvent>.Raise(new DamageDealtEvent
-            {
-                AttackerClientId = NetworkObjectId,
-                DamageAmount = 10f
-            });
-        }
-#endif
     }
 }

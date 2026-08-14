@@ -2,10 +2,12 @@ using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
+/// <summary>
+/// Networked damage and fire particle effects driven by car health state.
+/// </summary>
 [RequireComponent(typeof(NetworkObject))]
 public class CarVFX : NetworkBehaviour
 {
-    #region Fields
     [Header("Damage Effects")]
     [SerializeField] private ParticleSystem[] damageSmokeVFXs;
     [SerializeField] private ParticleSystem fireVFX;
@@ -15,14 +17,22 @@ public class CarVFX : NetworkBehaviour
 
     [Header("Pool Settings")]
     [SerializeField] private bool useImpactPool = true;
-    [SerializeField] private float impactEffectDuration = 2f; // Estimated duration for auto-return to pool
+    [SerializeField] private float impactEffectDuration = 2f;
 
     private CarDamageManager carDamageManager;
     private EventBinding<PlayerSpawnedEvent> playerSpawnedEvent;
     private bool isVFXWarmedUp = false;
-    #endregion
 
-    #region Public Methods
+    public override void OnNetworkDespawn()
+    {
+        base.OnNetworkDespawn();
+
+        if (carDamageManager != null)
+            carDamageManager.OnCarDamaged -= HandleCarDamageVFX;
+
+        EventBus<PlayerSpawnedEvent>.Unregister(playerSpawnedEvent);
+    }
+
     public void Initialize(CarDamageManager carDamageManager)
     {
         this.carDamageManager = carDamageManager;
@@ -40,19 +50,18 @@ public class CarVFX : NetworkBehaviour
     /// </summary>
     public void WarmupVFX()
     {
-        if (isVFXWarmedUp) 
+        if (isVFXWarmedUp)
             return;
 
         float warmupTime = 0.01f;
 
         foreach (var smoke in damageSmokeVFXs)
         {
-            if (smoke == null) 
+            if (smoke == null)
                 continue;
 
             smoke.gameObject.SetActive(true);
 
-            // Simulate forces the internal engine state to update immediately
             smoke.Simulate(warmupTime, true, true, true);
             smoke.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         }
@@ -93,7 +102,7 @@ public class CarVFX : NetworkBehaviour
         {
             fireVFX.gameObject.SetActive(true);
             fireVFX.Play();
-            
+
             if (IsServer)
             {
                 EnableFireEffectClientRpc();
@@ -107,28 +116,14 @@ public class CarVFX : NetworkBehaviour
         {
             fireVFX.Stop();
             fireVFX.gameObject.SetActive(false);
-            
+
             if (IsServer)
             {
                 StopFireEffectClientRpc();
             }
         }
     }
-    #endregion
 
-    #region Network Lifecycle
-    public override void OnNetworkDespawn()
-    {
-        base.OnNetworkDespawn();
-
-        if (carDamageManager != null)
-            carDamageManager.OnCarDamaged -= HandleCarDamageVFX;
-
-        EventBus<PlayerSpawnedEvent>.Unregister(playerSpawnedEvent);
-    }
-    #endregion
-
-    #region Private Methods
     private void HandleCarDamageVFX(Vector3 damagePosition)
     {
         float healthPercentage = carDamageManager.CarHealthPercentage;
@@ -171,13 +166,12 @@ public class CarVFX : NetworkBehaviour
 
     private void PlayDamageVFXLocal(Vector3 damagePosition, float healthPercentage)
     {
-        // Use pooled impact effect if available, otherwise fall back to direct reference
         if (useImpactPool && VFXImpactPool.Instance != null)
         {
             ParticleSystem impactEffect = VFXImpactPool.Instance.GetImpactEffect();
             impactEffect.transform.position = damagePosition;
             impactEffect.Play();
-            
+
             VFXImpactPool.Instance.ReturnToPoolAfterDelay(impactEffect, impactEffectDuration);
         }
 
@@ -220,5 +214,4 @@ public class CarVFX : NetworkBehaviour
                 break;
         }
     }
-    #endregion
 }

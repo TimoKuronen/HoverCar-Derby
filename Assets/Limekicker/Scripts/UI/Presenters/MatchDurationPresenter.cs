@@ -1,5 +1,8 @@
 using System.Text;
 
+/// <summary>
+/// Formats and pushes match duration updates to the view.
+/// </summary>
 public class MatchDurationPresenter : BasePresenter
 {
     private readonly IMatchDurationDisplayView view;

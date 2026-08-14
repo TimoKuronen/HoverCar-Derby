@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// Persists player sound and music enablement in PlayerPrefs.
+/// </summary>
 public static class AudioPreferences
 {
     private const string SfxEnabledKey = "Audio_SfxEnabled";

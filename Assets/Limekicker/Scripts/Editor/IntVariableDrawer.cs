@@ -5,6 +5,9 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
+/// <summary>
+/// UIToolkit drawer for IntVariable ScriptableObject references.
+/// </summary>
 public class IntVariableDrawer : PropertyDrawer
 {
     public override VisualElement CreatePropertyGUI(SerializedProperty property)

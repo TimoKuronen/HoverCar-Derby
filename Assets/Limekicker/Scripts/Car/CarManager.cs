@@ -4,9 +4,11 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+/// <summary>
+/// Networked car lifecycle hub for respawn, VFX, and player linkage.
+/// </summary>
 public class CarManager : NetworkBehaviour
 {
-    #region Fields
     [field: SerializeField] public CarData CarData { get; private set; }
 
     [Header("Respawn Settings")]
@@ -17,18 +19,7 @@ public class CarManager : NetworkBehaviour
     private CarVFX carVFX;
     private Rigidbody carRigidbody;
     private EventBinding<CollectibleCollectedEvent> collectibleCollectedEvent;
-    #endregion
 
-    #region Properties
-    public CarDamageManager DamageManager { get; private set; }
-    public PlayerController PlayerController { get; private set; }
-    #endregion
-
-    #region Events
-    public static event Action<CarManager, Action> OnCarRespawned;
-    #endregion
-
-    #region Unity Lifecycle
     private void Update()
     {
         if (Keyboard.current.rKey.wasPressedThisFrame)
@@ -42,9 +33,7 @@ public class CarManager : NetworkBehaviour
             Debug.Log("Car destroyed for testing purposes." + PlayerController.PlayerName.Value + " with this much health still left " + DamageManager.CurrentCarHealth);
         }
     }
-    #endregion
 
-    #region Network Lifecycle
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
@@ -79,9 +68,12 @@ public class CarManager : NetworkBehaviour
         DamageManager.OnCarDestroyed -= HandleCarDestroyed;
         base.OnNetworkDespawn();
     }
-    #endregion
 
-    #region Private Methods
+    public CarDamageManager DamageManager { get; private set; }
+    public PlayerController PlayerController { get; private set; }
+
+    public static event Action<CarManager, Action> OnCarRespawned;
+
     private void OnCollectibleCollected(CollectibleCollectedEvent collectedEvent)
     {
         if (collectedEvent.CollectorNetworkObjectId != NetworkObjectId)
@@ -185,5 +177,4 @@ public class CarManager : NetworkBehaviour
 
         Physics.SyncTransforms();
     }
-    #endregion
 }

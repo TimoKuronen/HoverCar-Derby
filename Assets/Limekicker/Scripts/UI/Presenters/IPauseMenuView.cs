@@ -1,5 +1,8 @@
 using System;
 
+/// <summary>
+/// Contract for pause menu visibility and player actions.
+/// </summary>
 public interface IPauseMenuView
 {
     void ShowPauseMenu(bool show);

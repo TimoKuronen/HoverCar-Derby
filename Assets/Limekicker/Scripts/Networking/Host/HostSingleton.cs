@@ -1,6 +1,9 @@
 using Unity.Netcode;
 using UnityEngine;
 
+/// <summary>
+/// Scene singleton that owns the host game manager lifecycle.
+/// </summary>
 public class HostSingleton : MonoBehaviour
 {
     private static HostSingleton instance;

@@ -3,6 +3,9 @@ using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 
+/// <summary>
+/// Assigns and tracks spawn points for network object placement.
+/// </summary>
 public class SpawnPointService
 {
     private SpawnPoint[] allSpawnPoints;
@@ -67,8 +70,6 @@ public class SpawnPointService
         {
             assignedSpawnPoints[networkObject] = spawnData;
         }
-
-        //Debug.Log($"[SpawnPointService] Assigned spawn point at {selectedSpawnPoint.transform.position} to {networkObject?.name ?? "null"} ({usedSpawnPoints.Count}/{allSpawnPoints.Length} used)");
 
         return spawnData;
     }

@@ -4,6 +4,9 @@ using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
+/// <summary>
+/// VContainer bootstrap that wires in-game UI presenters at startup.
+/// </summary>
 public class GameUiPresenterBootstrap : IStartable, IDisposable
 {
     private readonly IGameManager gameManager;

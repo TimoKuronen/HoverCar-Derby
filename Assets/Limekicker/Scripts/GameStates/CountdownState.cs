@@ -2,6 +2,9 @@ using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
+/// <summary>
+/// Waits for the server-scheduled start time, then prepares the race camera for countdown.
+/// </summary>
 public class CountdownState : IGameState
 {
     private readonly GameManager gameManager;

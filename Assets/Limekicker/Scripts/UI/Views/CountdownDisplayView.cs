@@ -2,6 +2,9 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 
+/// <summary>
+/// MonoBehaviour view that renders pre-race countdown numbers.
+/// </summary>
 public class CountdownDisplayView : MonoBehaviour, ICountdownDisplayView
 {
     [SerializeField] private TextMeshProUGUI countdownText;

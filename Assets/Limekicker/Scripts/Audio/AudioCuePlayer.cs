@@ -1,5 +1,8 @@
 ﻿using UnityEngine;
 
+/// <summary>
+/// Static and component helpers for playing and stopping audio cue clips.
+/// </summary>
 public class AudioCuePlayer : MonoBehaviour
 {
     public AudioSource audioSource;

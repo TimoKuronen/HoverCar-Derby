@@ -1,6 +1,9 @@
 using TMPro;
 using UnityEngine;
 
+/// <summary>
+/// Displays remaining match time during gameplay.
+/// </summary>
 public class MatchDurationDisplayView : MonoBehaviour, IMatchDurationDisplayView
 {
     [SerializeField] private TextMeshProUGUI matchDurationText;

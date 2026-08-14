@@ -4,6 +4,9 @@ using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
+/// <summary>
+/// Spawns and tracks world-space nameplates for remote players.
+/// </summary>
 public class NameplateManager : MonoBehaviour
 {
     [SerializeField] private Camera mainCamera;

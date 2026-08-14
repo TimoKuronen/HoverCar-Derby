@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// Persists development-only toggles such as bot spawn and countdown skip.
+/// </summary>
 public static class DevMenuOptions
 {
     private const string SpawnBotKey = "SpawnBotForTesting";

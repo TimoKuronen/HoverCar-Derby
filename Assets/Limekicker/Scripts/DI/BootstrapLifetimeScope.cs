@@ -1,6 +1,9 @@
 using VContainer;
 using VContainer.Unity;
 
+/// <summary>
+/// Registers cross-scene singleton services such as audio and input.
+/// </summary>
 public class BootstrapLifetimeScope : LifetimeScope
 {
     protected override void Configure(IContainerBuilder builder)

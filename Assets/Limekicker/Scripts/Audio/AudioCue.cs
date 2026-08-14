@@ -1,5 +1,8 @@
 ﻿using UnityEngine;
 
+/// <summary>
+/// Scriptable definition of clips, volume, pitch, and playback rules for a sound.
+/// </summary>
 [CreateAssetMenu(fileName = "AudioCue", menuName = "Limekicker/AudioCue", order = 1)]
 public class AudioCue : ScriptableObject
 {

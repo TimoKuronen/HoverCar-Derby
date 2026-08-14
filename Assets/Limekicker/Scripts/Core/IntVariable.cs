@@ -1,6 +1,9 @@
 using System;
 using UnityEngine;
 
+/// <summary>
+/// Scriptable integer value that notifies listeners when it changes.
+/// </summary>
 [CreateAssetMenu(menuName = "Variables/int Variable")]
 public class IntVariable : RuntimeScriptableObject
 {

@@ -4,6 +4,9 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Round results UI with score rows and navigation buttons.
+/// </summary>
 public class RoundResultsView : MonoBehaviour, IRoundResultsView
 {
     [SerializeField] private GameObject resultsPanelRoot;

@@ -2,30 +2,30 @@ using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
+/// <summary>
+/// Follow camera for the local player's hover car during countdown and play.
+/// </summary>
 public class SimpleHoverChaseCam : MonoBehaviour
 {
     private const int RaceCameraPlayPriority = 20;
 
-    #region Fields
     [Header("Settings")]
-    public float distance = 8;
-    public float height = 3;
-    public float rotationSpeed = 5;
-    public float minTiltAngle = 5, maxTiltAngle = 15, maxSpeedForTilt = 45;
-    public Vector3 velocity;
+    [SerializeField] private float distance = 8;
+    [SerializeField] private float height = 3;
+    [SerializeField] private float rotationSpeed = 5;
+    [SerializeField] private float minTiltAngle = 5;
+    [SerializeField] private float maxTiltAngle = 15;
+    [SerializeField] private float maxSpeedForTilt = 45;
+    [SerializeField] private Vector3 velocity;
 
     private Transform target;
     private Rigidbody targetRigidbody;
     private EventBinding<GameStateChangeEvent> gameStateChangeEvent;
     private EventBinding<PlayerSpawnedEvent> playerSpawnedEvent;
     private EventBinding<PlayerTeleportedEvent> playerTeleportedEvent;
-    #endregion
 
-    #region Properties
     public int TryAssignLocalPlayer { get; private set; }
-    #endregion
 
-    #region Unity Lifecycle
     public void Start()
     {
         gameStateChangeEvent = new EventBinding<GameStateChangeEvent>(HandleGameStateChange);
@@ -54,11 +54,9 @@ public class SimpleHoverChaseCam : MonoBehaviour
         EventBus<PlayerSpawnedEvent>.Unregister(playerSpawnedEvent);
         EventBus<PlayerTeleportedEvent>.Unregister(playerTeleportedEvent);
     }
-    #endregion
 
-    #region Public Methods
     /// <summary>
-    /// Instantly snaps camera to target position and rotation. Used after teleport events.
+    /// Snaps the camera to the target immediately; used after teleports.
     /// </summary>
     public void ForceUpdatePosition()
     {
@@ -83,9 +81,7 @@ public class SimpleHoverChaseCam : MonoBehaviour
         transform.rotation = tiltRotation;
         velocity = Vector3.zero;
     }
-    #endregion
 
-    #region Private Methods
     private void HandleGameStateChange(GameStateChangeEvent @event)
     {
         if (@event.NewState is CountdownState or PlayState)
@@ -150,10 +146,6 @@ public class SimpleHoverChaseCam : MonoBehaviour
             raceContext.raceCamera.Priority = RaceCameraPlayPriority;
     }
 
-    /// <summary>
-    /// Smoothly follows the target car with dynamic positioning and rotation.
-    /// Camera speed increases during sharp turns, and tilt angle increases with speed.
-    /// </summary>
     private void MoveCamera()
     {
         if (!target)
@@ -183,5 +175,4 @@ public class SimpleHoverChaseCam : MonoBehaviour
         float rotSpeed = rotationSpeed * (1f + turnBoost * 2f);
         transform.rotation = Quaternion.Slerp(transform.rotation, tiltRotation, rotSpeed * Time.deltaTime);
     }
-    #endregion
 }

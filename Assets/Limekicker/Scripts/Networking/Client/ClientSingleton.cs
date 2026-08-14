@@ -1,6 +1,9 @@
 using System.Threading.Tasks;
 using UnityEngine;
 
+/// <summary>
+/// Scene singleton that owns the client game manager lifecycle.
+/// </summary>
 public class ClientSingleton : MonoBehaviour
 {
     private static ClientSingleton instance;
@@ -11,14 +14,10 @@ public class ClientSingleton : MonoBehaviour
     {
         get
         {
-            if (instance == null)
-            {
-                instance = FindObjectOfType<ClientSingleton>();
                 if (instance == null)
                 {
-                    //Debug.LogError("ClientSingleton instance not found in the scene.");
+                    instance = FindObjectOfType<ClientSingleton>();
                 }
-            }
             return instance;
         }
     }

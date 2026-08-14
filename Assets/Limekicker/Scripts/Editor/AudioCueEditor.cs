@@ -3,6 +3,9 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
+/// <summary>
+/// Custom inspector for AudioCue with in-editor clip preview.
+/// </summary>
 [CustomEditor(typeof(AudioCue))]
 public class AudioCueEditor : Editor
 {

@@ -1,5 +1,8 @@
 ﻿using UnityEngine;
 
+/// <summary>
+/// Applies hover forces at raycast points to keep the car aloft.
+/// </summary>
 [RequireComponent(typeof(Rigidbody))]
 public class HoverCarControl : MonoBehaviour
 {
@@ -10,30 +13,26 @@ public class HoverCarControl : MonoBehaviour
 
     [Header("Optimization Settings")]
     [SerializeField] private bool enableOptimizations = true;
-    [SerializeField] private int raycastUpdateFrequency = 2; // Update every Nth FixedUpdate (1 = every frame, 2 = every other frame)
-    [SerializeField] private float positionChangeThreshold = 0.1f; // Only re-raycast if car moved this much
-    [SerializeField] private float maxRaycastDistance = 10f; // Early exit if car is too high
+    [SerializeField] private int raycastUpdateFrequency = 2;
+    [SerializeField] private float positionChangeThreshold = 0.1f;
+    [SerializeField] private float maxRaycastDistance = 10f;
 
     private int layerMask;
     private Rigidbody rig;
     private bool isHovering = true;
 
-    // Caching for optimization
     private RaycastHit[] cachedHits;
     private Vector3 lastPosition;
     private int fixedUpdateCounter = 0;
-    private bool needsRaycastUpdate = true;
+    private float positionChangeThresholdSq;
 
     void Start()
     {
         rig = GetComponent<Rigidbody>();
         layerMask = 1 << LayerMask.NameToLayer("Default");
-        
-        // Initialize cache
+        positionChangeThresholdSq = positionChangeThreshold * positionChangeThreshold;
         cachedHits = new RaycastHit[hoverPoints.Length];
         lastPosition = transform.position;
-        
-        // Pre-populate cache on first frame
         UpdateRaycastCache();
     }
 
@@ -49,39 +48,33 @@ public class HoverCarControl : MonoBehaviour
 
     private void ApplyHoverForce()
     {
-        // Only apply hover force if hovering is enabled
         if (!isHovering)
             return;
 
-        // Optimization: Check if car is too high above ground (early exit)
         if (enableOptimizations && transform.position.y > maxRaycastDistance)
         {
-            // Apply downward force if too high
             rig.AddForce(0.5f * hoverForce * Vector3.down, ForceMode.Acceleration);
             return;
         }
 
-        // Optimization: Update raycast cache less frequently
         if (enableOptimizations)
         {
             fixedUpdateCounter++;
-            
-            // Check if we need to update raycasts
+
             bool shouldUpdate = false;
-            
+
             if (fixedUpdateCounter >= raycastUpdateFrequency)
             {
                 fixedUpdateCounter = 0;
                 shouldUpdate = true;
             }
-            
-            // Also update if car moved significantly
-            if (Vector3.Distance(transform.position, lastPosition) > positionChangeThreshold)
+
+            if ((transform.position - lastPosition).sqrMagnitude > positionChangeThresholdSq)
             {
                 shouldUpdate = true;
                 lastPosition = transform.position;
             }
-            
+
             if (shouldUpdate)
             {
                 UpdateRaycastCache();
@@ -89,18 +82,15 @@ public class HoverCarControl : MonoBehaviour
         }
         else
         {
-            // Non-optimized path: Update every frame
             UpdateRaycastCache();
         }
 
-        // Apply forces using cached raycast data
         for (int i = 0; i < hoverPoints.Length; i++)
         {
             var hoverPoint = hoverPoints[i];
             
             if (enableOptimizations && i < cachedHits.Length && cachedHits[i].collider != null)
             {
-                // Use cached hit data
                 var hit = cachedHits[i];
                 float normalizedDistance = hit.distance / hoverHeight;
                 float forceMultiplier = Mathf.Clamp01(1.0f - normalizedDistance);
@@ -108,7 +98,6 @@ public class HoverCarControl : MonoBehaviour
             }
             else
             {
-                // Fallback: Direct raycast (for non-optimized path or cache miss)
                 if (Physics.Raycast(hoverPoint.transform.position, -Vector3.up, out RaycastHit hit, hoverHeight, layerMask))
                 {
                     float normalizedDistance = hit.distance / hoverHeight;
@@ -117,7 +106,6 @@ public class HoverCarControl : MonoBehaviour
                 }
                 else
                 {
-                    // Apply fallback force when no ground detected
                     if (transform.position.y > hoverPoint.transform.position.y)
                         rig.AddForceAtPosition(hoverPoint.transform.up * hoverForce, hoverPoint.transform.position);
                     else
@@ -127,9 +115,6 @@ public class HoverCarControl : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Updates the raycast cache. Called less frequently than every frame for optimization.
-    /// </summary>
     private void UpdateRaycastCache()
     {
         if (cachedHits == null || cachedHits.Length != hoverPoints.Length)

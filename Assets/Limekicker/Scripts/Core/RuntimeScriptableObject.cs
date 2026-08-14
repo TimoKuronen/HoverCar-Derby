@@ -3,6 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Base for scriptable objects reset to initial values on play mode entry.
+/// </summary>
 public abstract class RuntimeScriptableObject : ScriptableObject
 {
     static readonly List<RuntimeScriptableObject> instances = new List<RuntimeScriptableObject>();

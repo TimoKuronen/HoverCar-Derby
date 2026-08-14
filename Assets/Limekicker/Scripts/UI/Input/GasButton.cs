@@ -2,6 +2,9 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using VContainer;
 
+/// <summary>
+/// Touch UI button that forwards gas press state to input service.
+/// </summary>
 public class GasButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
     private IInputService inputService;

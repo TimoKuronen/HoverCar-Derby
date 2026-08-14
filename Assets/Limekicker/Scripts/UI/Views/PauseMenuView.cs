@@ -2,6 +2,9 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Pause menu UI with resume and return-to-menu controls.
+/// </summary>
 public class PauseMenuView : MonoBehaviour, IPauseMenuView
 {
     [Header("Menus")]

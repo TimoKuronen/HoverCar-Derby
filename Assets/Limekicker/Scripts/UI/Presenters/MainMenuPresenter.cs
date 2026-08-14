@@ -1,5 +1,8 @@
 using System;
 
+/// <summary>
+/// Handles host and join actions from the main menu view.
+/// </summary>
 public class MainMenuPresenter : BasePresenter
 {
     private readonly IMainMenuView view;

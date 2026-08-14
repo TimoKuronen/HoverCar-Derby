@@ -1,5 +1,8 @@
 ﻿using UnityEngine;
 
+/// <summary>
+/// Singleton host for coroutines that must survive scene loads.
+/// </summary>
 public class CoroutineMonoBehavior : MonoBehaviour
 {
     public static CoroutineMonoBehavior Instance;

@@ -1,19 +1,31 @@
+/// <summary>
+/// Available match maps.
+/// </summary>
 public enum Map
 {
     Default
 }
 
+/// <summary>
+/// Available match rule sets.
+/// </summary>
 public enum GameMode
 {
     Default
 }
 
+/// <summary>
+/// Matchmaking queue type for solo or team play.
+/// </summary>
 public enum GameQue
 {
     Solo,
     Team
 }
 
+/// <summary>
+/// Authenticated player identity and match preferences sent at join time.
+/// </summary>
 [System.Serializable]
 public class UserData
 {
@@ -22,6 +34,9 @@ public class UserData
     public GameInfo userGamePreferences = new GameInfo();
 }
 
+/// <summary>
+/// Serializable map, mode, and queue selection for matchmaking.
+/// </summary>
 [System.Serializable]
 public class GameInfo
 {

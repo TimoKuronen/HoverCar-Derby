@@ -3,6 +3,9 @@ using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
+/// <summary>
+/// UI row that displays one player's leaderboard name and score.
+/// </summary>
 public class LeaderboardEntity : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI displayText;

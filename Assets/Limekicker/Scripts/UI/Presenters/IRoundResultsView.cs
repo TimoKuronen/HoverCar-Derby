@@ -1,5 +1,8 @@
 using System;
 
+/// <summary>
+/// Contract for round results display and rematch or menu navigation.
+/// </summary>
 public interface IRoundResultsView
 {
     void ShowResults(string title);

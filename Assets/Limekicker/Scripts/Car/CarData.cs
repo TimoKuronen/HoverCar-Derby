@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// ScriptableObject car stat multipliers for acceleration, speed, and endurance.
+/// </summary>
 [CreateAssetMenu(menuName = "Limekicker/CarData")]
 public class CarData : ScriptableObject
 {
@@ -22,6 +25,10 @@ public class CarData : ScriptableObject
         return 1 + (endurance / 10);
     }
 
+#if UNITY_EDITOR
+    /// <summary>
+    /// Editor-only stat roller; mutates the asset on disk.
+    /// </summary>
     public void RandomiseCarValues(int pointsToDistribute)
     {
         int minValue = 1, maxValue = 5;
@@ -51,4 +58,5 @@ public class CarData : ScriptableObject
         maxSpeed = stats[1];
         endurance = stats[2];
     }
+#endif
 }

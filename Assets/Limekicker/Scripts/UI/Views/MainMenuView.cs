@@ -3,6 +3,9 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Main menu UI with host, join, and join-code entry controls.
+/// </summary>
 public class MainMenuView : MonoBehaviour, IMainMenuView
 {
     [Header("Session actions")]

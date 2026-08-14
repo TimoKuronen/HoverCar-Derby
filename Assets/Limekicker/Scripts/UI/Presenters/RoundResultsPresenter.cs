@@ -2,6 +2,9 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
+/// <summary>
+/// Shows round results and handles rematch or return to menu.
+/// </summary>
 public class RoundResultsPresenter : BasePresenter
 {
     private readonly IRoundResultsView view;

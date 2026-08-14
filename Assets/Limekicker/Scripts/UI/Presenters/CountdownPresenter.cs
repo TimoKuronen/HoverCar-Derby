@@ -1,3 +1,6 @@
+/// <summary>
+/// Maps countdown model values to countdown display states.
+/// </summary>
 public class CountdownPresenter : BasePresenter
 {
     private readonly ICountdownDisplayView view;

@@ -5,6 +5,9 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer;
 
+/// <summary>
+/// Server-authoritative orchestrator for match phases, state transitions, and participant readiness.
+/// </summary>
 public class GameManager : NetworkBehaviour, IGameManager
 {
     [Header("References")]

@@ -5,6 +5,9 @@ using Unity.Netcode;
 using UnityEngine;
 using VContainer;
 
+/// <summary>
+/// Tracks per-player scores and updates them from gameplay events.
+/// </summary>
 public class ScoreManager : IScoreManager, IDisposable
 {
     public Dictionary<PlayerData, int> PlayerScores { get; private set; } = new Dictionary<PlayerData, int>();
@@ -182,6 +185,9 @@ public class ScoreManager : IScoreManager, IDisposable
     }
 }
 
+/// <summary>
+/// Identifies a participant with display name, client id, and score.
+/// </summary>
 public struct PlayerData
 {
     public FixedString32Bytes PlayerName;

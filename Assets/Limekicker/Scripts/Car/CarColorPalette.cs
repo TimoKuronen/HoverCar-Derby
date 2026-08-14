@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Identifies which car mesh part category receives a palette color.
+/// </summary>
 public enum ColorType
 {
     Primary,
@@ -9,6 +12,9 @@ public enum ColorType
     Bumper
 }
 
+/// <summary>
+/// ScriptableObject palette of car color schemes by index.
+/// </summary>
 [CreateAssetMenu(fileName = "CarColorPalette", menuName = "Limekicker/CarColorPalette", order = 1)]
 public class CarColorPalette : ScriptableObject
 {
@@ -25,6 +31,9 @@ public class CarColorPalette : ScriptableObject
     }
 }
 
+/// <summary>
+/// Serializable primary, secondary, decoration, and bumper colors for one scheme.
+/// </summary>
 [System.Serializable]
 public class CarColors
 {

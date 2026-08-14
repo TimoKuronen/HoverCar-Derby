@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// Positions the victory camera on the leading player when the match ends.
+/// </summary>
 public class RaceCompletionState : IGameState
 {
     private Vector3 dollyTrackOffset = new Vector3(0, 10, 0);

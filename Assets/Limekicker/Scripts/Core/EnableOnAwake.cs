@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Toggles configured objects active or inactive when the scene loads.
+/// </summary>
 public class EnableOnAwake : MonoBehaviour
 {
     [SerializeField] private GameObject[] objectsToEnable;

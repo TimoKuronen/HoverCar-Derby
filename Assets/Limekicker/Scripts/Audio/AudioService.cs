@@ -156,4 +156,7 @@ public class AudioService : IAudioService
 }
 
 // Defines the types of sounds.
+/// <summary>
+/// Categories used to cap simultaneous playback by sound kind.
+/// </summary>
 public enum SoundType { Impact, Death, Launch, UI, Other }

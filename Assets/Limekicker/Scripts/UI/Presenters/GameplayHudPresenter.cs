@@ -1,3 +1,6 @@
+/// <summary>
+/// Toggles gameplay HUD visibility based on game state.
+/// </summary>
 public class GameplayHudPresenter : BasePresenter
 {
     private readonly IGameplayHudView view;

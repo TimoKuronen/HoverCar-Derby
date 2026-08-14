@@ -2,6 +2,9 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
+/// <summary>
+/// Network-synced car body variant and palette color application.
+/// </summary>
 public class CarColorPainter : NetworkBehaviour
 {
     [Header("Visual Variants")]

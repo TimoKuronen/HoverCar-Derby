@@ -2,6 +2,9 @@ using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
+/// <summary>
+/// Wires menu-scene UI presenter dependencies.
+/// </summary>
 [DefaultExecutionOrder(-100)]
 public class MenuLifetimeScope : LifetimeScope
 {

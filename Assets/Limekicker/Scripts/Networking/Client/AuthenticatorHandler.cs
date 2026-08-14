@@ -3,6 +3,9 @@ using Unity.Services.Authentication;
 using Unity.Services.Core;
 using UnityEngine;
 
+/// <summary>
+/// Unity Services anonymous sign-in with retry and ParrelSync profile isolation.
+/// </summary>
 public static class AuthenticatorHandler
 {
     public static AuthenticatorState AuthenticatorState { get; private set; } = AuthenticatorState.NotAuthenticated;
@@ -114,6 +117,9 @@ public static class AuthenticatorHandler
     }
 }
 
+/// <summary>
+/// Unity Authentication sign-in progress and outcome.
+/// </summary>
 public enum AuthenticatorState
 {
     NotAuthenticated,

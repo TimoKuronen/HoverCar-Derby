@@ -5,6 +5,9 @@ using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 
+/// <summary>
+/// Server-side spawner for players and bots at available spawn points.
+/// </summary>
 public class PlayerSpawnManager : IDisposable
 {
     private INetworkServer networkServer;

@@ -2,6 +2,9 @@ using Unity.Netcode;
 using UnityEngine;
 using VContainer;
 
+/// <summary>
+/// Plays collision and collectible sounds for the local player car.
+/// </summary>
 [RequireComponent(typeof(Rigidbody), typeof(PlayerController))]
 public class PlayerAudioPlayer : NetworkBehaviour
 {
@@ -136,6 +139,9 @@ public class PlayerAudioPlayer : NetworkBehaviour
     }
 }
 
+/// <summary>
+/// Buckets collision impact strength for choosing collision sounds.
+/// </summary>
 public enum CollisionIntensity
 {
     Light,
