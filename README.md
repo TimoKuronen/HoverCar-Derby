@@ -2,7 +2,9 @@
 
 Unity multiplayer arena prototype exploring Netcode for GameObjects (NGO), Unity Gaming Services (Relay, Lobbies), and client/server authority tradeoffs in a demolition-derby style hover car game.
 
-![HoverCar Derby title](docs/images/title.png)
+![Main menu host and join flow](docs/images/main-menu.png)
+
+![In-game arena](docs/images/in-game.png)
 
 ## Purpose
 
@@ -20,10 +22,6 @@ Built with Unity 2022.3 LTS and C#. Assets are placeholders or AI-generated for 
 - VContainer DI scopes, EventBus hooks, presenter/view UI on main menu and play HUD
 
 Partial UGS paths (lobby browse, matchmaking, dedicated server) exist in code but are not exposed in the menu UI or documented as demo features. See [known limitations](docs/known-limitations.md).
-
-## Screenshots
-
-![Main menu host and join flow](docs/images/main-menu.jpg)
 
 ## Tech stack
 
