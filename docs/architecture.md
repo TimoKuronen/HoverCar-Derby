@@ -1,6 +1,6 @@
 # Architecture
 
-HoverCar Derby is a Unity 2022.3 LTS demolition-derby prototype focused on **Netcode for GameObjects (NGO)** and **Unity Gaming Services** (Auth, Relay, Lobbies, Matchmaker stubs). Gameplay and visuals are intentionally minimal so networking and session design stay front and center.
+HoverCar Derby is a Unity 2022.3 LTS demolition-derby prototype focused on **Netcode for GameObjects (NGO)** and **Unity Gaming Services** (Auth, Relay, Lobbies). Networking and session design are the primary concern.
 
 ## Folder map
 
@@ -34,9 +34,7 @@ Assets/Limekicker/
 ├── Scriptables/            Timer/countdown assets, audio cues
 ```
 
-Agent workspace (local, gitignored): `.agent/AGENTS.md` entry point; style rules in `.cursor/rules/` and EngineeringRulebook.
-
-Art and VFX under `Assets/JMO Assets` and `Assets/RPGPP_LT` are placeholders.
+Art and VFX under `Assets/JMO Assets` and `Assets/RPGPP_LT` are third-party packs used as placeholders.
 
 ## Scenes
 
@@ -44,7 +42,7 @@ Art and VFX under `Assets/JMO Assets` and `Assets/RPGPP_LT` are placeholders.
 |-------|------|
 | `NetBootstrap` | App entry; creates singletons; auth; routes to menu or dedicated server |
 | `Bootstrap` | Optional name entry |
-| `MainMenu` | Host and join by code (MVP UI); lobby browse and Find Match hidden — see limitations doc |
+| `MainMenu` | Host and join by code |
 | `PlayScene` | Arena, GameManager, match loop |
 
 ## Runtime flow
@@ -76,7 +74,7 @@ flowchart TD
 
 UI and gameplay call `NetworkSession` instead of Host/Client/Server singletons directly.
 
-### Demo path
+### Session surface
 
 | Method | Purpose |
 |--------|---------|
@@ -85,15 +83,7 @@ UI and gameplay call `NetworkSession` instead of Host/Client/Server singletons d
 | `LeaveGame()` / `ReturnToMainMenu()` | Host shutdown or client disconnect to MainMenu |
 | `RestartCurrentMatch()` | Reload PlayScene for rematch (host NGO / client local) |
 
-### In code, not demo
-
-These APIs remain for future work. They are not exposed in the main menu UI and are not part of the portfolio demo. See [known-limitations.md](known-limitations.md).
-
-| Method | Purpose |
-|--------|---------|
-| `FindMatchAsync(callback)` | Matchmaker / dedicated-server path |
-| `QueryAvailableLobbiesAsync()` | Lobby browser |
-| `JoinLobbyByIdAsync(id)` | Browse to join code to connect |
+Additional session APIs (lobby browse, matchmaker join) exist in the facade but are not exposed in the menu UI.
 
 Singletons (`HostSingleton`, `ClientSingleton`, `ServerSingleton`) are DontDestroyOnLoad and created at NetBootstrap.
 
@@ -105,7 +95,7 @@ Singletons (`HostSingleton`, `ClientSingleton`, `ServerSingleton`) are DontDestr
 | Round results | `RoundResultsView` | `RoundResultsPresenter` |
 | Live scoreboard | `ScoreDisplayView` | `ScoreDisplayPresenter` |
 
-Composition root: `GameUiPresenterBootstrap` (registered in `GameLifetimeScope`). Pause opens via on-screen pause button; resume via resume button or pause toggle. Leave calls `NetworkSession.ReturnToMainMenu()`. SFX/music toggles on the pause panel are plain UI for now (not wired). Session actions go through `NetworkSession` only.
+Composition root: `GameUiPresenterBootstrap` (registered in `GameLifetimeScope`). Pause opens via on-screen pause button; resume via resume button or pause toggle. Leave calls `NetworkSession.ReturnToMainMenu()`. Session actions go through `NetworkSession` only.
 
 ## MainMenu MVP
 
@@ -113,7 +103,7 @@ Composition root: `GameUiPresenterBootstrap` (registered in `GameLifetimeScope`)
 |---------|------|-----------|
 | Host / join by code | `MainMenuView` | `MainMenuPresenter` |
 
-Composition root: `MenuUiPresenterBootstrap` (registered in `MenuLifetimeScope`). Find Match and lobby browse UI are hidden; session calls go through `NetworkSession` only.
+Composition root: `MenuUiPresenterBootstrap` (registered in `MenuLifetimeScope`). Session calls go through `NetworkSession` only.
 
 ## Key systems
 
@@ -143,8 +133,8 @@ Composition root: `MenuUiPresenterBootstrap` (registered in `MenuLifetimeScope`)
 | `Prefabs/UI/RuntimeConsolePanel` | Error/exception log UI |
 | `Prefabs/UI/NotificationConsolePanel` | Player-facing session messages |
 
-## Primary demo path
+## Demo path
 
-**Host + Relay + join code** (2–4 players) is the only supported demo path. Lobby browse and Find Match remain in code for future work but are not exposed in the menu UI.
+**Host + Relay + join code** (2–4 players).
 
-Related: [authority.md](authority.md) · [known-limitations.md](known-limitations.md)
+Related: [authority.md](authority.md)

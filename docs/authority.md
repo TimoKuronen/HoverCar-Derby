@@ -22,7 +22,7 @@ Authority assigns each piece of state to either the **server** (referee) or the 
 | Steering waits for RTT; mushy mobile feel | Players can fake damage or invulnerability |
 | Higher server CPU for physics | Scores and win condition become meaningless |
 
-Derby scoring needs trust. Driving needs responsiveness. This is an acceptable prototype tradeoff.
+Derby scoring needs trust. Driving needs responsiveness.
 
 ## Server path (damage)
 
@@ -39,24 +39,9 @@ Clients do not unilaterally decide damage outcomes.
 2. `ClientNetworkTransform` replicates transform to peers.
 3. Bots use the same mover with server-side input (`isBot`).
 
-## Cheat surface (documented limitation)
+## Cheat surface
 
 Without server validation of speed/position, a modified client could speed-hack or teleport. Health and score remain server-writable NetworkVariable / server events, so permanent fake health is not trivial without compromising the host/server.
-
-Production hardening would add sanity checks on velocity and position. Broader gaps are listed in [known-limitations.md](known-limitations.md).
-
-## Production v2 (not implemented)
-
-If this moved toward a commercial online mode, the first authority upgrades would be:
-
-| Area | Direction |
-|------|-----------|
-| Movement | Server-side sanity checks on speed and position; reject or correct outliers |
-| Damage / score / phases | Stay server-owned; tighten RPC and spawn ownership rules |
-| Session | Host migration or dedicated servers; lobby cleanup on failed join and disconnect |
-| Netcode | Optional prediction/reconciliation only after validation exists |
-
-Host migration, full server simulation, and matchmaking at scale remain out of scope for this prototype.
 
 ## Key files
 
