@@ -99,6 +99,7 @@ MonoBehaviour:
   maxLines: 10
   maxCharsPerEntry: 200
   includeWarnings: 0
+  content: {fileID: 0}
 --- !u!1 &8200000010000000011
 GameObject:
   m_ObjectHideFlags: 0
@@ -241,8 +242,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 4a77b5d0a54bd2b48af842be20435613, type: 2}
+  m_sharedMaterial: {fileID: -4716282767576107270, guid: 4a77b5d0a54bd2b48af842be20435613, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
