@@ -64,7 +64,6 @@ public class CollectibleSpawner : MonoBehaviour
         if (spawnPosition == Vector3.zero)
             return;
 
-        // Raycast down to find the ground
         spawnPosition = Physics.Raycast(spawnPosition + Vector3.up * 50f, Vector3.down, out RaycastHit hitInfo, 100f) ? hitInfo.point : spawnPosition;
         spawnPosition += Vector3.up * 1.5f;
 
@@ -81,9 +80,9 @@ public class CollectibleSpawner : MonoBehaviour
             }
         }
 
-        NetworkObject spawnedCollectible = Instantiate(prefabToSpawn.NetworkObject, spawnPosition, Quaternion.identity);
-        spawnedCollectible.Spawn();
-        activeCollectibles.Add(spawnedCollectible.GetComponent<CollisionCollectible>());
+        CollisionCollectible spawnedCollectible = Instantiate(prefabToSpawn, spawnPosition, Quaternion.identity);
+        spawnedCollectible.NetworkObject.Spawn();
+        activeCollectibles.Add(spawnedCollectible);
     }
 
     /// <summary>
@@ -98,7 +97,7 @@ public class CollectibleSpawner : MonoBehaviour
         {
             existingPositions.Add(player.transform.position);
         }
-        activeCollectibles.RemoveAll(collectible => collectible == null);
+        activeCollectibles.RemoveAll(collectible => collectible == null || collectible.IsProcessed);
         foreach (var collectible in activeCollectibles)
         {
             existingPositions.Add(collectible.transform.position);
@@ -107,11 +106,10 @@ public class CollectibleSpawner : MonoBehaviour
         Vector3 randomPoint;
         int attempts = 0;
 
-        // Try to find a valid spawn point
         while (true)
         {
             randomPoint = UnityEngine.Random.insideUnitSphere * spawnRadius;
-            randomPoint.y = 0; // Keep on ground level
+            randomPoint.y = 0;
             attempts++;
             if (attempts > 100)
             {

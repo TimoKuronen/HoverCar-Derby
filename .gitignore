@@ -83,7 +83,3 @@ crashlytics-build.properties
 !README.md
 !LICENSE
 !/docs/
-
-# Private agent workspace
-.agent/
-.cursor/

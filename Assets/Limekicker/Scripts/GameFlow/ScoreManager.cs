@@ -10,13 +10,11 @@ using VContainer;
 /// </summary>
 public class ScoreManager : IScoreManager, IDisposable
 {
-    public Dictionary<PlayerData, int> PlayerScores { get; private set; } = new Dictionary<PlayerData, int>();
-
     public event Action<PlayerData> OnScoreChanged;
-    public event Action<PlayerData> OnPlayerAdded; // for UI
+    public event Action<PlayerData> OnPlayerAdded;
 
-    // SOAP: Track IntVariable SOs per player for score values
-    private Dictionary<ulong, IntVariable> playerScoreVariables = new Dictionary<ulong, IntVariable>();
+    // Keyed by OwnerClientId for players and NetworkObjectId for bots (no owning client),
+    // the same ids the damage system reports as attackers.
     private Dictionary<ulong, PlayerData> playerDataByClientId = new Dictionary<ulong, PlayerData>();
 
     private EventBinding<PlayerSpawnedEvent> playerSpawnedEvent;
@@ -34,17 +32,11 @@ public class ScoreManager : IScoreManager, IDisposable
         EventBus<CollectibleCollectedEvent>.Register(collectibleCollectedEvent);
     }
 
-    public IntVariable GetPlayerScoreVariable(ulong clientId)
-    {
-        return playerScoreVariables.TryGetValue(clientId, out var variable) ? variable : null;
-    }
-
     private void AddPlayerToScoreBoard(PlayerSpawnedEvent playerSpawnedEvent)
     {
         var data = playerSpawnedEvent.UserData;
         var @object = playerSpawnedEvent.NetworkObject;
 
-        // Check if this is a bot - bots use NetworkObjectId, real players use OwnerClientId
         bool isBot = @object.TryGetComponent<PlayerController>(out var controller) && controller.IsBot;
         ulong clientId = isBot ? @object.NetworkObjectId : @object.OwnerClientId;
 
@@ -58,18 +50,13 @@ public class ScoreManager : IScoreManager, IDisposable
             Points = 0
         };
 
-        // SOAP: Create IntVariable SO for this player's score
-        IntVariable scoreVariable = ScriptableObject.CreateInstance<IntVariable>();
-        scoreVariable.Value = 0;
-        playerScoreVariables[clientId] = scoreVariable;
         playerDataByClientId[clientId] = playerData;
 
         OnPlayerAdded?.Invoke(playerData);
     }
 
     /// <summary>
-    /// Handles damage dealt events and awards points to the attacker. Searches through all players
-    /// to find the attacker by matching their ID (NetworkObjectId for bots, OwnerClientId for real players).
+    /// Awards points equal to the damage dealt to the attacker.
     /// </summary>
     private void HandleDamageDealt(DamageDealtEvent @event)
     {
@@ -77,8 +64,7 @@ public class ScoreManager : IScoreManager, IDisposable
             return;
 
         NetworkObject attackerObject = null;
-        
-        // Find the attacker by matching IDs - bots use NetworkObjectId, real players use OwnerClientId
+
         foreach (var player in PlayerTracker.players.Values)
         {
             if (!player.TryGetComponent<PlayerController>(out var controller))
@@ -121,27 +107,20 @@ public class ScoreManager : IScoreManager, IDisposable
     }
 
     /// <summary>
-    /// Increases score for a player. Updates both the ScriptableObject (for UI binding) and PlayerData.
+    /// Increases score for a player and mirrors it to the player's networked Score.
     /// </summary>
-    public void IncreaseScore(PlayerController data, int scoreToAdd)
+    private void IncreaseScore(PlayerController data, int scoreToAdd)
     {
-        // Bots use NetworkObjectId, real players use OwnerClientId (matching collision system)
         ulong clientId = data.IsBot ? data.NetworkObjectId : data.OwnerClientId;
-        
-        if (playerScoreVariables.TryGetValue(clientId, out var scoreVariable))
-        {
-            scoreVariable.Value += scoreToAdd;
-            data.Score.Value = scoreVariable.Value;
-            
-            // Update PlayerData
-            if (playerDataByClientId.TryGetValue(clientId, out var playerData))
-            {
-                playerData.Points = scoreVariable.Value;
-                playerDataByClientId[clientId] = playerData;
-            }
-            
-            OnScoreChanged?.Invoke(playerDataByClientId[clientId]);
-        }
+
+        if (!playerDataByClientId.TryGetValue(clientId, out var playerData))
+            return;
+
+        playerData.Points += scoreToAdd;
+        playerDataByClientId[clientId] = playerData;
+        data.Score.Value = playerData.Points;
+
+        OnScoreChanged?.Invoke(playerData);
     }
 
     public PlayerData GetLeadingPlayer()
@@ -152,16 +131,7 @@ public class ScoreManager : IScoreManager, IDisposable
 
     public IReadOnlyList<PlayerData> GetRankedPlayersByScore()
     {
-        var list = new List<PlayerData>();
-        foreach (var kvp in playerDataByClientId)
-        {
-            if (playerScoreVariables.TryGetValue(kvp.Key, out var scoreVar))
-            {
-                var data = kvp.Value;
-                data.Points = scoreVar.Value;
-                list.Add(data);
-            }
-        }
+        var list = new List<PlayerData>(playerDataByClientId.Values);
         list.Sort((a, b) => b.Points.CompareTo(a.Points));
         return list;
     }
