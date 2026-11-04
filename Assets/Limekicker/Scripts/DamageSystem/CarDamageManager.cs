@@ -57,7 +57,7 @@ public class CarDamageManager : NetworkBehaviour
     {
         if (!IsServer)
         {
-            Debug.LogWarning("[CarDamageManager] ApplyDamage called on client - use ServerRpc instead");
+            Debug.LogWarning("[CarDamageManager] ApplyDamage called on client - damage is server-only");
             return;
         }
 
@@ -94,27 +94,15 @@ public class CarDamageManager : NetworkBehaviour
         }
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    public void ApplyDamageServerRpc(float damage, Vector3 damagePosition, ulong attackerClientId)
-    {
-        ApplyDamage(damage, damagePosition, attackerClientId);
-    }
-
     public void Repair(float amount)
     {
         if (!IsServer)
         {
-            Debug.LogWarning("[CarDamageManager] Repair called on client - use ServerRpc instead");
+            Debug.LogWarning("[CarDamageManager] Repair called on client - repair is server-only");
             return;
         }
 
         currentCarHealth.Value = Mathf.Min(currentCarHealth.Value + amount, maxCarHealth);
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    public void RepairServerRpc(float amount)
-    {
-        Repair(amount);
     }
 
     private void OnHealthChanged(float oldValue, float newValue)

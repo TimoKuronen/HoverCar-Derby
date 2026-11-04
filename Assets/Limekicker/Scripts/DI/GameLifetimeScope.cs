@@ -20,5 +20,6 @@ public class GameLifetimeScope : LifetimeScope
         builder.RegisterEntryPoint<PlayerSpawnManager>(Lifetime.Scoped);
         builder.RegisterEntryPoint<GameUiPresenterBootstrap>(Lifetime.Scoped);
         builder.RegisterComponentInHierarchy<GasButton>();
+        builder.RegisterComponentInHierarchy<CollectibleSpawner>();
     }
 }

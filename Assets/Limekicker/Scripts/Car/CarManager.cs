@@ -20,9 +20,10 @@ public class CarManager : NetworkBehaviour
     private Rigidbody carRigidbody;
     private EventBinding<CollectibleCollectedEvent> collectibleCollectedEvent;
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
     private void Update()
     {
-        if (Keyboard.current.rKey.wasPressedThisFrame)
+        if (Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame)
         {
             if (!NetworkObject.IsOwner || PlayerController.IsBot)
             {
@@ -33,6 +34,7 @@ public class CarManager : NetworkBehaviour
             Debug.Log("Car destroyed for testing purposes." + PlayerController.PlayerName.Value + " with this much health still left " + DamageManager.CurrentCarHealth);
         }
     }
+#endif
 
     public override void OnNetworkSpawn()
     {

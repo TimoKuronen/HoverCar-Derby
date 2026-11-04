@@ -36,6 +36,9 @@ public class CollisionCollectible : NetworkBehaviour
     [SerializeField] private Collider triggerCollider;
 
     public CollectibleData CollectibleEffectData => collectibleEffectData;
+    public bool IsProcessed => isProcessed.Value;
+
+    private const float CollectedDespawnDelaySeconds = 2f;
 
     private NetworkVariable<bool> isProcessed = new NetworkVariable<bool>(
         false,
@@ -50,7 +53,7 @@ public class CollisionCollectible : NetworkBehaviour
 
         if (IsServer && collectibleEffectData.HazardLifetimeSeconds > 0f)
         {
-            StartCoroutine(DestroyAfterLifetime(collectibleEffectData.HazardLifetimeSeconds));
+            StartCoroutine(DespawnAfterDelay(collectibleEffectData.HazardLifetimeSeconds));
         }
     }
 
@@ -123,7 +126,8 @@ public class CollisionCollectible : NetworkBehaviour
             collectedEvent.Magnitude,
             collectedEvent.WorldPosition);
 
-        StartCoroutine(PlayEffects());
+        // Delay keeps the object alive long enough for the ClientRpc and pickup feedback to play out.
+        StartCoroutine(DespawnAfterDelay(CollectedDespawnDelaySeconds));
     }
 
     [ClientRpc]
@@ -145,16 +149,9 @@ public class CollisionCollectible : NetworkBehaviour
         });
     }
 
-    private IEnumerator PlayEffects()
+    private IEnumerator DespawnAfterDelay(float delaySeconds)
     {
-        yield return new WaitForSeconds(2f);
-
-        //ReturnToPool();
-    }
-
-    private IEnumerator DestroyAfterLifetime(float lifetimeSeconds)
-    {
-        yield return new WaitForSeconds(lifetimeSeconds);
+        yield return new WaitForSeconds(delaySeconds);
 
         if (IsServer && NetworkObject != null && NetworkObject.IsSpawned)
         {
