@@ -15,7 +15,7 @@ public class SpawnPointService
 
     public void Initialize()
     {
-        allSpawnPoints = Object.FindObjectsOfType<SpawnPoint>(true)
+        allSpawnPoints = Object.FindObjectsByType<SpawnPoint>(FindObjectsInactive.Include, FindObjectsSortMode.None)
             .OrderBy(sp => sp.transform.position.x)
             .ToArray();
 
