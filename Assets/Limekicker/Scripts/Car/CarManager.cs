@@ -174,7 +174,7 @@ public class CarManager : NetworkBehaviour
         transform.position = targetPosition;
         carRigidbody.position = targetPosition;
         carRigidbody.isKinematic = wasKinematic;
-        carRigidbody.velocity = Vector3.zero;
+        carRigidbody.linearVelocity = Vector3.zero;
         carRigidbody.angularVelocity = Vector3.zero;
 
         Physics.SyncTransforms();

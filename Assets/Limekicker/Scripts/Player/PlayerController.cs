@@ -229,7 +229,7 @@ public class PlayerController : NetworkBehaviour
             cachedRigidbody.isKinematic = true;
             cachedRigidbody.position = position;
             cachedRigidbody.rotation = rotation;
-            cachedRigidbody.velocity = Vector3.zero;
+            cachedRigidbody.linearVelocity = Vector3.zero;
             cachedRigidbody.angularVelocity = Vector3.zero;
         }
 

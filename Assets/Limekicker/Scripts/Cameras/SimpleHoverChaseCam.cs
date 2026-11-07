@@ -64,7 +64,7 @@ public class SimpleHoverChaseCam : MonoBehaviour
             return;
 
         Rigidbody rb = target.GetComponent<Rigidbody>();
-        float speed = rb != null ? rb.velocity.magnitude : 0f;
+        float speed = rb != null ? rb.linearVelocity.magnitude : 0f;
 
         Vector3 targetPosition = target.position - target.forward * distance + Vector3.up * height;
 
@@ -75,7 +75,7 @@ public class SimpleHoverChaseCam : MonoBehaviour
 
         Vector3 lookDir = Vector3.ProjectOnPlane(target.position - transform.position, Vector3.up);
         Quaternion targetRotation = Quaternion.LookRotation(lookDir.normalized);
-        float speedFactor = rb != null ? Mathf.Clamp01(rb.velocity.magnitude / maxSpeedForTilt) : 0f;
+        float speedFactor = rb != null ? Mathf.Clamp01(rb.linearVelocity.magnitude / maxSpeedForTilt) : 0f;
         float currentTiltAngle = Mathf.Lerp(minTiltAngle, maxTiltAngle, speedFactor);
         Quaternion tiltRotation = Quaternion.Euler(currentTiltAngle, targetRotation.eulerAngles.y, 0);
         transform.rotation = tiltRotation;
@@ -152,7 +152,7 @@ public class SimpleHoverChaseCam : MonoBehaviour
             return;
 
         Rigidbody rb = target.GetComponent<Rigidbody>();
-        float speed = rb.velocity.magnitude;
+        float speed = rb.linearVelocity.magnitude;
 
         Vector3 targetPosition = target.position - target.forward * distance + Vector3.up * height;
 

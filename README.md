@@ -1,6 +1,6 @@
 # HoverCar Derby
 
-[![Unity 2022.3.62f3](https://img.shields.io/badge/Unity-2022.3.62f3-black.svg)](ProjectSettings/ProjectVersion.txt)
+[![Unity 6000.3.28f1](https://img.shields.io/badge/Unity-6000.3.28f1-black.svg)](ProjectSettings/ProjectVersion.txt)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 Unity multiplayer arena prototype exploring Netcode for GameObjects (NGO), Unity Gaming Services (Auth, Relay), and client/server authority tradeoffs in a demolition-derby style hover car game.
@@ -42,7 +42,7 @@ Details: [architecture](docs/architecture.md) · [authority model](docs/authorit
 
 | Area | Choice |
 |------|--------|
-| Engine | Unity `2022.3.62f3` LTS |
+| Engine | Unity `6000.3.28f1` LTS |
 | Networking | Netcode for GameObjects |
 | Services | UGS Auth, Relay, Lobbies |
 | DI | VContainer |

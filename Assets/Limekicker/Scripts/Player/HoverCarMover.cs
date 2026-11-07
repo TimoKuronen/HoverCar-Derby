@@ -133,7 +133,7 @@ public class HoverCarMover : NetworkBehaviour
         if (Mathf.Abs(currentTurn) > 0.01f)
             rig.AddTorque(Vector3.up * currentTurn, ForceMode.Acceleration);
 
-        if (rig.velocity.magnitude > maxSpeed)
-            rig.velocity = carManager.CarData.GetMaxSpeedMultiplier() * maxSpeed * rig.velocity.normalized;
+        if (rig.linearVelocity.magnitude > maxSpeed)
+            rig.linearVelocity = carManager.CarData.GetMaxSpeedMultiplier() * maxSpeed * rig.linearVelocity.normalized;
     }
 }

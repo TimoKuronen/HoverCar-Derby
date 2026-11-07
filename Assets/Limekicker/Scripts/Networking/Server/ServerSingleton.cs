@@ -17,7 +17,7 @@ public class ServerSingleton : MonoBehaviour
         {
             if (instance == null)
             {
-                instance = FindObjectOfType<ServerSingleton>();
+                instance = FindFirstObjectByType<ServerSingleton>();
                 if (instance == null)
                 {
                     Debug.LogError("ServerSingleton instance not found in the scene.");

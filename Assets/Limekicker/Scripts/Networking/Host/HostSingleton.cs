@@ -16,7 +16,7 @@ public class HostSingleton : MonoBehaviour
         {
             if (instance == null)
             {
-                instance = FindObjectOfType<HostSingleton>();
+                instance = FindFirstObjectByType<HostSingleton>();
                 if (instance == null)
                 {
                     Debug.LogError("HostSingleton instance not found in the scene.");

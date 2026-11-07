@@ -164,8 +164,8 @@ public class GameManager : NetworkBehaviour, IGameManager
         readyParticipants.Remove(networkObjectId);
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    public void ReportPlayerReadyServerRpc(ulong participantNetworkObjectId, ServerRpcParams rpcParams = default)
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    public void ReportPlayerReadyServerRpc(ulong participantNetworkObjectId, RpcParams rpcParams = default)
     {
         if (NetworkManager.SpawnManager == null ||
             !NetworkManager.SpawnManager.SpawnedObjects.TryGetValue(participantNetworkObjectId, out NetworkObject netObj))

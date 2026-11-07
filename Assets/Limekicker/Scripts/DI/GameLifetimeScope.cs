@@ -12,7 +12,7 @@ public class GameLifetimeScope : LifetimeScope
     {
         builder.Register<IScoreManager, ScoreManager>(Lifetime.Scoped);
 
-        var gameManager = FindObjectOfType<GameManager>();
+        var gameManager = FindFirstObjectByType<GameManager>();
         builder.RegisterComponent(gameManager)
                .AsImplementedInterfaces()
                .AsSelf();

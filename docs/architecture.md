@@ -1,6 +1,6 @@
 # Architecture
 
-HoverCar Derby is a Unity 2022.3 LTS demolition-derby prototype focused on **Netcode for GameObjects (NGO)** and **Unity Gaming Services** (Auth, Relay, Lobbies). Networking and session design are the primary concern.
+HoverCar Derby is a Unity 6.3 LTS demolition-derby prototype focused on **Netcode for GameObjects (NGO)** and **Unity Gaming Services** (Auth, Relay, Lobbies). Networking and session design are the primary concern.
 
 ## Folder map
 

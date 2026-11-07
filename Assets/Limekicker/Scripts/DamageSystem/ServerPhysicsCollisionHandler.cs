@@ -82,8 +82,8 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
             (otherPlayer.transform.position - transform.position).normalized,
             impactForce,
             collision.contacts[0].normal,
-            rb.velocity.magnitude,
-            otherRb != null ? otherRb.velocity.magnitude : 0f);
+            rb.linearVelocity.magnitude,
+            otherRb != null ? otherRb.linearVelocity.magnitude : 0f);
 
         lastCollisionTime = Time.time;
         StartCoroutine(RemoveFromRecentCollisions(collisionKey, collisionCooldown));
@@ -105,8 +105,8 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
             collision.contacts[0].point,
             (otherPlayer.transform.position - transform.position).normalized,
             collision.contacts[0].normal,
-            rb.velocity.magnitude,
-            otherRb.velocity.magnitude);
+            rb.linearVelocity.magnitude,
+            otherRb.linearVelocity.magnitude);
 
         lastCollisionTime = Time.time;
     }
