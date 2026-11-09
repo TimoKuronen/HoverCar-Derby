@@ -226,11 +226,11 @@ public class PlayerController : NetworkBehaviour
 
         if (cachedRigidbody != null)
         {
+            cachedRigidbody.linearVelocity = Vector3.zero;
+            cachedRigidbody.angularVelocity = Vector3.zero;
             cachedRigidbody.isKinematic = true;
             cachedRigidbody.position = position;
             cachedRigidbody.rotation = rotation;
-            cachedRigidbody.linearVelocity = Vector3.zero;
-            cachedRigidbody.angularVelocity = Vector3.zero;
         }
 
         transform.SetPositionAndRotation(position, rotation);

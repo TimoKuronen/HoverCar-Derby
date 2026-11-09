@@ -31,6 +31,23 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
     private float lastCollisionTime;
     private static HashSet<ulong> globalRecentCollisions = new HashSet<ulong>();
 
+    /// <summary>
+    /// Speed sampled before the physics step. Collision callbacks run after the solver has already
+    /// changed velocities, so live Rigidbody speeds make a rammed idle car look fast.
+    /// </summary>
+    public float PreStepSpeed { get; private set; }
+
+    private void FixedUpdate()
+    {
+        if (rb != null)
+            PreStepSpeed = rb.linearVelocity.magnitude;
+    }
+
+    private static float GetPreStepSpeed(PlayerController player)
+    {
+        return player.TryGetComponent(out ServerPhysicsCollisionHandler handler) ? handler.PreStepSpeed : 0f;
+    }
+
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -82,8 +99,8 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
             (otherPlayer.transform.position - transform.position).normalized,
             impactForce,
             collision.contacts[0].normal,
-            rb.linearVelocity.magnitude,
-            otherRb != null ? otherRb.linearVelocity.magnitude : 0f);
+            PreStepSpeed,
+            GetPreStepSpeed(otherPlayer));
 
         lastCollisionTime = Time.time;
         StartCoroutine(RemoveFromRecentCollisions(collisionKey, collisionCooldown));
@@ -105,8 +122,8 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
             collision.contacts[0].point,
             (otherPlayer.transform.position - transform.position).normalized,
             collision.contacts[0].normal,
-            rb.linearVelocity.magnitude,
-            otherRb.linearVelocity.magnitude);
+            PreStepSpeed,
+            GetPreStepSpeed(otherPlayer));
 
         lastCollisionTime = Time.time;
     }

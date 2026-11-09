@@ -47,6 +47,7 @@ public class CarManager : NetworkBehaviour
 
         DamageManager.Initialize(PlayerController);
         DamageManager.OnCarDestroyed += HandleCarDestroyed;
+        DamageManager.OnCarRestored += HandleCarRestored;
 
         if (TryGetComponent<CarVFX>(out carVFX))
         {
@@ -68,6 +69,7 @@ public class CarManager : NetworkBehaviour
         }
 
         DamageManager.OnCarDestroyed -= HandleCarDestroyed;
+        DamageManager.OnCarRestored -= HandleCarRestored;
         base.OnNetworkDespawn();
     }
 
@@ -115,6 +117,17 @@ public class CarManager : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Runs on every peer so the owning client resumes hovering, not only the server that drives the respawn.
+    /// </summary>
+    private void HandleCarRestored()
+    {
+        if (hoverCarControl != null)
+        {
+            hoverCarControl.ToggleHovering(true);
+        }
+    }
+
     private IEnumerator Respawn()
     {
         yield return new WaitForSeconds(2f);
@@ -140,8 +153,6 @@ public class CarManager : NetworkBehaviour
         }
 
         yield return StartCoroutine(HopCarIntoAir());
-
-        hoverCarControl.ToggleHovering(true);
     }
 
     private IEnumerator HopCarIntoAir()
