@@ -89,23 +89,24 @@ public class CollisionCollectible : NetworkBehaviour
             triggerCollider.enabled = true;
     }
 
-    private void OnCollisionEnter(Collision collidingCar)
+    private void OnTriggerEnter(Collider other)
     {
-        if (!IsServer || isProcessed.Value || !collidingCar.gameObject.CompareTag("Vehicle"))
+        if (!IsServer || isProcessed.Value)
             return;
 
-        if (collidingCar.relativeVelocity.magnitude <= 5f)
+        Rigidbody body = other.attachedRigidbody;
+        if (body == null || !body.CompareTag("Vehicle"))
             return;
 
-        ProcessItem(collidingCar);
+        ProcessItem(body.gameObject);
     }
 
-    private void ProcessItem(Collision collidingCar)
+    private void ProcessItem(GameObject collector)
     {
         if (!IsServer)
             return;
 
-        if (!collidingCar.gameObject.TryGetComponent<NetworkObject>(out NetworkObject collectorNetworkObject))
+        if (!collector.TryGetComponent<NetworkObject>(out NetworkObject collectorNetworkObject))
             return;
 
         isProcessed.Value = true;

@@ -81,7 +81,7 @@ UI and gameplay call `NetworkSession` instead of Host/Client/Server singletons d
 | `StartHostAsync()` | Relay + lobby metadata + StartHost |
 | `StartClientViaJoinCodeAsync(code)` | Join Relay session by code |
 | `LeaveGame()` / `ReturnToMainMenu()` | Host shutdown or client disconnect to MainMenu |
-| `RestartCurrentMatch()` | Reload PlayScene for rematch (host NGO / client local) |
+| `RestartCurrentMatch()` | Despawn all cars, then reload PlayScene for rematch (host NGO / client local) |
 
 Additional session APIs (lobby browse, matchmaker join) exist in the facade but are not exposed in the menu UI.
 

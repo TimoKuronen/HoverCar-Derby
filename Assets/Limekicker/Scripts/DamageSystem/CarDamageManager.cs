@@ -42,6 +42,7 @@ public class CarDamageManager : NetworkBehaviour
     public bool IsDestroyed => currentCarHealth.Value <= 0f;
 
     public event Action OnCarDestroyed;
+    public event Action OnCarRestored;
     public event Action<Vector3> OnCarDamaged;
 
     public void Initialize(PlayerController playerController)
@@ -110,6 +111,10 @@ public class CarDamageManager : NetworkBehaviour
         if (oldValue > 0 && newValue <= 0)
         {
             OnCarDestroyed?.Invoke();
+        }
+        else if (oldValue <= 0 && newValue > 0)
+        {
+            OnCarRestored?.Invoke();
         }
     }
 }

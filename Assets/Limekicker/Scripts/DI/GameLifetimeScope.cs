@@ -21,5 +21,6 @@ public class GameLifetimeScope : LifetimeScope
         builder.RegisterEntryPoint<GameUiPresenterBootstrap>(Lifetime.Scoped);
         builder.RegisterComponentInHierarchy<GasButton>();
         builder.RegisterComponentInHierarchy<CollectibleSpawner>();
+        builder.RegisterBuildCallback(resolver => resolver.Resolve<CollectibleSpawner>());
     }
 }

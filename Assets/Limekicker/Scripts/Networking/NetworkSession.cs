@@ -111,6 +111,7 @@ public static class NetworkSession
     {
         if (IsHostActive && NetworkManager.Singleton != null)
         {
+            DespawnAllCars();
             NetworkManager.Singleton.SceneManager.LoadScene(
                 SceneManager.GetActiveScene().name,
                 LoadSceneMode.Single);
@@ -118,6 +119,27 @@ public static class NetworkSession
         }
 
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    /// <summary>
+    /// Player objects survive NGO scene loads while bots do not, so a rematch would otherwise keep stale
+    /// player cars and skip respawning them. Despawning every car lets the reloaded scene spawn a clean set.
+    /// </summary>
+    private static void DespawnAllCars()
+    {
+        var cars = new List<NetworkObject>();
+        foreach (NetworkObject spawned in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
+        {
+            if (spawned != null && spawned.TryGetComponent<PlayerController>(out _))
+            {
+                cars.Add(spawned);
+            }
+        }
+
+        foreach (NetworkObject car in cars)
+        {
+            car.Despawn(true);
+        }
     }
 
     public static INetworkServer GetNetworkServer()
