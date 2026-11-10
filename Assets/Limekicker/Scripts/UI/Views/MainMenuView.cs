@@ -29,6 +29,13 @@ public class MainMenuView : MonoBehaviour, IMainMenuView
     public event Action OnHostClicked;
     public event Action OnJoinClicked;
 
+    private bool isBusy;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    private const float HandoffPollIntervalSeconds = 0.5f;
+    private float nextHandoffPollTime;
+    private string lastHandedOffCode;
+#endif
+
     private void Awake()
     {
         HideDeferredUi();
@@ -48,6 +55,13 @@ public class MainMenuView : MonoBehaviour, IMainMenuView
         WireDevToggles();
     }
 
+    private void Update()
+    {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        PollJoinCodeHandoff();
+#endif
+    }
+
     public string GetJoinCode()
     {
         return joinCodeField != null ? joinCodeField.text : string.Empty;
@@ -55,11 +69,34 @@ public class MainMenuView : MonoBehaviour, IMainMenuView
 
     public void SetBusy(bool busy)
     {
+        isBusy = busy;
+
         if (hostButton != null)
             hostButton.interactable = !busy;
         if (joinButton != null)
             joinButton.interactable = !busy;
     }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    private void PollJoinCodeHandoff()
+    {
+        if (isBusy || Time.unscaledTime < nextHandoffPollTime)
+            return;
+
+        nextHandoffPollTime = Time.unscaledTime + HandoffPollIntervalSeconds;
+
+        if (!JoinCodeHandoff.TryRead(out string joinCode) || joinCode == lastHandedOffCode)
+            return;
+
+        lastHandedOffCode = joinCode;
+
+        if (joinCodeField != null)
+            joinCodeField.text = joinCode;
+
+        if (JoinCodeHandoff.AutoJoinEnabled)
+            OnJoinClicked?.Invoke();
+    }
+#endif
 
     private void HideDeferredUi()
     {

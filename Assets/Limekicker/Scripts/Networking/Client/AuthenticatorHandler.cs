@@ -4,7 +4,7 @@ using Unity.Services.Core;
 using UnityEngine;
 
 /// <summary>
-/// Unity Services anonymous sign-in with retry and ParrelSync profile isolation.
+/// Unity Services anonymous sign-in with retry and per-virtual-player profile isolation.
 /// </summary>
 public static class AuthenticatorHandler
 {
@@ -27,7 +27,7 @@ public static class AuthenticatorHandler
 
         AuthenticatorState = AuthenticatorState.Authenticating;
 
-        ApplyParrelSyncProfileIfNeeded();
+        ApplyVirtualPlayerProfileIfNeeded();
 
         await SignInAnonymouslyAsync(maxTries);
 
@@ -35,35 +35,24 @@ public static class AuthenticatorHandler
     }
 
     /// <summary>
-    /// ParrelSync clones symlink this project's ProjectSettings, so a clone shares the original's
-    /// Company/Product identity and, with it, Unity Authentication's cached anonymous session.
-    /// Switching to a profile unique to the clone's project folder gives each editor instance its
-    /// own anonymous player identity instead of colliding with the original.
+    /// Multiplayer Play Mode virtual players share the main editor's Company/Product identity and with it
+    /// Unity Authentication's cached anonymous session; a per-player profile gives each its own identity.
     /// </summary>
-    private static void ApplyParrelSyncProfileIfNeeded()
+    private static void ApplyVirtualPlayerProfileIfNeeded()
     {
-#if UNITY_EDITOR
-        if (!ParrelSync.ClonesManager.IsClone())
+        if (!DevPlayerIdentity.IsVirtualPlayer)
         {
             return;
         }
 
         try
         {
-            string folderName = System.IO.Path.GetFileName(ParrelSync.ClonesManager.GetCurrentProjectPath());
-            string profile = System.Text.RegularExpressions.Regex.Replace(folderName, "[^a-zA-Z0-9_-]", "_");
-            if (profile.Length > 30)
-            {
-                profile = profile.Substring(profile.Length - 30, 30);
-            }
-
-            AuthenticationService.Instance.SwitchProfile(profile);
+            AuthenticationService.Instance.SwitchProfile(DevPlayerIdentity.GetAuthProfileName());
         }
         catch (System.Exception e)
         {
-            Debug.LogWarning($"[AuthenticatorHandler] Failed to switch ParrelSync clone auth profile: {e.Message}");
+            Debug.LogWarning($"[AuthenticatorHandler] Failed to switch virtual player auth profile: {e.Message}");
         }
-#endif
     }
 
     /// <summary>Waits for ongoing authentication to complete.</summary>
