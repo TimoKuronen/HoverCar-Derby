@@ -29,12 +29,12 @@ Assets/Limekicker/
 │   │   └── Lobby/
 │   ├── Audio/              Cues, preferences, AudioService
 │   ├── Cameras/            Cinemachine, dolly intros
-│   ├── Debug/              DevMenuOptions
+│   ├── Debug/              Dev toggles, multi-instance join code hand-off
 │   └── Editor/             Custom inspectors and drawers
 ├── Scriptables/            Timer/countdown assets, audio cues
 ```
 
-Art and VFX under `Assets/JMO Assets` and `Assets/RPGPP_LT` are third-party packs used as placeholders.
+Art and VFX under `Assets/JMO Assets` and `Assets/RPGPP_LT` are third-party packs.
 
 ## Scenes
 
@@ -83,11 +83,11 @@ UI and gameplay call `NetworkSession` instead of Host/Client/Server singletons d
 | `LeaveGame()` / `ReturnToMainMenu()` | Host shutdown or client disconnect to MainMenu |
 | `RestartCurrentMatch()` | Despawn all cars, then reload PlayScene for rematch (host NGO / client local) |
 
-Additional session APIs (lobby browse, matchmaker join) exist in the facade but are not exposed in the menu UI.
+The facade also carries lobby browse and matchmaker join methods.
 
 Singletons (`HostSingleton`, `ClientSingleton`, `ServerSingleton`) are DontDestroyOnLoad and created at NetBootstrap.
 
-## PlayScene menu MVP
+## PlayScene menus
 
 | Menu | View | Presenter |
 |------|------|-----------|
@@ -95,9 +95,9 @@ Singletons (`HostSingleton`, `ClientSingleton`, `ServerSingleton`) are DontDestr
 | Round results | `RoundResultsView` | `RoundResultsPresenter` |
 | Live scoreboard | `ScoreDisplayView` | `ScoreDisplayPresenter` |
 
-Composition root: `GameUiPresenterBootstrap` (registered in `GameLifetimeScope`). Pause opens via on-screen pause button; resume via resume button or pause toggle. Leave calls `NetworkSession.ReturnToMainMenu()`. Session actions go through `NetworkSession` only.
+Composition root: `GameUiPresenterBootstrap` (registered in `GameLifetimeScope`). The on-screen pause button opens pause; the resume button or pause toggle closes it. Leave calls `NetworkSession.ReturnToMainMenu()`. Session actions go through `NetworkSession` only.
 
-## MainMenu MVP
+## MainMenu
 
 | Concern | View | Presenter |
 |---------|------|-----------|
@@ -133,8 +133,8 @@ Composition root: `MenuUiPresenterBootstrap` (registered in `MenuLifetimeScope`)
 | `Prefabs/UI/RuntimeConsolePanel` | Error/exception log UI |
 | `Prefabs/UI/NotificationConsolePanel` | Player-facing session messages |
 
-## Demo path
+## Session formation
 
-**Host + Relay + join code** (2–4 players).
+The host creates a Relay allocation and publishes a join code; clients join the allocation by that code.
 
 Related: [authority.md](authority.md)

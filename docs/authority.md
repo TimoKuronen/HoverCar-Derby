@@ -39,10 +39,6 @@ Clients do not unilaterally decide damage outcomes.
 2. `ClientNetworkTransform` replicates transform to peers.
 3. Bots use the same mover with server-side input (`isBot`).
 
-## Cheat surface
-
-Without server validation of speed/position, a modified client could speed-hack or teleport. Health and score remain server-writable NetworkVariable / server events, so permanent fake health is not trivial without compromising the host/server.
-
 ## Key files
 
 - `Scripts/Networking/Client/ClientNetworkTransform.cs`

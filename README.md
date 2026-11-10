@@ -18,8 +18,6 @@ Unity multiplayer arena prototype exploring Netcode for GameObjects (NGO), Unity
 - UGS Auth and Relay behind a `NetworkSession` facade
 - VContainer DI scopes, EventBus hooks, presenter/view UI on main menu and play HUD
 
-Demo path: **Host + Relay + join code**.
-
 ## Architecture
 
 ```text

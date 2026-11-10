@@ -103,6 +103,7 @@ public class HostGameManager : IDisposable
         NetworkServer.RegisterHostUserData(hostUserData);
 
         NetworkManager.Singleton.StartHost();
+        JoinCodeHandoff.Publish(joinCode);
 
         NetworkServer.OnClientLeft += HandleClientLeft;
 
@@ -129,6 +130,7 @@ public class HostGameManager : IDisposable
     /// <summary>Deletes lobby and shuts down network server.</summary>
     public async void Shutdown()
     {
+        JoinCodeHandoff.Clear();
         await lobbyService.DeleteLobbyAsync();
 
         // Unsubscribe from events if NetworkServer still exists
