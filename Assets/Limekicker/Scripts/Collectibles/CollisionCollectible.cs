@@ -11,8 +11,7 @@ public enum CollectibleType
     None,
     Repair,
     Points,
-    Damage,
-    SpeedBoost
+    Damage
 }
 
 /// <summary>
