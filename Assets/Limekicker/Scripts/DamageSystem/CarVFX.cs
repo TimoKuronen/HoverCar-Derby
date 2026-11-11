@@ -62,12 +62,18 @@ public class CarVFX : NetworkBehaviour
 
             smoke.gameObject.SetActive(true);
 
+            var main = smoke.main;
+            main.startColor = normalDamageSmokeColor;
+
             smoke.Simulate(warmupTime, true, true, true);
             smoke.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         }
 
-        fireVFX.Simulate(warmupTime, true, true, true);
-        fireVFX.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        if (fireVFX != null)
+        {
+            fireVFX.Simulate(warmupTime, true, true, true);
+            fireVFX.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        }
 
         isVFXWarmedUp = true;
     }

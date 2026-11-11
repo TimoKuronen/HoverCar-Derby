@@ -22,8 +22,6 @@ public class HoverCarMover : NetworkBehaviour
 
     private float currentThrust;
     private float currentTurn;
-    private float originalAccelerationValue;
-    private float originalMaxSpeed;
     private bool isReady;
     private bool isBot;
 
@@ -53,8 +51,6 @@ public class HoverCarMover : NetworkBehaviour
 
     private void Start()
     {
-        originalAccelerationValue = forwardAcceleration;
-        originalMaxSpeed = maxSpeed;
         SyncGameplayReady();
 
         if (!isBot && IsOwner && inputService == null)
@@ -64,20 +60,6 @@ public class HoverCarMover : NetworkBehaviour
     public void Construct(IInputService inputService)
     {
         this.inputService = inputService;
-    }
-
-    public void ToggleNitroBoost(bool value, float nitroMultiplierValue, float maxSpeedMultiplier)
-    {
-        if (value)
-        {
-            forwardAcceleration *= nitroMultiplierValue;
-            maxSpeed *= maxSpeedMultiplier;
-        }
-        else
-        {
-            forwardAcceleration = originalAccelerationValue;
-            maxSpeed = originalMaxSpeed;
-        }
     }
 
     private void TryConstructFromContainer()

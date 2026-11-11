@@ -116,6 +116,9 @@ public class GameManager : NetworkBehaviour, IGameManager
     {
         currentState?.Update();
         timerDisplaySync?.Tick();
+#if UNITY_EDITOR
+        ExtendRoundDeadlineAcrossEditorPause();
+#endif
         TryCompleteRoundFromTimer();
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -123,6 +126,29 @@ public class GameManager : NetworkBehaviour, IGameManager
             DevSetRemainingRoundSeconds(1);
 #endif
     }
+
+#if UNITY_EDITOR
+    private const double EditorPauseGapSeconds = 1d;
+    private double lastServerTimeSample = -1d;
+
+    // Pausing the editor freezes frames while real time (and so the shared server clock) jumps on resume.
+    // The server pushes the round deadline out by that jump so the round pauses for every peer.
+    private void ExtendRoundDeadlineAcrossEditorPause()
+    {
+        if (!IsServer || NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening)
+        {
+            lastServerTimeSample = -1d;
+            return;
+        }
+
+        double now = NetworkManager.ServerTime.Time;
+        double gap = lastServerTimeSample < 0d ? 0d : now - lastServerTimeSample;
+        lastServerTimeSample = now;
+
+        if (gap > EditorPauseGapSeconds && matchPhase.Value == RaceContext.MatchPhase.Playing && roundEndServerTime.Value > 0d)
+            roundEndServerTime.Value += gap;
+    }
+#endif
 
     private void TryCompleteRoundFromTimer()
     {

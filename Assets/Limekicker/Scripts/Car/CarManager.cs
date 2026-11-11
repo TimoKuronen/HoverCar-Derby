@@ -92,10 +92,6 @@ public class CarManager : NetworkBehaviour
             case CollectibleType.Damage:
                 DamageManager.ApplyDamage(collectedEvent.Magnitude, collectedEvent.WorldPosition);
                 break;
-
-            case CollectibleType.SpeedBoost:
-                Debug.LogWarning("[CarManager] SpeedBoost collectible is not implemented yet.");
-                break;
         }
     }
 

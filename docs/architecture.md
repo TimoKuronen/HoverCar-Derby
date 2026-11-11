@@ -13,7 +13,7 @@ Assets/Limekicker/
 │   ├── GameFlow/           Match orchestration, score, timer, pause
 │   ├── Networking/         Connection, host/client/server, UGS services
 │   ├── Player/             Movement, controller, bots, spawn, input
-│   ├── Car/                Car lifecycle, colors, hover physics, nitro
+│   ├── Car/                Car lifecycle, colors, hover physics
 │   ├── DamageSystem/       Collisions, health, VFX, damage numbers
 │   ├── Collectibles/       Pickups and spawner
 │   ├── GameStates/         Cinematic, countdown, play, completion, IGameState
