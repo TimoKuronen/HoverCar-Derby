@@ -33,7 +33,7 @@ public class HostSingleton : MonoBehaviour
     /// <summary>Creates HostGameManager for client-hosted games.</summary>
     public void CreateHost(NetworkObject playerPrefab)
     {
-        GameManager = new HostGameManager(playerPrefab, this);
+        GameManager = new HostGameManager(playerPrefab);
     }
 
     private void OnDestroy()

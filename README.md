@@ -3,7 +3,7 @@
 [![Unity 6000.3.28f1](https://img.shields.io/badge/Unity-6000.3.28f1-black.svg)](ProjectSettings/ProjectVersion.txt)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Unity multiplayer arena prototype exploring Netcode for GameObjects (NGO), Unity Gaming Services (Auth, Relay), and client/server authority tradeoffs in a demolition-derby style hover car game.
+Unity multiplayer arena prototype exploring Netcode for GameObjects (NGO), Unity Gaming Services (Auth, Multiplayer Services Sessions), and client/server authority tradeoffs in a demolition-derby style hover car game.
 
 ![Main menu host and join flow](docs/images/main-menu.png)
 
@@ -11,18 +11,18 @@ Unity multiplayer arena prototype exploring Netcode for GameObjects (NGO), Unity
 
 ## Highlights
 
-- Host and client session setup via Relay join codes
+- Host and client session setup via Multiplayer Services sessions (Relay transport, join codes)
 - Player spawning and ownership patterns with Netcode for GameObjects
 - Match state machine: cinematic intro, countdown, play, pause, race end
 - Hybrid authority: client-owned movement, server-owned combat and scoring
-- UGS Auth and Relay behind a `NetworkSession` facade
+- UGS Auth and Sessions behind a `NetworkSession` facade
 - VContainer DI scopes, EventBus hooks, presenter/view UI on main menu and play HUD
 
 ## Architecture
 
 ```text
 Boot (NetBootstrap)
-  -> Network bootstrap (client auth or dedicated server arena load)
+  -> Network bootstrap (host and client singletons, auth)
   -> Session facade (StartHost, JoinByCode, Leave)
   -> Match state machine
   -> Gameplay (hover forces, collision scoring, event bus)
@@ -42,7 +42,7 @@ Details: [architecture](docs/architecture.md) · [authority model](docs/authorit
 |------|--------|
 | Engine | Unity `6000.3.28f1` LTS |
 | Networking | Netcode for GameObjects |
-| Services | UGS Auth, Relay, Lobbies |
+| Services | UGS Auth, Multiplayer Services (Sessions over Relay) |
 | DI | VContainer |
 | Other | Cinemachine, Input System |
 

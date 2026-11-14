@@ -17,10 +17,8 @@ public class MainMenuView : MonoBehaviour, IMainMenuView
     [SerializeField] private Toggle spawnBotToggle;
     [SerializeField] private Toggle skipCountdownToggle;
 
-    // Matchmaking and lobby browse are in-progress; not MVP demo paths.
+    // Lobby browse is hidden until the session-based rewrite lands.
     [Header("Deferred UI (hidden for MVP)")]
-    [SerializeField] private GameObject findMatchButtonRoot;
-    [SerializeField] private GameObject queueTimerRoot;
     [SerializeField] private GameObject lobbiesButtonRoot;
     [SerializeField] private GameObject lobbiesPanelRoot;
     [SerializeField] private GameObject refreshButtonRoot;
@@ -100,8 +98,6 @@ public class MainMenuView : MonoBehaviour, IMainMenuView
 
     private void HideDeferredUi()
     {
-        SetActiveIfAssigned(findMatchButtonRoot, false);
-        SetActiveIfAssigned(queueTimerRoot, false);
         SetActiveIfAssigned(lobbiesButtonRoot, false);
         SetActiveIfAssigned(lobbiesPanelRoot, false);
         SetActiveIfAssigned(refreshButtonRoot, false);

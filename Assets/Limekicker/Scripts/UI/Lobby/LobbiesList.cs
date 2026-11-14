@@ -1,5 +1,6 @@
 using System;
-using Unity.Services.Lobbies.Models;
+using System.Collections.Generic;
+using Unity.Services.Multiplayer;
 using UnityEngine;
 
 // Lobby browse is deferred post-MVP; menu UI keeps this component disabled.
@@ -27,17 +28,17 @@ public class LobbiesList : MonoBehaviour
 
         try
         {
-            QueryResponse lobbies = await NetworkSession.QueryAvailableLobbiesAsync(count: 25);
+            IReadOnlyList<ISessionInfo> sessions = await NetworkSession.QueryAvailableSessionsAsync(count: 25);
 
             foreach (Transform child in lobbyItemParent)
             {
                 Destroy(child.gameObject);
             }
 
-            foreach (Lobby lobby in lobbies.Results)
+            foreach (ISessionInfo session in sessions)
             {
                 LobbyItem lobbyItem = Instantiate(lobbyItemPrefab, lobbyItemParent);
-                lobbyItem.Initialize(this, lobby);
+                lobbyItem.Initialize(this, session);
             }
         }
         catch (Exception e)
@@ -48,8 +49,8 @@ public class LobbiesList : MonoBehaviour
         isRefreshing = false;
     }
 
-    public async void JoinASync(Lobby lobby)
+    public async void JoinASync(ISessionInfo session)
     {
-        await NetworkSession.JoinLobbyByIdAsync(lobby.Id);
+        await NetworkSession.JoinSessionByIdAsync(session.Id);
     }
 }

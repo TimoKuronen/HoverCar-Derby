@@ -14,7 +14,6 @@ public class NetworkServer : INetworkServer, IDisposable
 
     public event Action<UserData> OnUserJoined;
     public event Action<UserData> OnUserLeft;
-    public Action<string> OnClientLeft;
 
     private Dictionary<ulong, string> clientIdToAuth = new Dictionary<ulong, string>();
     private Dictionary<string, UserData> authIdToUserData = new Dictionary<string, UserData>();
@@ -27,13 +26,6 @@ public class NetworkServer : INetworkServer, IDisposable
         networkManager.ConnectionApprovalCallback += ApprovalCheck;
         networkManager.OnServerStarted += OnNetworkReady;
         networkManager.OnClientConnectedCallback += OnClientConnected;
-    }
-
-    /// <summary>Opens server connection. In UNITY_SERVER builds, binds to Multiplay allocated port.</summary>
-    public bool OpenConnection(string ip, int port)
-    {
-        ConnectionService.ConfigureServerBinding(ip, port);
-        return networkManager.StartServer();
     }
 
     /// <summary>Registers host user data and raises OnUserJoined event. Called when host starts.</summary>
@@ -151,7 +143,6 @@ public class NetworkServer : INetworkServer, IDisposable
             OnUserLeft?.Invoke(authIdToUserData[authId]);
             clientIdToAuth.Remove(clientId);
             authIdToUserData.Remove(authId);
-            OnClientLeft?.Invoke(authId);
         }
     }
 

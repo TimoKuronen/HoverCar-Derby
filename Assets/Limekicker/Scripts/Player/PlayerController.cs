@@ -43,16 +43,7 @@ public class PlayerController : NetworkBehaviour
 
         if (IsServer && !IsBot)
         {
-            UserData userdata = null;
-
-            if (IsHost)
-            {
-                userdata = HostSingleton.Instance.GameManager.NetworkServer.GetUserData(OwnerClientId);
-            }
-            else
-            {
-                userdata = ServerSingleton.Instance.GameManager.NetworkServer.GetUserData(OwnerClientId);
-            }
+            UserData userdata = HostSingleton.Instance.GameManager.NetworkServer.GetUserData(OwnerClientId);
 
             if (userdata != null)
             {

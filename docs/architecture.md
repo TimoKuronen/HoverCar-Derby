@@ -1,6 +1,6 @@
 # Architecture
 
-HoverCar Derby is a Unity 6.3 LTS demolition-derby prototype focused on **Netcode for GameObjects (NGO)** and **Unity Gaming Services** (Auth, Relay, Lobbies). Networking and session design are the primary concern.
+HoverCar Derby is a Unity 6.3 LTS demolition-derby prototype focused on **Netcode for GameObjects (NGO)** and **Unity Gaming Services** (Auth, Multiplayer Services sessions). Networking and session design are the primary concern.
 
 ## Folder map
 
@@ -40,7 +40,7 @@ Art and VFX under `Assets/JMO Assets` and `Assets/RPGPP_LT` are third-party pack
 
 | Scene | Role |
 |-------|------|
-| `NetBootstrap` | App entry; creates singletons; auth; routes to menu or dedicated server |
+| `NetBootstrap` | App entry; creates singletons; auth; loads the menu |
 | `Bootstrap` | Optional name entry |
 | `MainMenu` | Host and join by code |
 | `PlayScene` | Arena, GameManager, match loop |
@@ -49,9 +49,7 @@ Art and VFX under `Assets/JMO Assets` and `Assets/RPGPP_LT` are third-party pack
 
 ```mermaid
 flowchart TD
-    A[NetBootstrap] --> B{Dedicated server?}
-    B -->|Yes| C[ServerSingleton + PlayScene]
-    B -->|No| D[HostSingleton + ClientSingleton]
+    A[NetBootstrap] --> D[HostSingleton + ClientSingleton]
     D --> E[UGS Auth]
     E --> F[MainMenu]
     F --> G[Host / Join by code]
@@ -65,27 +63,26 @@ flowchart TD
 | Name | Role |
 |------|------|
 | `GameManager` (PlayScene) | Match/race state machine; server-authoritative phases |
-| `ClientGameManager` | Client session: Relay join, matchmaker, disconnect |
-| `HostGameManager` | Host session: Relay alloc, lobby create, StartHost |
-| `ServerGameManager` | Dedicated server / Multiplay path |
+| `ClientGameManager` | Client session: session join, disconnect |
+| `HostGameManager` | Host session: session create (starts the host), scene load, lock |
 | `NetworkSession` | Facade — UI should call this, not singletons |
 
 ## NetworkSession facade
 
-UI and gameplay call `NetworkSession` instead of Host/Client/Server singletons directly.
+UI and gameplay call `NetworkSession` instead of Host/Client singletons directly.
 
 ### Session surface
 
 | Method | Purpose |
 |--------|---------|
-| `StartHostAsync()` | Relay + lobby metadata + StartHost |
-| `StartClientViaJoinCodeAsync(code)` | Join Relay session by code |
+| `StartHostAsync()` | Create session over Relay, start host |
+| `StartClientViaJoinCodeAsync(code)` | Join session by code |
 | `LeaveGame()` / `ReturnToMainMenu()` | Host shutdown or client disconnect to MainMenu |
 | `RestartCurrentMatch()` | Despawn all cars, then reload PlayScene for rematch (host NGO / client local) |
 
-The facade also carries lobby browse and matchmaker join methods.
+The facade also carries session query, join by ID and lock methods.
 
-Singletons (`HostSingleton`, `ClientSingleton`, `ServerSingleton`) are DontDestroyOnLoad and created at NetBootstrap.
+Singletons (`HostSingleton`, `ClientSingleton`) are DontDestroyOnLoad and created at NetBootstrap.
 
 ## PlayScene menus
 
@@ -135,6 +132,6 @@ Composition root: `MenuUiPresenterBootstrap` (registered in `MenuLifetimeScope`)
 
 ## Session formation
 
-The host creates a Relay allocation and publishes a join code; clients join the allocation by that code.
+The host creates a session with Relay networking; the SDK starts the NetworkManager as host and returns a join code. Clients join by that code, and the SDK starts the NetworkManager as client. The host locks the session when the countdown starts.
 
 Related: [authority.md](authority.md)
