@@ -1,5 +1,5 @@
 using TMPro;
-using Unity.Services.Lobbies.Models;
+using Unity.Services.Multiplayer;
 using UnityEngine;
 
 /// <summary>
@@ -11,19 +11,19 @@ public class LobbyItem : MonoBehaviour
     [SerializeField] private TMP_Text playerCountText;
 
     private LobbiesList lobbiesList;
-    private Lobby lobby;
+    private ISessionInfo session;
 
-    public void Initialize(LobbiesList lobbiesList, Lobby lobby)
+    public void Initialize(LobbiesList lobbiesList, ISessionInfo session)
     {
         this.lobbiesList = lobbiesList;
-        this.lobby = lobby;
+        this.session = session;
 
-        lobbyNameText.text = lobby.Name;
-        playerCountText.text = $"{lobby.Players.Count}/{lobby.MaxPlayers}";
+        lobbyNameText.text = session.Name;
+        playerCountText.text = $"{session.MaxPlayers - session.AvailableSlots}/{session.MaxPlayers}";
     }
 
     public void Join()
     {
-        lobbiesList.JoinASync(lobby);
+        lobbiesList.JoinASync(session);
     }
 }

@@ -251,6 +251,11 @@ public class GameManager : NetworkBehaviour, IGameManager
     {
         phaseStartServerTime.Value = startServerTime;
         matchPhase.Value = phase;
+
+        if (phase == RaceContext.MatchPhase.Countdown || phase == RaceContext.MatchPhase.Playing)
+        {
+            _ = NetworkSession.LockSessionAsync();
+        }
     }
 
     private void HandleMatchPhaseChanged(RaceContext.MatchPhase previous, RaceContext.MatchPhase current)
