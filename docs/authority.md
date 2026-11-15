@@ -44,6 +44,7 @@ Clients do not unilaterally decide damage outcomes.
 - `Scripts/Networking/Client/ClientNetworkTransform.cs`
 - `Scripts/Player/HoverCarMover.cs`
 - `Scripts/DamageSystem/ServerPhysicsCollisionHandler.cs`
+- `Scripts/DamageSystem/Decision/CollisionDamageCalculator.cs`
 - `Scripts/DamageSystem/CarDamageManager.cs`
 - `Scripts/GameFlow/ScoreManager.cs`
 - `Scripts/GameFlow/GameManager.cs`

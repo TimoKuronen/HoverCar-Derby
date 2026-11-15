@@ -110,8 +110,8 @@ Composition root: `MenuUiPresenterBootstrap` (registered in `MenuLifetimeScope`)
 | Player spawn | `PlayerSpawnManager` |
 | Round start/end | `GameManager` + `MatchTimerDisplaySync` + `GameStates/*` |
 | Pause | `MatchPauseController` via `IGameManager.TogglePause` |
-| Damage | `ServerPhysicsCollisionHandler` |
-| Score | `ScoreManager` + `DamageDealtEvent` |
+| Damage | `ServerPhysicsCollisionHandler` applies results; rules in `CollisionDamageCalculator`, repeat suppression in `CollisionDeduplicator` (`Limekicker.DamageDecision` assembly) |
+| Score | `ScoreManager` + `DamageDealtEvent`; points held in `ScoreLedger` |
 | PlayScene menus | `GameUiPresenterBootstrap`, pause / round-results presenters |
 | Session leave / rematch | `NetworkSession.ReturnToMainMenu` / `RestartCurrentMatch` |
 | Player notifications | `SessionNotifications` + `NotificationConsoleView` |
