@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -29,7 +27,7 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
     private PlayerController playerController;
     private CarDamageManager damageManager;
     private float lastCollisionTime;
-    private static HashSet<ulong> globalRecentCollisions = new HashSet<ulong>();
+    private static readonly CollisionDeduplicator recentCollisions = new CollisionDeduplicator();
 
     /// <summary>
     /// Speed sampled before the physics step. Collision callbacks run after the solver has already
@@ -82,7 +80,7 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
     {
         GetCollisionIds(otherPlayer, out ulong thisId, out ulong otherId, out ulong collisionKey);
 
-        if (globalRecentCollisions.Contains(collisionKey))
+        if (recentCollisions.IsRecent(collisionKey, Time.time, collisionCooldown))
             return;
 
         if (thisId > otherId)
@@ -103,7 +101,6 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
             GetPreStepSpeed(otherPlayer));
 
         lastCollisionTime = Time.time;
-        StartCoroutine(RemoveFromRecentCollisions(collisionKey, collisionCooldown));
     }
 
     private void HandleOwnerCollisionEnter(Collision collision, PlayerController otherPlayer)
@@ -147,7 +144,7 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
 
         GetCollisionIds(otherPlayer, out _, out _, out ulong collisionKey);
 
-        if (globalRecentCollisions.Contains(collisionKey))
+        if (recentCollisions.IsRecent(collisionKey, Time.time, collisionCooldown))
             return;
 
         if (!TryRegisterCollision(collisionKey, impactForce))
@@ -163,13 +160,6 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
             reportedOtherSpeed);
 
         lastCollisionTime = Time.time;
-        StartCoroutine(RemoveFromRecentCollisions(collisionKey, collisionCooldown));
-    }
-
-    private IEnumerator RemoveFromRecentCollisions(ulong collisionKey, float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        globalRecentCollisions.Remove(collisionKey);
     }
 
     private static void GetCollisionIds(PlayerController otherPlayer, PlayerController thisPlayer, NetworkBehaviour thisNetworkBehaviour, out ulong thisId, out ulong otherId, out ulong collisionKey)
@@ -179,7 +169,7 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
 
         thisId = thisIsBot ? thisNetworkBehaviour.NetworkObjectId : thisNetworkBehaviour.OwnerClientId;
         otherId = otherIsBot ? otherPlayer.NetworkObjectId : otherPlayer.OwnerClientId;
-        collisionKey = thisId < otherId ? (thisId << 32) | otherId : (otherId << 32) | thisId;
+        collisionKey = CollisionDeduplicator.KeyFor(thisId, otherId);
     }
 
     private void GetCollisionIds(PlayerController otherPlayer, out ulong thisId, out ulong otherId, out ulong collisionKey)
@@ -192,14 +182,12 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
         if (impactForce < minImpactForce)
             return false;
 
-        globalRecentCollisions.Add(collisionKey);
+        recentCollisions.Register(collisionKey, Time.time, collisionCooldown);
         return true;
     }
 
     /// <summary>
-    /// Processes collision damage and physics forces based on collision type, velocities, and impact angles.
-    /// Damage distribution follows rules: front bumper hits deal full damage, head-on collisions split damage,
-    /// and side hits require majority velocity to deal damage.
+    /// Applies the damage decided by <see cref="CollisionDamageCalculator"/> and the physics forces for one collision.
     /// </summary>
     private void ProcessCarCollisionInternal(
         PlayerController otherPlayer,
@@ -210,114 +198,31 @@ public class ServerPhysicsCollisionHandler : NetworkBehaviour
         float thisSpeed,
         float otherSpeed)
     {
-        bool thisIsFrontBumper = Vector3.Dot(transform.forward, -hitNormal) > 0.7f;
-        bool otherIsFrontBumper = Vector3.Dot(otherPlayer.transform.forward, hitNormal) > 0.7f;
-        bool thisIsSide = !thisIsFrontBumper && Mathf.Abs(Vector3.Dot(transform.right, -hitNormal)) > 0.5f;
-        bool otherIsSide = !otherIsFrontBumper && Mathf.Abs(Vector3.Dot(otherPlayer.transform.right, hitNormal)) > 0.5f;
+        CollisionDamage damage = CollisionDamageCalculator.Calculate(
+            new CollisionInput
+            {
+                ThisForward = transform.forward,
+                ThisRight = transform.right,
+                OtherForward = otherPlayer.transform.forward,
+                OtherRight = otherPlayer.transform.right,
+                HitNormal = hitNormal,
+                ThisSpeed = thisSpeed,
+                OtherSpeed = otherSpeed,
+                ImpactForce = impactForce
+            },
+            new DamageSettings
+            {
+                DamageMultiplier = damageMultiplier,
+                MinDamageThreshold = minDamageThreshold,
+                IdleSpeedThreshold = idleSpeedThreshold,
+                DecentSpeedThreshold = decentSpeedThreshold
+            });
 
-        bool isHeadOn = thisIsFrontBumper && otherIsFrontBumper;
-        float baseDamage = impactForce * damageMultiplier;
+        if (damage.ToThis > 0f)
+            ApplyDamageToCar(otherPlayer, contactPoint, damage.ToThis);
 
-        bool thisIsIdle = thisSpeed < idleSpeedThreshold;
-        bool otherIsIdle = otherSpeed < idleSpeedThreshold;
-        bool thisHasDecentSpeed = thisSpeed >= decentSpeedThreshold;
-        bool otherHasDecentSpeed = otherSpeed >= decentSpeedThreshold;
-
-        float damageToThis = 0f;
-        float damageToOther = 0f;
-
-        if (isHeadOn)
-        {
-            float totalDamage = baseDamage * 0.5f;
-            float speedDifference = Mathf.Abs(thisSpeed - otherSpeed);
-            float totalSpeed = thisSpeed + otherSpeed;
-
-            if (totalSpeed < 0.01f)
-            {
-                damageToThis = totalDamage * 0.5f;
-                damageToOther = totalDamage * 0.5f;
-            }
-            else
-            {
-                float thisRatio = thisSpeed / totalSpeed;
-                float otherRatio = otherSpeed / totalSpeed;
-
-                damageToThis = totalDamage * otherRatio;
-                damageToOther = totalDamage * thisRatio;
-            }
-        }
-        else if (thisIsFrontBumper)
-        {
-            if (thisIsIdle)
-            {
-                damageToThis = 0f;
-                damageToOther = baseDamage * 0.1f;
-            }
-            else if (otherIsIdle || !otherHasDecentSpeed)
-            {
-                float velocityMultiplier = Mathf.Clamp01(thisSpeed / decentSpeedThreshold);
-                damageToThis = 0f;
-                damageToOther = baseDamage * velocityMultiplier;
-            }
-            else
-            {
-                damageToThis = 0f;
-                damageToOther = baseDamage;
-            }
-        }
-        else if (otherIsFrontBumper)
-        {
-            if (otherIsIdle)
-            {
-                damageToThis = baseDamage * 0.1f;
-                damageToOther = 0f;
-            }
-            else if (thisIsIdle || !thisHasDecentSpeed)
-            {
-                float velocityMultiplier = Mathf.Clamp01(otherSpeed / decentSpeedThreshold);
-                damageToThis = baseDamage * velocityMultiplier;
-                damageToOther = 0f;
-            }
-            else
-            {
-                damageToThis = baseDamage;
-                damageToOther = 0f;
-            }
-        }
-        else
-        {
-            bool thisHasMajorityVelocity = thisSpeed > otherSpeed * 1.5f;
-            bool otherHasMajorityVelocity = otherSpeed > thisSpeed * 1.5f;
-
-            if (thisHasMajorityVelocity && thisIsSide && (otherIsIdle || !otherHasDecentSpeed))
-            {
-                float velocityMultiplier = Mathf.Clamp01((thisSpeed - otherSpeed) / decentSpeedThreshold);
-                damageToThis = 0f;
-                damageToOther = baseDamage * velocityMultiplier * 0.7f;
-            }
-            else if (otherHasMajorityVelocity && otherIsSide && (thisIsIdle || !thisHasDecentSpeed))
-            {
-                float velocityMultiplier = Mathf.Clamp01((otherSpeed - thisSpeed) / decentSpeedThreshold);
-                damageToThis = baseDamage * velocityMultiplier * 0.7f;
-                damageToOther = 0f;
-            }
-            else if (thisIsIdle && otherIsIdle)
-            {
-                damageToThis = baseDamage * 0.1f;
-                damageToOther = baseDamage * 0.1f;
-            }
-            else
-            {
-                damageToThis = baseDamage * 0.5f;
-                damageToOther = baseDamage * 0.5f;
-            }
-        }
-
-        if (damageToThis > 0)
-            ApplyDamageToCar(otherPlayer, contactPoint, damageToThis);
-
-        if (damageToOther > minDamageThreshold)
-            ApplyDamageToOtherCar(otherPlayer, contactPoint, damageToOther);
+        if (damage.ToOther > 0f)
+            ApplyDamageToOtherCar(otherPlayer, contactPoint, damage.ToOther);
 
         ApplyPhysicsForces(otherPlayer, contactPoint, direction, impactForce);
     }

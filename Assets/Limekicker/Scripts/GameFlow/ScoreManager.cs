@@ -15,7 +15,8 @@ public class ScoreManager : IScoreManager, IDisposable
 
     // Keyed by OwnerClientId for players and NetworkObjectId for bots (no owning client),
     // the same ids the damage system reports as attackers.
-    private Dictionary<ulong, PlayerData> playerDataByClientId = new Dictionary<ulong, PlayerData>();
+    private readonly ScoreLedger ledger = new ScoreLedger();
+    private readonly Dictionary<ulong, FixedString32Bytes> namesByClientId = new Dictionary<ulong, FixedString32Bytes>();
 
     private EventBinding<PlayerSpawnedEvent> playerSpawnedEvent;
     private EventBinding<DamageDealtEvent> damageDealtEvent;
@@ -40,19 +41,12 @@ public class ScoreManager : IScoreManager, IDisposable
         bool isBot = @object.TryGetComponent<PlayerController>(out var controller) && controller.IsBot;
         ulong clientId = isBot ? @object.NetworkObjectId : @object.OwnerClientId;
 
-        if (playerDataByClientId.ContainsKey(clientId))
+        if (!ledger.TryAddPlayer(clientId))
             return;
 
-        PlayerData playerData = new PlayerData
-        {
-            PlayerName = ResolvePlayerName(data, controller, isBot),
-            ClientId = clientId,
-            Points = 0
-        };
+        namesByClientId[clientId] = ResolvePlayerName(data, controller, isBot);
 
-        playerDataByClientId[clientId] = playerData;
-
-        OnPlayerAdded?.Invoke(playerData);
+        OnPlayerAdded?.Invoke(BuildPlayerData(clientId, 0));
     }
 
     /// <summary>
@@ -60,7 +54,7 @@ public class ScoreManager : IScoreManager, IDisposable
     /// </summary>
     private void HandleDamageDealt(DamageDealtEvent @event)
     {
-        if (@event.DamageAmount <= 0 || @event.AttackerClientId == ulong.MaxValue)
+        if (!ScoreLedger.TryGetDamagePoints(@event.DamageAmount, @event.AttackerClientId, out int pointsToAdd))
             return;
 
         NetworkObject attackerObject = null;
@@ -82,7 +76,6 @@ public class ScoreManager : IScoreManager, IDisposable
 
         if (attackerObject != null && attackerObject.TryGetComponent<PlayerController>(out var attackerController))
         {
-            int pointsToAdd = Mathf.RoundToInt(@event.DamageAmount);
             IncreaseScore(attackerController, pointsToAdd);
         }
     }
@@ -113,14 +106,12 @@ public class ScoreManager : IScoreManager, IDisposable
     {
         ulong clientId = data.IsBot ? data.NetworkObjectId : data.OwnerClientId;
 
-        if (!playerDataByClientId.TryGetValue(clientId, out var playerData))
+        if (!ledger.TryAward(clientId, scoreToAdd, out int total))
             return;
 
-        playerData.Points += scoreToAdd;
-        playerDataByClientId[clientId] = playerData;
-        data.Score.Value = playerData.Points;
+        data.Score.Value = total;
 
-        OnScoreChanged?.Invoke(playerData);
+        OnScoreChanged?.Invoke(BuildPlayerData(clientId, total));
     }
 
     public PlayerData GetLeadingPlayer()
@@ -131,8 +122,10 @@ public class ScoreManager : IScoreManager, IDisposable
 
     public IReadOnlyList<PlayerData> GetRankedPlayersByScore()
     {
-        var list = new List<PlayerData>(playerDataByClientId.Values);
-        list.Sort((a, b) => b.Points.CompareTo(a.Points));
+        var ranked = ledger.GetRanked();
+        var list = new List<PlayerData>(ranked.Count);
+        foreach (var entry in ranked)
+            list.Add(BuildPlayerData(entry.Key, entry.Value));
         return list;
     }
 
@@ -141,6 +134,16 @@ public class ScoreManager : IScoreManager, IDisposable
         EventBus<PlayerSpawnedEvent>.Unregister(playerSpawnedEvent);
         EventBus<DamageDealtEvent>.Unregister(damageDealtEvent);
         EventBus<CollectibleCollectedEvent>.Unregister(collectibleCollectedEvent);
+    }
+
+    private PlayerData BuildPlayerData(ulong clientId, int points)
+    {
+        return new PlayerData
+        {
+            PlayerName = namesByClientId[clientId],
+            ClientId = clientId,
+            Points = points
+        };
     }
 
     private static FixedString32Bytes ResolvePlayerName(UserData data, PlayerController controller, bool isBot)
