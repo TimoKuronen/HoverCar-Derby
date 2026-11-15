@@ -46,11 +46,6 @@ Details: [architecture](docs/architecture.md) · [authority model](docs/authorit
 | DI | VContainer |
 | Other | Cinemachine, Input System |
 
-## Docs
-
-- [Architecture](docs/architecture.md)
-- [Authority model](docs/authority.md)
-
 ## Asset credits
 
 - Environment / prop pack: **RPGPP_LT**
