@@ -8,14 +8,23 @@ using VContainer;
 /// </summary>
 public class CollectibleSpawner : MonoBehaviour
 {
+    private const float RayStartHeight = 50f;
+    private const float RayLength = 150f;
+    private const float HoverOffset = 1.5f;
+    private const int MaxSampleAttempts = 100;
+
     [SerializeField] private CollisionCollectible[] collectiblePrefabs;
+    [SerializeField] private MapData mapData;
     [SerializeField] private float spawnInterval;
-    [SerializeField] private float spawnRadius = 60f;
-    [SerializeField] private float minDistanceFromOthers;
+    [SerializeField] private float minDistanceFromCollectibles = 10f;
+    [SerializeField] private float minDistanceFromCars = 10f;
 
     private IGameManager gameManager;
     private CollectibleType previouslySpawnedCollectible;
-    private List<CollisionCollectible> activeCollectibles = new();
+    private readonly List<CollisionCollectible> activeCollectibles = new();
+    private readonly List<CollisionCollectible> candidatePrefabs = new();
+    private readonly List<Vector3> carPositions = new();
+    private readonly List<Vector3> collectiblePositions = new();
 
     private bool isSpawningActive = false;
     private float timer;
@@ -32,6 +41,13 @@ public class CollectibleSpawner : MonoBehaviour
 
     public void Start()
     {
+        if (mapData == null || collectiblePrefabs == null || collectiblePrefabs.Length == 0)
+        {
+            Debug.LogError("[CollectibleSpawner] Map data and collectible prefabs are required; spawning is disabled.");
+            enabled = false;
+            return;
+        }
+
         EventBus<GameStateChangeEvent>.Register(gameStateChangeEvent);
     }
 
@@ -54,81 +70,93 @@ public class CollectibleSpawner : MonoBehaviour
     }
 
     /// <summary>
-    /// Spawns a collectible at a random position away from players and other collectibles.
-    /// Ensures different type than previously spawned to add variety.
+    /// Spawns a collectible on valid ground inside the map, away from cars and other collectibles.
+    /// Picks a different type than the previous spawn when more than one type exists.
     /// </summary>
     private void SpawnCollectible()
     {
-        Vector3 spawnPosition = GetPointOutOfReach();
-
-        if (spawnPosition == Vector3.zero)
+        if (!TryGetSpawnPosition(out Vector3 spawnPosition))
             return;
 
-        spawnPosition = Physics.Raycast(spawnPosition + Vector3.up * 50f, Vector3.down, out RaycastHit hitInfo, 100f) ? hitInfo.point : spawnPosition;
-        spawnPosition += Vector3.up * 1.5f;
-
-        CollisionCollectible prefabToSpawn;
-        while (true)
-        {
-            prefabToSpawn = collectiblePrefabs[UnityEngine.Random.Range(0, collectiblePrefabs.Length)];
-
-            if (previouslySpawnedCollectible == CollectibleType.None ||
-                prefabToSpawn.CollectibleEffectData.Type != previouslySpawnedCollectible)
-            {
-                previouslySpawnedCollectible = prefabToSpawn.CollectibleEffectData.Type;
-                break;
-            }
-        }
+        CollisionCollectible prefabToSpawn = PickPrefab();
+        previouslySpawnedCollectible = prefabToSpawn.CollectibleEffectData.Type;
 
         CollisionCollectible spawnedCollectible = Instantiate(prefabToSpawn, spawnPosition, Quaternion.identity);
-        spawnedCollectible.NetworkObject.Spawn();
+        spawnedCollectible.NetworkObject.Spawn(destroyWithScene: true);
         activeCollectibles.Add(spawnedCollectible);
     }
 
-    /// <summary>
-    /// Finds a random spawn position that is far enough from all players and existing collectibles.
-    /// Uses rejection sampling with a maximum attempt limit.
-    /// </summary>
-    private Vector3 GetPointOutOfReach()
+    private CollisionCollectible PickPrefab()
     {
-        List<Vector3> existingPositions = new List<Vector3>();
-
-        foreach (var player in gameManager.PlayerTracker.GetAllPlayers())
+        candidatePrefabs.Clear();
+        foreach (CollisionCollectible prefab in collectiblePrefabs)
         {
-            existingPositions.Add(player.transform.position);
-        }
-        activeCollectibles.RemoveAll(collectible => collectible == null || collectible.IsProcessed);
-        foreach (var collectible in activeCollectibles)
-        {
-            existingPositions.Add(collectible.transform.position);
-        }
-
-        Vector3 randomPoint;
-        int attempts = 0;
-
-        while (true)
-        {
-            randomPoint = UnityEngine.Random.insideUnitSphere * spawnRadius;
-            randomPoint.y = 0;
-            attempts++;
-            if (attempts > 100)
+            if (previouslySpawnedCollectible == CollectibleType.None ||
+                prefab.CollectibleEffectData.Type != previouslySpawnedCollectible)
             {
-                Debug.LogWarning("Could not find a suitable spawn point after 100 attempts.");
-                return Vector3.zero;
+                candidatePrefabs.Add(prefab);
             }
-
-            if (!IsPointTooClose(randomPoint, existingPositions))
-                return randomPoint;
         }
+
+        if (candidatePrefabs.Count == 0)
+            return collectiblePrefabs[0];
+
+        return candidatePrefabs[UnityEngine.Random.Range(0, candidatePrefabs.Count)];
     }
 
-    private bool IsPointTooClose(Vector3 randomPoint, List<Vector3> existingPositions)
+    /// <summary>
+    /// Samples random points in the map rectangle and raycasts down. A point is accepted when the
+    /// hit lies in the map's ground height band and is far enough from every car and collectible.
+    /// </summary>
+    private bool TryGetSpawnPosition(out Vector3 spawnPosition)
     {
-        float minDistanceSq = minDistanceFromOthers * minDistanceFromOthers;
+        spawnPosition = default;
 
-        for (int i = 0; i < existingPositions.Count; i++)
+        carPositions.Clear();
+        foreach (var player in gameManager.PlayerTracker.GetAllPlayers())
         {
-            if ((randomPoint - existingPositions[i]).sqrMagnitude < minDistanceSq)
+            carPositions.Add(player.transform.position);
+        }
+
+        activeCollectibles.RemoveAll(collectible => collectible == null || collectible.IsProcessed);
+        collectiblePositions.Clear();
+        foreach (var collectible in activeCollectibles)
+        {
+            collectiblePositions.Add(collectible.transform.position);
+        }
+
+        for (int attempt = 0; attempt < MaxSampleAttempts; attempt++)
+        {
+            Vector2 flatPoint = mapData.GetRandomPoint();
+            Vector3 rayOrigin = new Vector3(flatPoint.x, mapData.MaxGroundHeight + RayStartHeight, flatPoint.y);
+
+            if (!Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit, RayLength, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+                continue;
+
+            if (!mapData.IsGroundHeight(hit.point.y))
+                continue;
+
+            if (IsTooClose(hit.point, carPositions, minDistanceFromCars) ||
+                IsTooClose(hit.point, collectiblePositions, minDistanceFromCollectibles))
+                continue;
+
+            spawnPosition = hit.point + Vector3.up * HoverOffset;
+            return true;
+        }
+
+        Debug.LogWarning($"[CollectibleSpawner] No valid spawn point found after {MaxSampleAttempts} attempts.");
+        return false;
+    }
+
+    private static bool IsTooClose(Vector3 point, List<Vector3> others, float minDistance)
+    {
+        float minDistanceSq = minDistance * minDistance;
+
+        for (int i = 0; i < others.Count; i++)
+        {
+            float dx = point.x - others[i].x;
+            float dz = point.z - others[i].z;
+            if (dx * dx + dz * dz < minDistanceSq)
                 return true;
         }
 

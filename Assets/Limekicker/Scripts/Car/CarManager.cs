@@ -23,16 +23,22 @@ public class CarManager : NetworkBehaviour
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
     private void Update()
     {
-        if (Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame)
-        {
-            if (!NetworkObject.IsOwner || PlayerController.IsBot)
-            {
-                return;
-            }
+        if (Keyboard.current == null || !Keyboard.current.rKey.wasPressedThisFrame)
+            return;
 
-            DamageManager.ApplyDamage(DamageManager.CurrentCarHealth * 2, transform.position);
-            Debug.Log("Car destroyed for testing purposes." + PlayerController.PlayerName.Value + " with this much health still left " + DamageManager.CurrentCarHealth);
-        }
+        if (!IsOwner || PlayerController.IsBot)
+            return;
+
+        DestroyOwnCarServerRpc();
+    }
+
+    /// <summary>
+    /// Damage is server-only, so the owner asks the server to destroy its own car.
+    /// </summary>
+    [ServerRpc]
+    private void DestroyOwnCarServerRpc()
+    {
+        DamageManager.ApplyDamage(DamageManager.CurrentCarHealth * 2, transform.position);
     }
 #endif
 

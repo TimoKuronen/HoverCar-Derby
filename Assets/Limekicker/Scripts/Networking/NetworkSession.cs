@@ -97,6 +97,8 @@ public static class NetworkSession
     /// <summary>
     /// Player objects survive NGO scene loads while bots do not, so a rematch would otherwise keep stale
     /// player cars and skip respawning them. Despawning every car lets the reloaded scene spawn a clean set.
+    /// Collectibles are spawned with destroyWithScene, so the scene load clears them and they are never
+    /// migrated into the new scene.
     /// </summary>
     private static void DespawnAllCars()
     {

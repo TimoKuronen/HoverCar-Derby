@@ -47,23 +47,16 @@ public class CarColorPainter : NetworkBehaviour
     }
 
     /// <summary>
-    /// Assigns a color index to this car. Server-authoritative - clients must use ServerRpc.
+    /// Assigns a color index to this car. Server only; clients receive it through the replicated index.
     /// </summary>
     public void AssignColor(int index)
     {
-        if (IsServer)
+        if (!IsServer)
         {
-            colorIndex.Value = index;
+            Debug.LogWarning("[CarColorPainter] AssignColor called on client - color is server-only");
+            return;
         }
-        else
-        {
-            SetColorServerRpc(index);
-        }
-    }
 
-    [ServerRpc]
-    private void SetColorServerRpc(int index)
-    {
         colorIndex.Value = index;
     }
 
