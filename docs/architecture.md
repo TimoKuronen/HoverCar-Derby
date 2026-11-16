@@ -15,7 +15,8 @@ Assets/Limekicker/
 │   ├── Player/             Movement, controller, bots, spawn, input
 │   ├── Car/                Car lifecycle, colors, hover physics
 │   ├── DamageSystem/       Collisions, health, VFX, damage numbers
-│   ├── Collectibles/       Pickups and spawner
+│   ├── Collectibles/       Pickups and spawner (spawns on ground inside the map bounds)
+│   ├── Map/                MapData: play area size and ground height band
 │   ├── GameStates/         Cinematic, countdown, play, completion, IGameState
 │   ├── EventBus/           Decoupled local events
 │   ├── Core/               IntVariable, shared helpers, small utilities
@@ -78,7 +79,7 @@ UI and gameplay call `NetworkSession` instead of Host/Client singletons directly
 | `StartHostAsync()` | Create session over Relay, start host |
 | `StartClientViaJoinCodeAsync(code)` | Join session by code |
 | `LeaveGame()` / `ReturnToMainMenu()` | Host shutdown or client disconnect to MainMenu |
-| `RestartCurrentMatch()` | Despawn all cars, then reload PlayScene for rematch (host NGO / client local) |
+| `RestartCurrentMatch()` | Despawn all cars, then reload PlayScene for rematch (host NGO / client local); collectibles are destroyed with the scene |
 
 The facade also carries session query, join by ID and lock methods.
 

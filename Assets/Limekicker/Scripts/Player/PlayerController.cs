@@ -240,7 +240,7 @@ public class PlayerController : NetworkBehaviour
 
     private void OnPlayerIndexChanged(int oldIndex, int newIndex)
     {
-        if (carColorPainter != null && newIndex >= 0)
+        if (IsServer && carColorPainter != null && newIndex >= 0)
         {
             carColorPainter.AssignColor(newIndex);
         }

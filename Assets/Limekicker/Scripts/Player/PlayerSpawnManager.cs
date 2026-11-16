@@ -140,6 +140,7 @@ public class PlayerSpawnManager : IDisposable
 
         spawnedClientIds.Add(clientId);
 
+        int playerIndex = GetLowestUnusedPlayerIndex();
         var instance = UnityEngine.Object.Instantiate(server.PlayerPrefab);
         instance.gameObject.SetActive(false);
 
@@ -159,9 +160,8 @@ public class PlayerSpawnManager : IDisposable
 
         if (instance.TryGetComponent<PlayerController>(out PlayerController controller))
         {
-            int joinOrderOneBased = instance.NetworkManager.ConnectedClients.Count;
-            controller.Initialize(joinOrderOneBased - 1);
-            ApplyDisplayName(controller, userData.userName, joinOrderOneBased);
+            controller.Initialize(playerIndex);
+            ApplyDisplayName(controller, userData.userName, playerIndex + 1);
         }
         else
         {
@@ -222,7 +222,7 @@ public class PlayerSpawnManager : IDisposable
             return;
         }
 
-        int totalPlayerCount = CountAllPlayersIncludingBots();
+        int botIndex = GetLowestUnusedPlayerIndex();
 
         var botInstance = UnityEngine.Object.Instantiate(server.PlayerPrefab);
 
@@ -246,29 +246,40 @@ public class PlayerSpawnManager : IDisposable
 
         if (botInstance.TryGetComponent<PlayerController>(out PlayerController controller))
         {
-            controller.Initialize(totalPlayerCount);
-            controller.PlayerName.Value = new Unity.Collections.FixedString32Bytes("Bot Player " + (totalPlayerCount + 1));
+            controller.Initialize(botIndex);
+            controller.PlayerName.Value = new Unity.Collections.FixedString32Bytes("Bot Player " + (botIndex + 1));
         }
 
         gameManager.RegisterParticipant(botInstance.NetworkObjectId);
         gameManager.MarkParticipantReady(botInstance.NetworkObjectId);
     }
 
-    private int CountAllPlayersIncludingBots()
+    /// <summary>
+    /// Player index (and so car color) not used by any spawned car. Called before the new car spawns,
+    /// since an uninitialized car reports index 0. Indices of despawned cars are reused, so a rematch
+    /// hands out 0, 1, ... again instead of one shared value.
+    /// </summary>
+    private static int GetLowestUnusedPlayerIndex()
     {
         if (NetworkManager.Singleton == null || NetworkManager.Singleton.SpawnManager == null)
             return 0;
 
-        int count = 0;
+        var usedIndices = new HashSet<int>();
         foreach (var spawnedObject in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
         {
-            if (spawnedObject != null && spawnedObject.TryGetComponent<PlayerController>(out _))
+            if (spawnedObject != null && spawnedObject.TryGetComponent<PlayerController>(out var controller))
             {
-                count++;
+                usedIndices.Add(controller.PlayerIndex.Value);
             }
         }
 
-        return count;
+        int index = 0;
+        while (usedIndices.Contains(index))
+        {
+            index++;
+        }
+
+        return index;
     }
 
     /// <summary>

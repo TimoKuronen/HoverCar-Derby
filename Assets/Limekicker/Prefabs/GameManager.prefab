@@ -107,8 +107,9 @@ MonoBehaviour:
   - {fileID: 6063733567970830609, guid: 86a8031260ce7fa408aec9ae46f324e4, type: 3}
   - {fileID: 5421520218073754910, guid: 6cf6cb74c2df972418f0fad46ea819d6, type: 3}
   spawnInterval: 9
-  spawnRadius: 60
-  minDistanceFromOthers: 5
+  mapData: {fileID: 11400000, guid: a8a973c903c4440eb764d16fbc41cb92, type: 2}
+  minDistanceFromCollectibles: 10
+  minDistanceFromCars: 10
 --- !u!114 &658767857616932910
 MonoBehaviour:
   m_ObjectHideFlags: 0
