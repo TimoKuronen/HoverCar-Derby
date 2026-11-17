@@ -1,48 +1,73 @@
 using Cinemachine;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Drives a Cinemachine dolly camera along a path for intro shots.
+/// Owns a Cinemachine dolly camera: shows it at the start of its track, optionally runs it along the
+/// track, and hides it again. Callers choose the priority tier when showing it.
 /// </summary>
 public class DollyCameraMover : MonoBehaviour
 {
-    public CinemachineVirtualCamera vcam;
-    public float speed = 2f;
-    private bool moving = false;
+    [SerializeField] private CinemachineVirtualCamera vcam;
+    [SerializeField] private float speed = 2f;
 
-    CinemachineTrackedDolly dolly;
+    private CinemachineTrackedDolly dolly;
+    private bool moving;
 
-    void Awake()
+    private void Awake()
     {
-        dolly = vcam.GetCinemachineComponent<CinemachineTrackedDolly>();
+        if (vcam != null)
+            dolly = vcam.GetCinemachineComponent<CinemachineTrackedDolly>();
+
+        if (dolly == null)
+        {
+            Debug.LogError($"{nameof(DollyCameraMover)} on '{name}' needs a virtual camera with a Tracked Dolly body.", this);
+            enabled = false;
+        }
+    }
+
+    private void Update()
+    {
+        if (moving)
+            dolly.m_PathPosition += speed * Time.deltaTime;
     }
 
     /// <summary>
-    /// Toggles dolly camera movement on/off. Resets path position and adjusts camera priority.
+    /// Takes the view at the given priority, parked at the start of the track.
     /// </summary>
-    public void ToggleMovement()
+    public void Show(int priority)
     {
-        moving = !moving;
+        if (dolly == null)
+            return;
 
-        if (moving)
-        {
-            dolly.m_PathPosition = 0f;
-            vcam.Priority = 25;
-        }
-        else
-        {
-            dolly.m_PathPosition = 0f;
-            vcam.Priority = 0;
-        }
+        moving = false;
+        dolly.m_PathPosition = 0f;
+        vcam.Priority = priority;
     }
 
-    void FixedUpdate()
+    /// <summary>
+    /// Starts moving along the track from the current position.
+    /// </summary>
+    public void Play()
     {
-        if (moving)
-        {
-            dolly.m_PathPosition += speed * Time.deltaTime;
-        }
+        moving = dolly != null;
+    }
+
+    /// <summary>
+    /// Stops, rewinds to the start of the track and gives up the view.
+    /// </summary>
+    public void Hide()
+    {
+        if (dolly == null)
+            return;
+
+        moving = false;
+        dolly.m_PathPosition = 0f;
+        vcam.Priority = CameraPriorities.Inactive;
+    }
+
+    public void SetLookAt(Transform target)
+    {
+        if (vcam != null)
+            vcam.LookAt = target;
     }
 }

@@ -3,29 +3,26 @@ using Unity.Netcode;
 using UnityEngine;
 
 /// <summary>
-/// Runs the intro dolly cinematic after the server start time is reached.
+/// Runs the intro dolly cinematic after the server start time is reached. The intro camera keeps the
+/// view until the countdown hands it to the race camera.
 /// </summary>
 public class CinematicState : IGameState
 {
+    private const string PlayerLayerName = "Car";
+
     private readonly GameManager manager;
-    private readonly Camera mainCamera;
-
-    private string playerLayerName = "Car";
-
     private readonly int playerLayer;
     private Coroutine beginCinematicCoroutine;
-    private bool cinematicStarted;
+    private bool playersHidden;
 
     public CinematicState(GameManager manager)
     {
         this.manager = manager;
-        playerLayer = LayerMask.NameToLayer(playerLayerName);
-        mainCamera = Camera.main;
+        playerLayer = LayerMask.NameToLayer(PlayerLayerName);
+        if (playerLayer < 0)
+            Debug.LogError($"Layer '{PlayerLayerName}' does not exist; cars stay visible during the cinematic.");
     }
 
-    /// <summary>
-    /// Waits for the server-scheduled cinematic start time, then hides players and runs the dolly.
-    /// </summary>
     public void Enter()
     {
         beginCinematicCoroutine = CoroutineMonoBehavior.Instance.StartCoroutine(BeginCinematicWhenScheduled());
@@ -41,13 +38,11 @@ public class CinematicState : IGameState
             beginCinematicCoroutine = null;
         }
 
-        if (cinematicStarted)
+        if (playersHidden)
         {
-            manager.Context.endingDollyCamera.ToggleMovement();
-            cinematicStarted = false;
+            SetPlayersVisible(true);
+            playersHidden = false;
         }
-
-        mainCamera.cullingMask |= 1 << playerLayer;
     }
 
     private IEnumerator BeginCinematicWhenScheduled()
@@ -56,8 +51,18 @@ public class CinematicState : IGameState
             NetworkManager.Singleton != null &&
             NetworkManager.Singleton.ServerTime.Time >= manager.PhaseStartServerTime);
 
-        cinematicStarted = true;
-        mainCamera.cullingMask &= ~(1 << playerLayer);
-        manager.Context.endingDollyCamera.ToggleMovement();
+        SetPlayersVisible(false);
+        playersHidden = true;
+        manager.Context.IntroDollyCamera.Play();
+    }
+
+    private void SetPlayersVisible(bool visible)
+    {
+        Camera mainCamera = Camera.main;
+        if (mainCamera == null || playerLayer < 0)
+            return;
+
+        int layerBit = 1 << playerLayer;
+        mainCamera.cullingMask = visible ? mainCamera.cullingMask | layerBit : mainCamera.cullingMask & ~layerBit;
     }
 }

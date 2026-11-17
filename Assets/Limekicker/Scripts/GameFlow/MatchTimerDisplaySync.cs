@@ -55,14 +55,14 @@ public class MatchTimerDisplaySync
         if (elapsedSeconds < 0d)
             return -1;
 
-        float interval = context.countdownIntervalSeconds;
+        float interval = context.CountdownIntervalSeconds;
         if (elapsedSeconds < interval)
             return 3;
         if (elapsedSeconds < interval * 2f)
             return 2;
         if (elapsedSeconds < interval * 3f)
             return 1;
-        if (elapsedSeconds < interval * 3f + context.countdownGoDelaySeconds)
+        if (elapsedSeconds < interval * 3f + context.CountdownGoDelaySeconds)
             return 0;
 
         return -1;

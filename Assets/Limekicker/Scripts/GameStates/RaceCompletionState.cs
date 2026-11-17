@@ -1,11 +1,11 @@
 using UnityEngine;
 
 /// <summary>
-/// Positions the victory camera on the leading player when the match ends.
+/// Runs the victory dolly camera around the leading player when the match ends.
 /// </summary>
 public class RaceCompletionState : IGameState
 {
-    private Vector3 dollyTrackOffset = new Vector3(0, 10, 0);
+    private static readonly Vector3 DollyTrackOffset = new Vector3(0f, 10f, 0f);
 
     private readonly GameManager gameManager;
 
@@ -14,18 +14,8 @@ public class RaceCompletionState : IGameState
         this.gameManager = gameManager;
     }
 
-    /// <summary>
-    /// Sets up the victory cinematic by positioning the dolly track at the winner's location
-    /// and configuring the camera to follow them.
-    /// </summary>
     public void Enter()
     {
-        if (gameManager == null)
-        {
-            Debug.LogError("GameManager reference is null in RaceCompletionState.");
-            return;
-        }
-
         var leadingPlayer = gameManager.GetLeadingPlayer();
         if (leadingPlayer == null)
         {
@@ -33,19 +23,19 @@ public class RaceCompletionState : IGameState
             return;
         }
 
-        Transform winningPlayer = leadingPlayer.transform;
+        RaceContext context = gameManager.Context;
+        Transform winner = leadingPlayer.transform;
 
-        // move victory dolly track to winner position
-        gameManager.Context.victoryDollyTrack.transform.position = winningPlayer.position + dollyTrackOffset;
-
-        // cinematic camera to target the winner 
-        gameManager.Context.endingDollyCamera.vcam.LookAt = winningPlayer;
-
-        // make camera move
-        gameManager.Context.endingDollyCamera.ToggleMovement();
+        context.VictoryDollyTrack.position = winner.position + DollyTrackOffset;
+        context.EndingDollyCamera.SetLookAt(winner);
+        context.EndingDollyCamera.Show(CameraPriorities.VictoryDolly);
+        context.EndingDollyCamera.Play();
     }
 
-    public void Exit() { }
+    public void Exit()
+    {
+        gameManager.Context.EndingDollyCamera.Hide();
+    }
 
     public void Update() { }
 }
