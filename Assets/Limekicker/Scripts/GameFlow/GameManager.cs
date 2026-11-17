@@ -72,7 +72,7 @@ public class GameManager : NetworkBehaviour, IGameManager
 
     void Start()
     {
-        gameTimerValue.Value = Context.roundDurationInSeconds;
+        gameTimerValue.Value = Context.RoundDurationInSeconds;
         countdownValue.Value = -1;
 
         StartCoroutine(playerSpawnManager.Initialize());
@@ -92,7 +92,7 @@ public class GameManager : NetworkBehaviour, IGameManager
             }
             else
             {
-                double cinematicStart = NetworkManager.ServerTime.Time + Context.phaseReplicationBufferSeconds;
+                double cinematicStart = NetworkManager.ServerTime.Time + Context.PhaseReplicationBufferSeconds;
                 SetMatchPhase(RaceContext.MatchPhase.Cinematic, cinematicStart);
                 matchFlowCoroutine = StartCoroutine(ServerMatchFlowCoroutine(cinematicStart));
             }
@@ -211,17 +211,17 @@ public class GameManager : NetworkBehaviour, IGameManager
 
         yield return new WaitUntil(() =>
             HasRequiredReadyParticipants() &&
-            NetworkManager.ServerTime.Time >= cinematicStart + Context.cinematicDurationSeconds);
+            NetworkManager.ServerTime.Time >= cinematicStart + Context.CinematicDurationSeconds);
 
         double countdownStart = NetworkManager.ServerTime.Time;
         SetMatchPhase(RaceContext.MatchPhase.Countdown, countdownStart);
 
-        float countdownDuration = Context.countdownIntervalSeconds * 3f + Context.countdownGoDelaySeconds;
+        float countdownDuration = Context.CountdownIntervalSeconds * 3f + Context.CountdownGoDelaySeconds;
         yield return new WaitUntil(() =>
             NetworkManager.ServerTime.Time >= countdownStart + countdownDuration);
 
         double playStart = NetworkManager.ServerTime.Time;
-        roundEndServerTime.Value = playStart + Context.roundDurationInSeconds;
+        roundEndServerTime.Value = playStart + Context.RoundDurationInSeconds;
         SetMatchPhase(RaceContext.MatchPhase.Playing, playStart);
 
         yield return new WaitUntil(() => NetworkManager.ServerTime.Time >= roundEndServerTime.Value);
@@ -234,7 +234,7 @@ public class GameManager : NetworkBehaviour, IGameManager
         yield return new WaitUntil(() => NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening);
 
         double playStart = NetworkManager.ServerTime.Time;
-        roundEndServerTime.Value = playStart + Context.roundDurationInSeconds;
+        roundEndServerTime.Value = playStart + Context.RoundDurationInSeconds;
         SetMatchPhase(RaceContext.MatchPhase.Playing, playStart);
 
         yield return new WaitUntil(() => NetworkManager.ServerTime.Time >= roundEndServerTime.Value);
@@ -244,7 +244,7 @@ public class GameManager : NetworkBehaviour, IGameManager
 
     private bool HasRequiredReadyParticipants()
     {
-        return readyParticipants.Count >= Context.requiredPlayerCount;
+        return readyParticipants.Count >= Context.RequiredPlayerCount;
     }
 
     private void SetMatchPhase(RaceContext.MatchPhase phase, double startServerTime)
@@ -272,12 +272,12 @@ public class GameManager : NetworkBehaviour, IGameManager
 
         IGameState newState = phase switch
         {
-            RaceContext.MatchPhase.WaitingForPlayers => new IdleState(),
+            RaceContext.MatchPhase.WaitingForPlayers => new IdleState(this),
             RaceContext.MatchPhase.Cinematic => new CinematicState(this),
             RaceContext.MatchPhase.Countdown => new CountdownState(this),
             RaceContext.MatchPhase.Playing => new PlayState(this),
             RaceContext.MatchPhase.Completed => new RaceCompletionState(this),
-            _ => new IdleState()
+            _ => new IdleState(this)
         };
 
         ChangeState(newState);

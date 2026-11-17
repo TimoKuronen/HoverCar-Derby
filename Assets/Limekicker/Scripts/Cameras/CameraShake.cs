@@ -1,67 +1,63 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Singleton that accumulates and evaluates camera shake requests.
+/// Accumulates camera shake requests and evaluates their combined offset. Requests expire after their
+/// duration and fall off with distance from an optional source position.
 /// </summary>
 public class CameraShake : MonoBehaviour
 {
     public static CameraShake Instance { get; private set; }
-    private readonly List<ShakeRequest> shakes = new();
+
+    private readonly List<ActiveShake> shakes = new();
 
     private void Awake()
     {
         Instance = this;
     }
-    public void RequestShake(CameraShakeData data)
+
+    private void OnDestroy()
     {
-        shakes.Add(new ShakeRequest(data.Intensity, data.Duration, data.SourcePos));
+        if (Instance == this)
+            Instance = null;
     }
 
-    public Vector3 GetShakeOffset(Vector3 cameraPos)
+    private void Update()
     {
-        float totalIntensity = 0f;
         for (int i = shakes.Count - 1; i >= 0; i--)
         {
-            var s = shakes[i];
-            if (s.Elapsed > s.Duration) shakes.RemoveAt(i);
-            else
-            {
-                float falloff = 1f;
-                if (s.SourcePos.HasValue)
-                    falloff = 1f / (1f + Vector3.Distance(cameraPos, s.SourcePos.Value));
-                totalIntensity += s.Intensity * falloff;
-                s.Elapsed += Time.deltaTime;
-            }
-        }
+            ActiveShake shake = shakes[i];
+            shake.Elapsed += Time.deltaTime;
 
-        return UnityEngine.Random.insideUnitSphere * totalIntensity;
+            if (shake.Elapsed > shake.Data.Duration)
+                shakes.RemoveAt(i);
+        }
     }
-    class ShakeRequest
+
+    public void RequestShake(CameraShakeData data)
     {
-        public float Intensity;
-        public float Duration;
-        public float Elapsed;
-        public Vector3? SourcePos;
-
-        public ShakeRequest(float i, float d, Vector3? pos)
-        {
-            Intensity = i;
-            Duration = d;
-            Elapsed = 0f;
-            SourcePos = pos;
-        }
+        shakes.Add(new ActiveShake { Data = data });
     }
-}
 
-/// <summary>
-/// Serializable intensity, duration, and optional source for camera shake.
-/// </summary>
-[Serializable]
-public class CameraShakeData
-{
-    public float Intensity;
-    public float Duration;
-    public Vector3? SourcePos;
+    public Vector3 GetShakeOffset(Vector3 cameraPosition)
+    {
+        float totalIntensity = 0f;
+
+        foreach (ActiveShake shake in shakes)
+        {
+            float falloff = shake.Data.HasSource
+                ? 1f / (1f + Vector3.Distance(cameraPosition, shake.Data.SourcePosition))
+                : 1f;
+
+            totalIntensity += shake.Data.Intensity * falloff;
+        }
+
+        return Random.insideUnitSphere * totalIntensity;
+    }
+
+    private class ActiveShake
+    {
+        public CameraShakeData Data;
+        public float Elapsed;
+    }
 }

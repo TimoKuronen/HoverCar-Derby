@@ -17,9 +17,6 @@ public class PlayerController : NetworkBehaviour
     [SerializeField] private CarDamageManager damageManager;
     [SerializeField] private Rigidbody cachedRigidbody;
 
-    [Header("Settings")]
-    [SerializeField] private int cameraPriority = 10;
-
     private EventBinding<GameStateChangeEvent> gameStateChangeEvent;
 
     public CarDamageManager DamageManager => damageManager;
@@ -197,13 +194,13 @@ public class PlayerController : NetworkBehaviour
         {
             if (playerCamera != null)
             {
-                playerCamera.Priority = cameraPriority;
+                playerCamera.Priority = CameraPriorities.PlayerCar;
                 playerCamera.enabled = true;
             }
         }
         else if (playerCamera != null)
         {
-            playerCamera.Priority = 0;
+            playerCamera.Priority = CameraPriorities.Inactive;
             playerCamera.enabled = false;
         }
     }

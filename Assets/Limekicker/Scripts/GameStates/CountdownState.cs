@@ -39,6 +39,6 @@ public class CountdownState : IGameState
             NetworkManager.Singleton != null &&
             NetworkManager.Singleton.ServerTime.Time >= gameManager.PhaseStartServerTime);
 
-        gameManager.Context.raceCamera.Priority = 20;
+        gameManager.Context.ActivateRaceCamera();
     }
 }

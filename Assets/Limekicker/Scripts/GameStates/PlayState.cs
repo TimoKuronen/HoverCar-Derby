@@ -1,7 +1,8 @@
-﻿internal class PlayState : IGameState
+﻿/// <summary>
+/// Active round state: makes sure the race chase camera holds the view.
+/// </summary>
+public class PlayState : IGameState
 {
-    private const int RaceCameraPlayPriority = 20;
-
     private readonly GameManager gameManager;
 
     public PlayState(GameManager gameManager)
@@ -11,10 +12,7 @@
 
     public void Enter()
     {
-        if (gameManager.Context?.raceCamera == null)
-            return;
-
-        gameManager.Context.raceCamera.Priority = RaceCameraPlayPriority;
+        gameManager.Context.ActivateRaceCamera();
     }
 
     public void Exit() { }
