@@ -8,6 +8,7 @@
     "com.unity.netcode.gameobjects": "2.13.3",
     "com.unity.postprocessing": "3.5.4",
     "com.unity.services.multiplayer": "2.4.1",
+    "com.unity.test-framework": "1.6.0",
     "com.unity.timeline": "1.8.13",
     "com.unity.ugui": "2.0.0",
     "jp.hadashikick.vcontainer": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer#1.17.0",
