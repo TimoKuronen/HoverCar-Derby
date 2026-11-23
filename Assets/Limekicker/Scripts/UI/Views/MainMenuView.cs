@@ -17,13 +17,6 @@ public class MainMenuView : MonoBehaviour, IMainMenuView
     [SerializeField] private Toggle spawnBotToggle;
     [SerializeField] private Toggle skipCountdownToggle;
 
-    // Lobby browse is hidden until the session-based rewrite lands.
-    [Header("Deferred UI (hidden for MVP)")]
-    [SerializeField] private GameObject lobbiesButtonRoot;
-    [SerializeField] private GameObject lobbiesPanelRoot;
-    [SerializeField] private GameObject refreshButtonRoot;
-    [SerializeField] private LobbiesList lobbiesList;
-
     public event Action OnHostClicked;
     public event Action OnJoinClicked;
 
@@ -36,7 +29,6 @@ public class MainMenuView : MonoBehaviour, IMainMenuView
 
     private void Awake()
     {
-        HideDeferredUi();
         WireButtons();
     }
 
@@ -96,16 +88,6 @@ public class MainMenuView : MonoBehaviour, IMainMenuView
     }
 #endif
 
-    private void HideDeferredUi()
-    {
-        SetActiveIfAssigned(lobbiesButtonRoot, false);
-        SetActiveIfAssigned(lobbiesPanelRoot, false);
-        SetActiveIfAssigned(refreshButtonRoot, false);
-
-        if (lobbiesList != null)
-            lobbiesList.enabled = false;
-    }
-
     private void WireButtons()
     {
         if (hostButton != null)
@@ -134,12 +116,6 @@ public class MainMenuView : MonoBehaviour, IMainMenuView
         if (skipCountdownToggle != null)
             skipCountdownToggle.gameObject.SetActive(false);
 #endif
-    }
-
-    private static void SetActiveIfAssigned(GameObject target, bool active)
-    {
-        if (target != null)
-            target.SetActive(active);
     }
 
     private void OnDestroy()

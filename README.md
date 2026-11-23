@@ -11,7 +11,7 @@ Unity multiplayer arena prototype exploring Netcode for GameObjects (NGO), Unity
 
 ## Highlights
 
-- Host and client session setup via Multiplayer Services sessions (Relay transport, join codes)
+- Host and client session setup via Multiplayer Services sessions (Relay transport, join codes, session browser)
 - Player spawning and ownership patterns with Netcode for GameObjects
 - Match state machine: cinematic intro, countdown, play, pause, race end
 - Hybrid authority: client-owned movement, server-owned combat and scoring

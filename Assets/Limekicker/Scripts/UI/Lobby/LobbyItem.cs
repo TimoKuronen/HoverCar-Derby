@@ -1,29 +1,52 @@
+using System;
 using TMPro;
-using Unity.Services.Multiplayer;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
-/// Single lobby entry UI with name, player count, and join action.
+/// Single session row with name, player count, and a join action.
 /// </summary>
 public class LobbyItem : MonoBehaviour
 {
     [SerializeField] private TMP_Text lobbyNameText;
     [SerializeField] private TMP_Text playerCountText;
+    [SerializeField] private Button joinButton;
 
-    private LobbiesList lobbiesList;
-    private ISessionInfo session;
+    private Action<string> onJoin;
+    private string sessionId;
 
-    public void Initialize(LobbiesList lobbiesList, ISessionInfo session)
+    private void Awake()
     {
-        this.lobbiesList = lobbiesList;
-        this.session = session;
+        if (joinButton == null)
+            joinButton = GetComponentInChildren<Button>(true);
 
-        lobbyNameText.text = session.Name;
-        playerCountText.text = $"{session.MaxPlayers - session.AvailableSlots}/{session.MaxPlayers}";
+        if (joinButton != null)
+            joinButton.onClick.AddListener(HandleJoinClicked);
     }
 
-    public void Join()
+    private void OnDestroy()
     {
-        lobbiesList.JoinASync(session);
+        if (joinButton != null)
+            joinButton.onClick.RemoveListener(HandleJoinClicked);
+    }
+
+    public void Initialize(SessionListEntry entry, Action<string> onJoin)
+    {
+        sessionId = entry.Id;
+        this.onJoin = onJoin;
+
+        lobbyNameText.text = entry.Name;
+        playerCountText.text = $"{entry.PlayerCount}/{entry.MaxPlayers}";
+    }
+
+    public void SetInteractable(bool interactable)
+    {
+        if (joinButton != null)
+            joinButton.interactable = interactable;
+    }
+
+    private void HandleJoinClicked()
+    {
+        onJoin?.Invoke(sessionId);
     }
 }

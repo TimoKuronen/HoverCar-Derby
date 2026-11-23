@@ -133,6 +133,6 @@ Composition root: `MenuUiPresenterBootstrap` (registered in `MenuLifetimeScope`)
 
 ## Session formation
 
-The host creates a session with Relay networking; the SDK starts the NetworkManager as host and returns a join code. Clients join by that code, and the SDK starts the NetworkManager as client. The host locks the session when the countdown starts.
+The host creates a session with Relay networking; the SDK starts the NetworkManager as host and returns a join code. Clients join by that code or from the session browser, which lists public sessions that are neither full nor locked; the SDK starts the NetworkManager as client. The browser is a view and presenter pair (`LobbiesView`, `LobbiesPresenter`) behind `ILobbiesView`. The presenter queries through the `NetworkSession` facade, holds a refresh cooldown because the query is rate limited, and the client manager refuses a second join while one is in progress. The host locks the session when the countdown starts.
 
 Related: [authority.md](authority.md)

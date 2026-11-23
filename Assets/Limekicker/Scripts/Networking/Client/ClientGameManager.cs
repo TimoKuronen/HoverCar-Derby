@@ -23,6 +23,7 @@ public class ClientGameManager : IDisposable
     private readonly GameSessionService sessionService = new GameSessionService();
 
     private UserData userData;
+    private bool isJoining;
 
     /// <summary>Initializes Unity Services, authenticates user, and creates UserData.</summary>
     public async Task<bool> InitAsync()
@@ -74,6 +75,26 @@ public class ClientGameManager : IDisposable
     }
 
     private async Task<bool> JoinAsync(Func<Task<ISession>> join, string failureMessage)
+    {
+        if (isJoining)
+        {
+            SessionNotifications.Warn("Already joining a game.");
+            return false;
+        }
+
+        isJoining = true;
+
+        try
+        {
+            return await JoinCoreAsync(join, failureMessage);
+        }
+        finally
+        {
+            isJoining = false;
+        }
+    }
+
+    private async Task<bool> JoinCoreAsync(Func<Task<ISession>> join, string failureMessage)
     {
         NetworkManager nm = await PrepareClientAsync();
         if (nm == null)

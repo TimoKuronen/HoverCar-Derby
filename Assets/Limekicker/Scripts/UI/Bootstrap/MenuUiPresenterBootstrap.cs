@@ -14,6 +14,7 @@ public class MenuUiPresenterBootstrap : IStartable, IDisposable
     public void Start()
     {
         InitializePresenter(FindView<MainMenuView>(), view => new MainMenuPresenter(view));
+        InitializePresenter(FindView<LobbiesView>(), view => new LobbiesPresenter(view));
     }
 
     public void Dispose()
