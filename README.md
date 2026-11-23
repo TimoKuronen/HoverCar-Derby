@@ -48,7 +48,7 @@ Details: [architecture](docs/architecture.md) · [authority model](docs/authorit
 
 ## Asset credits
 
-- Environment / prop pack: **RPGPP_LT**
+- Environment pack: **JC_LP_MegaCity**
 - Impact VFX: **Cartoon FX Remaster** by Jean Moreno
 - Custom / AI-generated UI and title art under `Assets/Limekicker/Art`
 
@@ -58,4 +58,4 @@ Third-party assets remain under their own licenses. They are not covered by the 
 
 Original project code and documentation: [MIT](LICENSE).
 
-Third-party packages and Asset Store content keep their respective licenses (see Asset Store EULA for Cartoon FX Remaster and the RPGPP_LT pack terms).
+Third-party packages and Asset Store content keep their respective licenses (see the Asset Store EULA for Cartoon FX Remaster and the terms of the JC_LP_MegaCity pack).

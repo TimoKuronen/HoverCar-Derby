@@ -7,7 +7,7 @@ HoverCar Derby is a Unity 6.3 LTS demolition-derby prototype focused on **Netcod
 ```
 Assets/Limekicker/
 ├── Scenes/                 NetBootstrap, MainMenu, PlayScene, Bootstrap
-├── Prefabs/                Cars, NetworkManager, HUD, collectibles (no scripts)
+├── Prefabs/                Cars, HUD, collectibles (no scripts)
 ├── Settings/               NGO default prefabs, Input System assets
 ├── Scripts/
 │   ├── GameFlow/           Match orchestration, score, timer, pause
@@ -35,7 +35,7 @@ Assets/Limekicker/
 ├── Scriptables/            Timer/countdown assets, audio cues
 ```
 
-Art and VFX under `Assets/JMO Assets` and `Assets/RPGPP_LT` are third-party packs.
+Art and VFX under `Assets/JMO Assets` and `Assets/JC_LP_MegaCity` are third-party packs.
 
 ## Scenes
 

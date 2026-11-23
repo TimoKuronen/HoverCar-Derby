@@ -24,7 +24,7 @@ public class BotInputService : IInputService
 
     public float Steering => steeringInput;
     public bool IsGasPressed => gasPressed;
-    public bool IsBrakePressed => false; // Bots don't brake for now
+    public bool IsBrakePressed => false; // Bots never brake
 
     public void SetGasPressed(bool value)
     {
