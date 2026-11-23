@@ -77,7 +77,6 @@ crashlytics-build.properties
 !/Assets/Editor
 !/Assets/Limekicker/
 !/Assets/JMO Assets/
-!/Assets/RPGPP_LT/
 
 # Public docs at repo root
 !README.md
