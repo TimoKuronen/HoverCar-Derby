@@ -14,7 +14,8 @@ Unity multiplayer arena prototype exploring Netcode for GameObjects (NGO), Unity
 - Host and client session setup via Multiplayer Services sessions (Relay transport, join codes, session browser)
 - Player spawning and ownership patterns with Netcode for GameObjects
 - Match state machine: cinematic intro, countdown, play, pause, race end
-- Hybrid authority: client-owned movement, server-owned combat and scoring
+- Hybrid authority: client-owned movement checked by the server for speed and position, server-owned combat and scoring
+- Edit-mode tests for collision damage, scoring and movement rules
 - UGS Auth and Sessions behind a `NetworkSession` facade
 - VContainer DI scopes, EventBus hooks, presenter/view UI on main menu and play HUD
 
@@ -30,7 +31,7 @@ Boot (NetBootstrap)
 
 | Concern | Authority |
 |---------|-----------|
-| Movement | Owning client |
+| Movement | Owning client, checked by the server |
 | Damage / scoring / collectibles | Server |
 | Match phases / timer | Server |
 
