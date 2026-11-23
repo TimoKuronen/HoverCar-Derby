@@ -304,6 +304,12 @@ public class PlayerSpawnManager : IDisposable
         if (usesClientAuthority && isPlayerCar)
         {
             yield return new WaitForSeconds(0.1f);
+
+            if (networkObject.TryGetComponent<ServerMovementGuard>(out var movementGuard))
+            {
+                movementGuard.ExpectTeleport(spawnData.Position);
+            }
+
             controller.TeleportToSpawnPositionClientRpc(spawnData.Position, spawnData.Rotation);
         }
         else if (networkObject.TryGetComponent<Unity.Netcode.Components.NetworkTransform>(out var networkTransform))

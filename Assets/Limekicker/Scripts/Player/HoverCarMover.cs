@@ -17,6 +17,14 @@ public class HoverCarMover : NetworkBehaviour
     [SerializeField] private float maxSpeed = 40f;
     [SerializeField] private float maxAngularVelocity = 60f;
 
+    /// <summary>
+    /// Speed the mover clamps to; the server uses it as the basis for its owner movement check.
+    /// </summary>
+    public float SpeedCap =>
+        carManager != null && carManager.CarData != null
+            ? carManager.CarData.GetMaxSpeedMultiplier() * maxSpeed
+            : maxSpeed;
+
     private IInputService inputService;
     private EventBinding<GameStateChangeEvent> gameStateChangeEvent;
 
@@ -116,6 +124,6 @@ public class HoverCarMover : NetworkBehaviour
             rig.AddTorque(Vector3.up * currentTurn, ForceMode.Acceleration);
 
         if (rig.linearVelocity.magnitude > maxSpeed)
-            rig.linearVelocity = carManager.CarData.GetMaxSpeedMultiplier() * maxSpeed * rig.linearVelocity.normalized;
+            rig.linearVelocity = SpeedCap * rig.linearVelocity.normalized;
     }
 }
