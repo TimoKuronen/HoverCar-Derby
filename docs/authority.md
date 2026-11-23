@@ -6,7 +6,7 @@ Authority assigns each piece of state to either the **server** (referee) or the 
 
 | Concern | Authority | Notes |
 |---------|-----------|-------|
-| Movement / transform | Owning client | `HoverCarMover` + `ClientNetworkTransform` |
+| Movement / transform | Owning client, bounded by the server | `HoverCarMover` + `ClientNetworkTransform`; `ServerMovementGuard` checks speed and position |
 | Bot movement | Server | No human owner; server drives bot input |
 | Collisions / damage | Server | `ServerPhysicsCollisionHandler`; health via NetworkVariable |
 | Score | Server | `ScoreManager` from `DamageDealtEvent` / collectibles |
@@ -39,10 +39,25 @@ Clients do not unilaterally decide damage outcomes.
 2. `ClientNetworkTransform` replicates transform to peers.
 3. Bots use the same mover with server-side input (`isBot`).
 
+## Server movement check
+
+`ServerMovementGuard` runs on the server for every client-owned car. Bots and the host's own car are exempt.
+
+1. The server samples the replicated transform every quarter second and compares it with the last accepted position.
+2. Horizontal speed above the car's cap (`HoverCarMover.SpeedCap`, scaled by a tolerance for collision impulses and network smoothing) is rejected. Vertical speed is not limited.
+3. A position outside the play volume is rejected. The volume is the `MapData` rectangle plus a horizontal margin, with a vertical band around the map's ground heights.
+4. A rejected sample sends the owner back to the last accepted position through the same owner-side teleport used for spawning (`PlayerController.TeleportToSpawnPositionClientRpc`), and the check pauses briefly while the snap-back arrives.
+5. Repeated rejections inside a time window disconnect the client, which covers a client that ignores the snap-back.
+6. Spawn and respawn teleports are announced to the guard (`ExpectTeleport`), so the owner's jump to the spawn point is accepted when it arrives near the announced target.
+
+The speed, bounds and window rules are plain C# in the `Limekicker.MovementAuthority` assembly (`MovementRules`, `MovementViolationLog`).
+
 ## Key files
 
 - `Scripts/Networking/Client/ClientNetworkTransform.cs`
 - `Scripts/Player/HoverCarMover.cs`
+- `Scripts/Player/ServerMovementGuard.cs`
+- `Scripts/Player/Authority/MovementRules.cs`
 - `Scripts/DamageSystem/ServerPhysicsCollisionHandler.cs`
 - `Scripts/DamageSystem/Decision/CollisionDamageCalculator.cs`
 - `Scripts/DamageSystem/CarDamageManager.cs`
