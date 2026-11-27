@@ -12,9 +12,11 @@ Assets/Limekicker/
 ├── Scripts/
 │   ├── GameFlow/           Match orchestration, score, timer, pause
 │   ├── Networking/         Connection, host/client/server, UGS services
-│   ├── Player/             Movement, controller, bots, spawn, input
+│   ├── Player/             Movement, controller, bots, spawn, input, server movement guard
+│   │   └── Authority/      Movement rules (own assembly)
 │   ├── Car/                Car lifecycle, colors, hover physics
 │   ├── DamageSystem/       Collisions, health, VFX, damage numbers
+│   │   └── Decision/       Damage, deduplication and score rules (own assembly)
 │   ├── Collectibles/       Pickups and spawner (spawns on ground inside the map bounds)
 │   ├── Map/                MapData: play area size and ground height band
 │   ├── GameStates/         Cinematic, countdown, play, completion, IGameState
@@ -27,12 +29,13 @@ Assets/Limekicker/
 │   │   ├── Presenters/
 │   │   ├── Views/
 │   │   ├── Leaderboard/
-│   │   └── Lobby/
+│   │   └── Lobby/          Session browser view and rows
 │   ├── Audio/              Cues, preferences, AudioService
 │   ├── Cameras/            Cinemachine, dolly intros
 │   ├── Debug/              Dev toggles, multi-instance join code hand-off
 │   └── Editor/             Custom inspectors and drawers
-├── Scriptables/            Timer/countdown assets, audio cues
+├── Scriptables/            Map data, car data, timer/countdown assets, audio cues
+└── Tests/                  Edit-mode tests
 ```
 
 Art and VFX under `Assets/JMO Assets` and `Assets/JC_LP_MegaCity` are third-party packs.
@@ -41,9 +44,9 @@ Art and VFX under `Assets/JMO Assets` and `Assets/JC_LP_MegaCity` are third-part
 
 | Scene | Role |
 |-------|------|
-| `NetBootstrap` | App entry; creates singletons; auth; loads the menu |
-| `Bootstrap` | Optional name entry |
-| `MainMenu` | Host and join by code |
+| `NetBootstrap` | App entry; holds the `NetworkManager` (NGO + Unity Transport); creates singletons; auth; loads the menu |
+| `Bootstrap` | Name entry scene outside the boot flow, which goes from `NetBootstrap` straight to the menu |
+| `MainMenu` | Host, join by code, session browser |
 | `PlayScene` | Arena, GameManager, match loop |
 
 ## Runtime flow
@@ -53,7 +56,7 @@ flowchart TD
     A[NetBootstrap] --> D[HostSingleton + ClientSingleton]
     D --> E[UGS Auth]
     E --> F[MainMenu]
-    F --> G[Host / Join by code]
+    F --> G[Host / Join by code / Join from browser]
     G --> H[PlayScene]
     H --> I[GameManager phases]
     I --> J[Cinematic to Countdown to Play to Completion]
@@ -78,10 +81,11 @@ UI and gameplay call `NetworkSession` instead of Host/Client singletons directly
 |--------|---------|
 | `StartHostAsync()` | Create session over Relay, start host |
 | `StartClientViaJoinCodeAsync(code)` | Join session by code |
+| `QueryAvailableSessionsAsync(count)` | List public sessions that are neither full nor locked |
+| `JoinSessionByIdAsync(id)` | Join a listed session |
+| `LockSessionAsync()` | Host only: stop new players from joining |
 | `LeaveGame()` / `ReturnToMainMenu()` | Host shutdown or client disconnect to MainMenu |
 | `RestartCurrentMatch()` | Despawn all cars, then reload PlayScene for rematch (host NGO / client local); collectibles are destroyed with the scene |
-
-The facade also carries session query, join by ID and lock methods.
 
 Singletons (`HostSingleton`, `ClientSingleton`) are DontDestroyOnLoad and created at NetBootstrap.
 
@@ -100,6 +104,7 @@ Composition root: `GameUiPresenterBootstrap` (registered in `GameLifetimeScope`)
 | Concern | View | Presenter |
 |---------|------|-----------|
 | Host / join by code | `MainMenuView` | `MainMenuPresenter` |
+| Session browser | `LobbiesView` | `LobbiesPresenter` |
 
 Composition root: `MenuUiPresenterBootstrap` (registered in `MenuLifetimeScope`). Session calls go through `NetworkSession` only.
 
@@ -108,7 +113,9 @@ Composition root: `MenuUiPresenterBootstrap` (registered in `MenuLifetimeScope`)
 | Question | Start here |
 |----------|------------|
 | Host / join | `MainMenuView` / `MainMenuPresenter` → `NetworkSession` → Host/Client game managers |
+| Session browser | `LobbiesView` / `LobbiesPresenter` → `NetworkSession` |
 | Player spawn | `PlayerSpawnManager` |
+| Movement check | `ServerMovementGuard`; rules in `MovementRules` and `MovementViolationLog` (`Limekicker.MovementAuthority` assembly) |
 | Round start/end | `GameManager` + `MatchTimerDisplaySync` + `GameStates/*` |
 | Pause | `MatchPauseController` via `IGameManager.TogglePause` |
 | Damage | `ServerPhysicsCollisionHandler` applies results; rules in `CollisionDamageCalculator`, repeat suppression in `CollisionDeduplicator` (`Limekicker.DamageDecision` assembly) |
@@ -122,7 +129,6 @@ Composition root: `MenuUiPresenterBootstrap` (registered in `MenuLifetimeScope`)
 
 | Prefab | Purpose |
 |--------|---------|
-| `NetworkManager` | NGO + Unity Transport |
 | `Networking/HostManager` | Host singleton wiring |
 | `Networking/ClientManager` | Client singleton wiring |
 | `Hover Car_Player Variant` | Networked player car |
