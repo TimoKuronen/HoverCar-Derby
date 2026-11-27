@@ -8,7 +8,7 @@ Authority assigns each piece of state to either the **server** (referee) or the 
 |---------|-----------|-------|
 | Movement / transform | Owning client, bounded by the server | `HoverCarMover` + `ClientNetworkTransform`; `ServerMovementGuard` checks speed and position |
 | Bot movement | Server | No human owner; server drives bot input |
-| Collisions / damage | Server | `ServerPhysicsCollisionHandler`; health via NetworkVariable |
+| Collisions / damage | Server, from its own contact or an owner report | `ServerPhysicsCollisionHandler`; health via NetworkVariable |
 | Score | Server | `ScoreManager` from `DamageDealtEvent` / collectibles |
 | Match phases / timer | Server | `GameManager` NetworkVariables + server coroutine |
 | Collectible consumption | Server | Server marks processed; clients observe |
@@ -26,12 +26,14 @@ Derby scoring needs trust. Driving needs responsiveness.
 
 ## Server path (damage)
 
-1. Server runs collision logic.
-2. Server applies damage (NetworkVariable health).
-3. Server raises `DamageDealtEvent`.
-4. `ScoreManager` awards points; HUD updates via presenters.
+1. A car contact reaches the server either from its own physics callback or from the owning client through `ReportCollisionServerRpc`.
+2. A pair cooldown (`CollisionDeduplicator`) processes one physical hit once.
+3. `CollisionDamageCalculator` computes damage on the server. For an owner report, the impact force, contact data and both speeds are the values the owner measured.
+4. Server applies damage (NetworkVariable health).
+5. Server raises `DamageDealtEvent`.
+6. `ScoreManager` awards points; HUD updates via presenters.
 
-Clients do not unilaterally decide damage outcomes.
+Health and score are written only by the server.
 
 ## Client path (movement)
 

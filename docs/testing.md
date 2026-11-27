@@ -11,7 +11,3 @@ Edit-mode tests cover the server-side collision decision logic and the movement 
 | `ScoreLedger` | Participants register once without resetting points. Awards accumulate and unknown ids are rejected. Ranking is highest first. Dealt damage rounds to points; non-positive damage and attacker-less damage (`ulong.MaxValue`) score nothing. The dedup and ledger tests together show a single collision awarding points once. |
 | `MovementRules` | Horizontal speed at the cap is accepted and above it is too fast, including a teleport across the arena. Vertical movement is not speed limited. A position outside the play volume, horizontally or vertically, is out of bounds, and out of bounds wins over speed. Without a play volume only speed is checked, and a non-positive time step is accepted. |
 | `MovementViolationLog` | Violations trigger only when the limit is reached inside the time window; entries older than the window or from before a clock restart are dropped. |
-
-## What the tests do not cover
-
-Network transport, RPC ownership, physics callbacks (`ServerPhysicsCollisionHandler` feeding the calculator) and the sampling and snap-back flow of `ServerMovementGuard` are exercised through the multiplayer session checklists rather than automated tests.

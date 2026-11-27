@@ -24,7 +24,7 @@ Unity multiplayer arena prototype exploring Netcode for GameObjects (NGO), Unity
 ```text
 Boot (NetBootstrap)
   -> Network bootstrap (host and client singletons, auth)
-  -> Session facade (StartHost, JoinByCode, Leave)
+  -> Session facade (StartHost, JoinByCode, JoinById, Leave)
   -> Match state machine
   -> Gameplay (hover forces, collision scoring, event bus)
 ```
@@ -35,7 +35,7 @@ Boot (NetBootstrap)
 | Damage / scoring / collectibles | Server |
 | Match phases / timer | Server |
 
-Details: [architecture](docs/architecture.md) · [authority model](docs/authority.md)
+Details: [architecture](docs/architecture.md) · [authority model](docs/authority.md) · [testing](docs/testing.md)
 
 ## Stack
 
@@ -49,7 +49,7 @@ Details: [architecture](docs/architecture.md) · [authority model](docs/authorit
 
 ## Asset credits
 
-- Environment pack: **JC_LP_MegaCity**
+- Environment pack: **JC_LP_MegaCity** (not included in the repository)
 - Impact VFX: **Cartoon FX Remaster** by Jean Moreno
 - Custom / AI-generated UI and title art under `Assets/Limekicker/Art`
 
